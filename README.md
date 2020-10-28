@@ -21,7 +21,7 @@ Website: https://transmitic.io/
 
 **Bittorrent**  
 Transmitic is not bittorrent, and cannot download the same file from multiple peers to download it faster.  
-Users connect directly to one another directly via IP.  
+Users connect to one another directly via IP.  
 
 **File Syncing**  
 Transmitic does not have any file syncing capability and should never be used for this purpose.
@@ -53,6 +53,7 @@ If you are interested please visit the chat.
 - Rust (backend)
 - Ring
 - aes-gcm
+- x25519_dalek
 - Sciter (GUI)
 
 ## Goals (Short Term and Long Term)
@@ -74,9 +75,22 @@ If you are interested please visit the chat.
 
 ## Cryptography Usage
 
+- Public, Private signing keys generated with `ring`
+- Signing `ring` keys are exchanged out of band
+- Diffie-Hellman key generation with `x25519_dalek`
+  - Diffie-Hellman keys are regenerated for every new TCP stream. Never reused.
+- Diffie-Hellman `x25519_dalek` keys are signed with the `ring` keys
+- Remote user verifies `x25519_dalek` key with that user's `ring` public key
+- AES key generated
+- All further communication encrypted with `AES-GCM` with `ring`
+
 ## Protocol Overview
 
+- TODO
+
 ## Screenshots
+
+![Transmitic](./screenshot.png)
 
 ## License
 
