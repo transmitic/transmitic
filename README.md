@@ -48,13 +48,14 @@ It will eventually reach a stable and tested point.
 The only area of contribution that is needed at this time is a review of the cryptography usage.  
 If you are interested please visit the chat.
 
-## Tech Stack
+## Dependencies
 
-- Rust (backend)
-- Ring
-- aes-gcm
-- x25519_dalek
-- Sciter (GUI)
+- [Rust (backend)](https://www.rust-lang.org/)
+- [ring](https://briansmith.org/rustdoc/ring/)
+- [aes-gcm](https://docs.rs/aes-gcm/0.8.0/aes_gcm/)
+- [x25519_dalek](https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/)
+- [serde](https://serde.rs/)
+- [Sciter (GUI)](http://sciter.com/)
 
 ## Goals (Short Term and Long Term)
 
