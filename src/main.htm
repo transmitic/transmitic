@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <title>Transmitic In Development Alpha</title>
+    <style>
+
+      html {
+        background-color:rgb(255, 255, 255);
+        color: #000;
+        behavior: htmlarea;
+      }
+
+      html:rtl {
+        mapping: left-to-right(background);
+      }
+
+      a { color: white; }
+      code { font-weight: bold; }
+
+    </style>
+    <script type="text/tiscript">
+
+      // Window icon
+      var bytes_string = view.get_icon();
+      var bytes = Bytes.fromString(bytes_string, "utf-8");
+      var image = Image.fromBytes(bytes);
+      view.windowIcon = image;
+
+      $(button#load_about).on("click", function() {
+        stdout.println("load about");
+        $(frame#content).html = view.get_page_about();
+      });
+
+      $(button#load_downloads).on("click", function() {
+        load_downloads();
+      });
+
+      function load_downloads() {
+        stdout.println("load downloads");
+        var page_html = view.get_page_downloads();
+        $(frame#content).load(page_html, "example://downloads.htm");
+      }
+
+      $(button#load_my_sharing).on("click", function() {
+        stdout.println("load my sharing");
+        var page_html = view.get_page_my_sharing();
+        $(frame#content).load(page_html, "example://my_sharing.htm");
+      });
+
+      function load_shared_with_me() {
+        var page_html = view.get_page_shared_with_me();
+        $(frame#content).load(page_html, "example://shared_with_me.htm");
+        $(#users).html = view.get_users();
+      }
+
+      $(button#load_shared_with_me).on("click", function() {
+        stdout.println("load shared with me");
+        load_shared_with_me();
+      });
+      load_downloads();
+
+    </script>
+  </head>
+<body>
+
+  <button #load_downloads>Downloads</button>
+  <button #load_shared_with_me>Shared With Me</button>
+  <button #load_my_sharing>My Sharing</button>
+  <button #load_about>About</button>
+
+  <frame#content>
+
+  </frame>
+
+</body>
+</html>

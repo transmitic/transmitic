@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <style>
+      html {
+        behavior: htmlarea;
+      }
+    </style>
+<script type="text/tiscript">
+  $(button#download_selected).on("click", function() {
+    var selected_files = $(body).selectAll("input[type=checkbox]:checked");
+    var clean_files = [];
+    stdout.println(selected_files);
+    for (var a in selected_files){
+      clean_files.push([a.attributes["data-owner"], a.value]);
+    }
+    stdout.println(clean_files);
+    if (clean_files.length > 0) {
+      view.download_file_list(clean_files);
+      $(#status).html = "Downloads started"
+    } else {
+      $(#status).html = "No files selected"
+    }
+    
+  });
+
+  $(button#refresh_shared_with_me).on("click", function() {
+    $(#status).html = "Refreshing...";
+
+    // TODO locks UI. Use native callback.
+    self.timer(30ms, function() {
+      var html_refresh = view.refresh_shared_with_me();
+      $(#users).html = html_refresh;
+      $(#status).html = "Refresh Complete"
+   });
+    
+  });
+
+  $(#users).html = view.get_users();
+</script>
+</head>
+<body>
+<h1>Shared With Me</h1>
+
+<button #refresh_shared_with_me>Refresh</button>
+<button #download_selected>Download Selected</button>
+<br><br>
+<div #status>Click Refresh</div>
+<div #users></div>
+
+</body>
+</html>

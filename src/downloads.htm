@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <style>
+      html {
+        behavior: htmlarea;
+      }
+      section {
+        size:*; 
+        flow:grid(1 2);
+        border-spacing:8dip; /* defines spacing between cells */
+      }
+
+      section > div {size:*;}
+      section > div > h2 { text-align:center; vertical-align:top;}
+      section > div > download { text-align:left; vertical-align:top;}
+      
+    </style>
+    <script type="text/tiscript">
+      function update_downloads() {
+        var html_my_downloads = view.get_my_downloads();
+        $(#mydownloads).html = html_my_downloads;
+
+        var html_downloading = view.get_downloading_from_me();
+        $(#downloadingfromme).html = html_downloading;
+
+        return true;
+      }
+      update_downloads();
+      
+      self.timer(3s, update_downloads);
+    </script>
+  </head>
+<body>
+
+  <h1>
+    Downloads
+    </h1>
+  <section>
+    <div style="background-color: #f0f0f0;">
+      <h2>My Downloads</h2>
+      <hr>
+      <div #mydownloads>
+      </div>
+    </div>
+
+    <div style="background-color: #f0f0f0;">
+      <h2>Users Downloading From Me</h2>
+      <hr>
+      <div #downloadingfromme>
+      </div>
+    </div>
+
+  </section>
+
+</body>
+</html>

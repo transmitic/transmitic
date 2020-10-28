@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <style>
+      html {
+        behavior: htmlarea;
+      }
+    </style>
+    <script type="text/tiscript">
+      $(button#start_sharing).on("click", function() {
+        stdout.println("start sharing");
+        $(#status).html = "Starting Sharing..."
+        view.client_start_sharing();
+        $(#status).html = view.get_sharing_status();
+      });
+
+      $(#status).html = view.get_sharing_status();
+
+      var html_shared_files = view.get_my_shared_files();
+      $(#myfiles).html = html_shared_files;
+    </script>
+  </head>
+<body>
+
+  <h1>
+    My Sharing
+    </h1>
+  <section>
+    <div>
+      <button #start_sharing>Start Sharing</button>
+      <br><br>
+      <div #status></div>
+      <br><br>
+      <div #myfiles>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
