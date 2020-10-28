@@ -17,6 +17,10 @@ Website: https://transmitic.io/
 
 [Patreon](https://www.patreon.com/andrewshay)
 
+## Setup & Usage
+
+See wiki [https://github.com/transmitic/transmitic/wiki](https://github.com/transmitic/transmitic/wiki)
+
 ## Comparison To Other Tools
 
 **Bittorrent**  

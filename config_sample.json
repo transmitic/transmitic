@@ -1,33 +1,40 @@
 {
-    "my_private_id_file_name": "my_private_id.id",
+	"my_private_id_file_name": "my_private_id.id",
 	"server_port": "7878",
 	"server_visibility": "local",
-    "trusted_users_public_ids": [
-        {
-            "public_id_file_name": "foo_public_id.key",
-            "display_name": "Foo Bar",
+	"trusted_users_public_ids": [
+		{
+			"public_id_file_name": "foo_public_id.key",
+			"display_name": "Foo Bar",
 			"ip_address": "127.0.0.1",
 			"port": "7878"
-        },
-        {
-            "public_id_file_name": "lorem_ipsum_id.key",
-            "display_name": "Lorem Ipsum",
+		},
+		{
+			"public_id_file_name": "lorem_ipsum_id.key",
+			"display_name": "Lorem Ipsum",
 			"ip_address": "127.0.0.1",
 			"port": "7878"
-        }
-    ],
-	"shared_files" : [
+		}
+	],
+	"shared_files": [
 		{
 			"path": "C:\\Users\\me\\Documents\\file.txt",
-			"shared_with": ["Foo Bar", "Lorem Ipsum"]
+			"shared_with": [
+				"Foo Bar",
+				"Lorem Ipsum"
+			]
 		},
 		{
 			"path": "C:\\Users\\me\\Documents\\thing.txt",
-			"shared_with": ["Foo Bar"]
+			"shared_with": [
+				"Foo Bar"
+			]
 		},
 		{
 			"path": "C:\\Users\\me\\Documents\\some_folder",
-			"shared_with": ["Lorem Ipsum"]
+			"shared_with": [
+				"Lorem Ipsum"
+			]
 		}
 	]
 }
