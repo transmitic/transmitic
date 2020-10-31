@@ -942,7 +942,7 @@ impl Handler {
 			  <br><br>
 			  <hr>
 			  <br>",
-					&owner, msg, &shared_file
+					&owner, msg, &shared_file.replace("\\\\", "\\")
 				));
 			}
 		}
@@ -960,7 +960,7 @@ impl Handler {
 			  <br><br>
 			  <hr>
 			  <br>",
-					&owner, &file
+					&owner, &file.replace("\\\\", "\\")
 				));
 			}
 		}
@@ -978,7 +978,7 @@ impl Handler {
 			  <br><br>
 			  <hr>
 			  <br>",
-					&owner, &file
+					&owner, &file.replace("\\\\", "\\")
 				));
 			}
 			std::mem::drop(conn);
