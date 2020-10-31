@@ -909,7 +909,13 @@ impl Handler {
 				}
 				None => {}
 			}
-
+		}
+		for (owner, connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
+			let conn = connection
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
+			let is_online = conn.is_online;
+			let offline_str = "User is currently offline";
 			for shared_file in conn.download_queue.iter() {
 				// If active download is still in the queue, don't duplicate it in the queue list
 				match conn.active_download.clone() {
@@ -939,7 +945,11 @@ impl Handler {
 					&owner, msg, &shared_file
 				));
 			}
-
+		}
+		for (owner, connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
+			let conn = connection
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
 			for file in conn.finished_downloads.iter() {
 				download_string.push_str(&format!(
 					"<download>
@@ -953,7 +963,11 @@ impl Handler {
 					&owner, &file
 				));
 			}
-
+		}
+		for (owner, connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
+			let conn = connection
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
 			for file in conn.invalid_downloads.iter() {
 				download_string.push_str(&format!(
 					"<download>
