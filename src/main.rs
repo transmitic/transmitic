@@ -832,10 +832,17 @@ impl Handler {
 		</head>
 		<body>
 			<br>
-			<h3>{}</h3>
+			<div style=\"background-color: #f0f0f0; border: 1px solid #a0a0a0;\">
+			<div style=\"padding: -0.5em 0.5em 0.5em 0.5em;\">
+			<h2>{}</h2>
 			<h3>v{}</h3>
 			<h3>https://transmitic.io</h3>
+			</div>
+			</div>
 			<br>
+
+			<div style=\"background-color: #f0f0f0; border: 1px solid #a0a0a0;\">
+			<div style=\"padding: -0.5em 0.5em 0.5em 0.5em;\">
 			<h3>Dependencies</h3>
 			
 			<h4>Rust Programming Language</h4>
@@ -859,6 +866,8 @@ impl Handler {
 
 			<h4>x25519-dalek</h4>
 			https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/
+			</div>
+			</div>
 		</body>
 		</html>
 		",
