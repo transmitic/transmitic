@@ -1,7 +1,7 @@
 # Transmitic: In Development Alpha
 
 Transmitic is an encrypted, peer to peer, file transfer program.  
-Transmitic is an early development.
+Transmitic is in early development.
 
 Discord: https://discord.gg/tRT3J6T  
 Reddit: https://www.reddit.com/r/transmitic/   
@@ -24,7 +24,7 @@ See wiki [https://github.com/transmitic/transmitic/wiki](https://github.com/tran
 ## Comparison To Other Tools
 
 **Bittorrent**  
-Transmitic is not bittorrent, and cannot download the same file from multiple peers to download it faster.  
+Transmitic does not support bittorrent, or bittorent like functionality. Transmitic cannot download the same file from multiple peers to download it faster.  
 Users connect to one another directly via IP.  
 
 **File Syncing**  
@@ -95,7 +95,13 @@ If you are interested please visit the chat.
 
 ## Screenshots
 
+### Current
+
 ![Transmitic](./screenshot.png)
+
+### Mockups
+
+[https://github.com/transmitic/transmitic/wiki/UI-Mockup](https://github.com/transmitic/transmitic/wiki/UI-Mockup)
 
 ## License
 
