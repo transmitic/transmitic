@@ -4,6 +4,17 @@
       html {
         behavior: htmlarea;
       }
+
+      #users > div {
+        background-color: #f0f0f0; 
+        border: 1px solid #a0a0a0;
+      }
+
+      #users > div > div {
+        padding: -0.5em 0.5em 0.5em 0.5em;
+      }
+
+
     </style>
 <script type="text/tiscript">
   $(button#download_selected).on("click", function() {
@@ -48,6 +59,7 @@
 <button #download_selected>Download Selected</button>
 <br><br>
 <div #status>Click Refresh</div>
+<br>
 <div #users></div>
 
 </body>

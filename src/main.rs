@@ -702,6 +702,7 @@ impl Handler {
 		let mut users_string = String::new();
 
 		for remote_user in &self.config.trusted_users_public_ids {
+			users_string.push_str("<div><div>");
 			let result = panic::catch_unwind(|| self._refresh_single_user(&remote_user)).ok();
 			match result {
 				Some(value) => {
@@ -711,14 +712,15 @@ impl Handler {
 					// TODO don't duplicate the user header. remove from _refresh_single_user and have this function do it
 					users_string.push_str(&format!("<h2>{}</h2>User is online, but an error occurred in connection.", remote_user.display_name));
 				}
-			}			
+			}
+			users_string.push_str("</div></div><br>")
 		}
 		Value::from(format!("{}", users_string))
 	}
 
 	fn _refresh_single_user(&self, remote_user: &TrustedUser) -> String {
 		let mut ui_string: String = String::new();
-		ui_string.push_str(&format!("<h2>{}</h2><br>", remote_user.display_name));
+		ui_string.push_str(&format!("<h2>{}</h2>", remote_user.display_name));
 
 		let mut remote_addr = String::from(&remote_user.ip_address);
 		remote_addr.push_str(":");
@@ -775,7 +777,7 @@ impl Handler {
 		let mut users_string = String::new();
 		for user in &self.config.trusted_users_public_ids {
 			users_string.push_str(&format!(
-				"<h2>{}</h2>Click Refresh<br>",
+				"<div><div><h2>{}</h2>Click Refresh<br></div></div><br>",
 				&user.display_name.clone()
 			));
 		}
