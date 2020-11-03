@@ -4,6 +4,12 @@
       html {
         behavior: htmlarea;
       }
+
+      #myfiles  > div {
+        background-color: #f0f0f0; 
+        border: 1px solid #a0a0a0;
+        padding: 0.5em;
+      }
     </style>
     <script type="text/tiscript">
       $(button#start_sharing).on("click", function() {
@@ -33,7 +39,7 @@
       <button #start_sharing>Start Sharing</button>
       <br><br>
       <div #status></div>
-      <br><br>
+      <br>
       <div #myfiles>
       </div>
     </div>

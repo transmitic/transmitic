@@ -870,12 +870,14 @@ impl Handler {
 	fn get_my_shared_files(&self) -> Value {
 		let mut html = String::new();
 		for file in self.config.shared_files.iter() {
+			html.push_str("<div>");
 			html.push_str(&file.path);
 			html.push_str("<br>Shared With:<br>");
 			for user in file.shared_with.iter() {
 				html.push_str(&format!("&nbsp;&nbsp;&nbsp;&nbsp;{}<br>", user));
 			}
-			html.push_str("<br><br>");
+			html.push_str("</div>");
+			html.push_str("<br>");
 		}
 		Value::from(html)
 	}
