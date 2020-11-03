@@ -552,7 +552,7 @@ fn download_shared_file(
 		}
 		// TODO Inefficient. Every download recalculates dir size
 		let mut conn = outgoing_connection
-			.lock()
+			.lock()       
 			.unwrap_or_else(|poisoned| poisoned.into_inner());
 		if conn.active_download.as_ref().unwrap().is_directory {
 			let _path_obj = Path::new(&conn.active_download.as_ref().unwrap().path);
@@ -901,9 +901,8 @@ impl Handler {
 					<br>
 					{}
 				  </download>
-				  <br><br>
 				  <hr>
-				  <br>",
+				  ",
 						&owner, &download_percent, msg, &shared_file.path
 					));
 				}
@@ -939,9 +938,8 @@ impl Handler {
 				<br>
 				{}
 			  </download>
-			  <br><br>
 			  <hr>
-			  <br>",
+			  ",
 					&owner, msg, &shared_file.replace("\\\\", "\\")
 				));
 			}
@@ -957,9 +955,8 @@ impl Handler {
 				<br>
 				{}
 			  </download>
-			  <br><br>
 			  <hr>
-			  <br>",
+			  ",
 					&owner, &file.replace("\\\\", "\\")
 				));
 			}
@@ -975,9 +972,8 @@ impl Handler {
 				<br>
 				{}
 			  </download>
-			  <br><br>
 			  <hr>
-			  <br>",
+			  ",
 					&owner, &file.replace("\\\\", "\\")
 				));
 			}
@@ -1030,9 +1026,8 @@ impl Handler {
 				<br>
 				{}
 			  </download>
-			  <br><br>
 			  <hr>
-			  <br>",
+			  ",
 					&user_name,
 					&conn.active_download_percent,
 					&conn.active_download.clone().unwrap().path
@@ -1053,9 +1048,8 @@ impl Handler {
 				<br>
 				{}
 			  </download>
-			  <br><br>
 			  <hr>
-			  <br>",
+			  ",
 					&user_name, path
 				));
 			}
