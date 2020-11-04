@@ -55,7 +55,7 @@ const TOTAL_BUFFER_SIZE: usize = MSG_TYPE_SIZE + PAYLOAD_SIZE_LEN + MAX_DATA_SIZ
 const TOTAL_CRYPTO_BUFFER_SIZE: usize = TOTAL_BUFFER_SIZE + 16;
 const PAYLOAD_OFFSET: usize = MSG_TYPE_SIZE + PAYLOAD_SIZE_LEN;
 
-const VERSION: &str = "0.1.2"; // Note: And cargo.toml
+const VERSION: &str = "0.1.3"; // Note: And cargo.toml
 const NAME: &str = "Transmitic In Development Alpha";
 
 #[derive(Serialize, Deserialize, Debug)]
