@@ -14,7 +14,7 @@
         mapping: left-to-right(background);
       }
 
-      a { color: white; }
+      a { color: blue; }
       code { font-weight: bold; }
 
     </style>
@@ -32,6 +32,14 @@
       var bytes = Bytes.fromString(bytes_string, "utf-8");
       var image = Image.fromBytes(bytes);
       view.windowIcon = image;
+
+      // -- Open urls in browser
+      self.on("click", "a[href^=http]", function(evt) {
+        var href = this.attributes["href"];
+        Sciter.launch(href); // will open the url in default browser
+        return true; // consume the event
+      });
+      // --
 
       $(button#load_about).on("click", function() {
         stdout.println("load about");

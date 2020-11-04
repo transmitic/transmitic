@@ -836,7 +836,7 @@ impl Handler {
 			<div style=\"padding: -0.5em 0.5em 0.5em 0.5em;\">
 			<h2>{}</h2>
 			<h3>v{}</h3>
-			<h3>https://transmitic.io</h3>
+			<a href=\"https://transmitic.io\"><h3>https://transmitic.io</h3></a>
 			</div>
 			</div>
 			<br>
@@ -846,26 +846,28 @@ impl Handler {
 			<h3>Dependencies</h3>
 			
 			<h4>Rust Programming Language</h4>
-			https://www.rust-lang.org/
+			<a href=\"https://www.rust-lang.org/\">https://www.rust-lang.org/</a>
 
 			<h4>Sciter</h4>
 			This Application (or Component) uses Sciter Engine (http://sciter.com/), copyright Terra Informatica Software, Inc.
+			<br>
+			<a href=\"https://sciter.com/\">https://sciter.com/</a>
 
 			<h4>Serde</h4>
-			https://serde.rs/
+			<a href=\"https://serde.rs/\">https://serde.rs/</a>
 
 			<h4>ring</h4>
-			https://briansmith.org/rustdoc/ring/
+			<a href=\"https://briansmith.org/rustdoc/ring/\">https://briansmith.org/rustdoc/ring/</a>
 			<br>
 			This product includes software developed by the OpenSSL Projectfor use in the OpenSSL Toolkit (http://www.openssl.org/)
 			<br>  
 			This product includes cryptographic software written by Eric Young (eay@cryptsoft.com)
 			
 			<h4>aes-gcm</h4>
-			https://docs.rs/aes-gcm/0.8.0/aes_gcm/
+			<a href=\"https://docs.rs/aes-gcm/0.8.0/aes_gcm/\">https://docs.rs/aes-gcm/0.8.0/aes_gcm/</a>
 
 			<h4>x25519-dalek</h4>
-			https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/
+			<a href=\"https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/\">https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/</a>
 			</div>
 			</div>
 		</body>
