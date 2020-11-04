@@ -7,6 +7,7 @@
         background-color:rgb(255, 255, 255);
         color: #000;
         behavior: htmlarea;
+        context-menu: selector(menu#for-htmlarea);
       }
 
       html:rtl {
@@ -17,8 +18,15 @@
       code { font-weight: bold; }
 
     </style>
-    <script type="text/tiscript">
 
+<menu.context #for-htmlarea style="background-color: #f0f0f0; border: 1px solid #a0a0a0;">
+  <li command="edit:copy"	style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span class="accesskey">Ctrl+C</span></li>
+  <hr/>
+  <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
+</menu>
+
+    <script type="text/tiscript">
+    
       // Window icon
       var bytes_string = view.get_icon();
       var bytes = Bytes.fromString(bytes_string, "utf-8");
@@ -57,6 +65,23 @@
         load_shared_with_me();
       });
       load_downloads();
+
+      // -- RIGHT CLICK CONTEXT MENU
+      function getSelectedText() {
+        return $(div.selectable).selection.text;
+      }
+      
+      function getSelectedHTML() {
+        return $(div.selectable).selection.html;
+      }
+      
+      function hasSelection() {
+        return $(div.selectable).selection.type;
+      }
+    
+      $(div.selectable).on("click","li#selected-text", function() { view.msgbox(#information,getSelectedText().htmlEscape()); })
+                       .on("click","li#selected-html", function() { view.msgbox(#information,getSelectedHTML().htmlEscape()); })
+                       .on("keydown", function(evt) { return true; /*supress key handling in selectable */ } );
 
     </script>
   </head>
