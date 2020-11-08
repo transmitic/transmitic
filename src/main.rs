@@ -1525,12 +1525,12 @@ fn main() {
 }
 
 fn get_blocked_file_name_chars() -> String {
-	return String::from("(){}\"'$<>#?&;%!");
+	return String::from("{}\"'$<>#?&;%!|*");
 }
 
 fn get_blocked_display_name_chars() -> String {
 	let mut chars = get_blocked_file_name_chars();
-	chars.push_str("/\\:[]");
+	chars.push_str("/\\[]()");
 	return chars;
 }
 
