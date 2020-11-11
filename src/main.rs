@@ -1,10 +1,39 @@
+mod shared_file;
+mod utils;
+mod config;
+mod crypto_ids;
+
+use shared_file::{
+	SharedFile,
+	FileToDownload,
+	get_everything_file,
+	quit_if_invalid_file,
+	print_shared_files,
+};
+use config::{
+	TrustedUser,
+	get_path_transmitic_config_dir,
+	get_path_my_config_dir,
+	get_path_user_public_id_file,
+	Config,
+	create_config_dir,
+	verify_config,
+	get_config,
+	init_config,
+	
+};
+use utils::{
+	get_size_of_directory,
+	exit_error,
+	get_file_size_string,
+};
+
 use sciter::dispatch_script_call;
 use sciter::Value;
 
 extern crate sciter;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, net::SocketAddr};
-use std::collections::VecDeque;
+use std::{collections::VecDeque, net::{IpAddr, Ipv4Addr}, process::Command, sync::MutexGuard};
 use std::env;
 use std::fs;
 use std::fs::metadata;
@@ -17,17 +46,14 @@ use std::net::{Shutdown, TcpListener, TcpStream};
 use std::path::Path;
 use std::str;
 use std::sync::Mutex;
+use std::{collections::HashMap, net::SocketAddr};
 use std::{panic, process, thread, time};
 use std::{path::PathBuf, sync::Arc};
 
 // CRYPTO
 extern crate x25519_dalek;
+use aes_gcm::aead::{generic_array::GenericArray, Aead, NewAead};
 use aes_gcm::Aes256Gcm;
-use aes_gcm::{
-	aead::{generic_array::GenericArray, Aead, NewAead},
-	aes::Aes256,
-	AesGcm,
-};
 
 use rand_core::OsRng;
 use ring::{
@@ -42,7 +68,6 @@ const PAYLOAD_SIZE_LEN: usize = 4;
 
 const MSG_FILE_LIST: u8 = 1;
 const MSG_FILE_CHUNK: u8 = 2;
-const MSG_FILE_SELECTION: u8 = 3;
 const MSG_FILE_FINISHED: u8 = 4;
 const MSG_FILE_INVALID_FILE: u8 = 5;
 const MSG_CANNOT_SELECT_DIRECTORY: u8 = 6;
@@ -55,49 +80,10 @@ const TOTAL_BUFFER_SIZE: usize = MSG_TYPE_SIZE + PAYLOAD_SIZE_LEN + MAX_DATA_SIZ
 const TOTAL_CRYPTO_BUFFER_SIZE: usize = TOTAL_BUFFER_SIZE + 16;
 const PAYLOAD_OFFSET: usize = MSG_TYPE_SIZE + PAYLOAD_SIZE_LEN;
 
-const VERSION: &str = "0.1.4"; // Note: And cargo.toml
+const VERSION: &str = "0.2.0"; // Note: And cargo.toml
 const NAME: &str = "Transmitic In Development Alpha";
 
-#[derive(Serialize, Deserialize, Debug)]
-struct FilesJson {
-	files: Vec<PathJson>,
-}
 
-#[derive(Serialize, Deserialize, Debug)]
-struct PathJson {
-	path: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct SharedFile {
-	path: String,
-	is_directory: bool,
-	files: Vec<SharedFile>,
-	file_size: u64,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct Config {
-	my_private_id_file_name: String,
-	trusted_users_public_ids: Vec<TrustedUser>,
-	shared_files: Vec<ConfigSharedFile>,
-	server_port: String,
-	server_visibility: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct ConfigSharedFile {
-	path: String,
-	shared_with: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct TrustedUser {
-	public_id_file_name: String,
-	display_name: String,
-	ip_address: String,
-	port: String,
-}
 
 struct SecureStream<'a> {
 	tcp_stream: &'a TcpStream,
@@ -173,10 +159,11 @@ impl<'a> SecureStream<'a> {
 	}
 }
 
-struct FileToDownload {
-	file_path: String,
-	file_owner: String,
+
+struct SingleConnection {
+	should_reset: bool,
 }
+
 
 struct IncomingConnection {
 	user: TrustedUser,
@@ -185,23 +172,29 @@ struct IncomingConnection {
 	active_download_current_bytes: f64,
 	is_downloading: bool,
 	finished_downloads: Vec<String>,
+	is_disabled: bool,
+	single_connections: Vec<Arc<Mutex<SingleConnection>>>,
 }
 
 struct OutgoingConnection {
 	user: TrustedUser,
 	download_queue: VecDeque<String>,
-	finished_downloads: Vec<String>,
+	finished_downloads: Vec<(String, String)>,
 	invalid_downloads: Vec<String>,
 	root_file: Option<SharedFile>,
 	active_download: Option<SharedFile>,
 	active_download_percent: usize,
 	active_download_current_bytes: f64,
 	is_online: bool,
+	is_deleted: bool,
+	should_reset_connection: bool,
+	stop_active_download: bool,
+	is_paused: bool,
 }
 
 impl OutgoingConnection {
-	pub fn new(user: TrustedUser) -> OutgoingConnection {
-		let queue_path = OutgoingConnection::get_path_download_queue(&user);
+	pub fn new(user: TrustedUser, is_all_paused: bool) -> OutgoingConnection {
+		let queue_path = config::get_path_download_queue(&user);
 		let mut download_queue: VecDeque<String> = VecDeque::new();
 		if queue_path.exists() {
 			let f = fs::read_to_string(queue_path).expect("Unable to read file");
@@ -223,14 +216,13 @@ impl OutgoingConnection {
 			active_download_percent: 0,
 			active_download_current_bytes: 0.0,
 			is_online: false,
+			is_deleted: false,
+			should_reset_connection: false,
+			stop_active_download: false,
+			is_paused: is_all_paused,
 		}
 	}
 
-	pub fn get_path_download_queue(user: &TrustedUser) -> PathBuf {
-		let mut path = get_path_transmitic_config_dir();
-		path.push(format!("download_queue_{}.txt", user.display_name));
-		return path;
-	}
 
 	pub fn download_file(&mut self, file_path: String) {
 		println!(
@@ -244,20 +236,16 @@ impl OutgoingConnection {
 
 	fn write_queue(&self) {
 		let mut write_string = String::new();
-		match &self.active_download {
-			Some(shared_file) => {
-				write_string.push_str(&shared_file.path);
-				write_string.push_str("\n");
-			}
-			None => {}
+
+		if let Some(shared_file) = &self.active_download {
+			write_string.push_str(&format!("{}\n", &shared_file.path));
 		}
 
 		for f in &self.download_queue {
-			write_string.push_str(&f);
-			write_string.push_str("\n");
+			write_string.push_str(&format!("{}\n", &f));
 		}
 
-		let file_path = OutgoingConnection::get_path_download_queue(&self.user);
+		let file_path = config::get_path_download_queue(&self.user);
 		let mut f = OpenOptions::new()
 			.write(true)
 			.create(true)
@@ -278,8 +266,8 @@ fn handle_outgoing(
 	let local_key_pair =
 		signature::Ed25519KeyPair::from_pkcs8(local_key_pair_bytes.as_ref()).unwrap();
 	let mut remote_addr = String::from(&connection_guard.user.ip_address);
-	remote_addr.push_str(":");
-	remote_addr.push_str(&connection_guard.user.port);
+	remote_addr.push_str(&format!(":{}", &connection_guard.user.port));
+
 	println!(
 		"Handle Outgoing {} - {}",
 		remote_addr, &connection_guard.user.display_name
@@ -287,21 +275,17 @@ fn handle_outgoing(
 
 	//	move into struct?
 	let remote_socket_addr: SocketAddr = remote_addr.parse().unwrap();
-	let stream: TcpStream;
-	match TcpStream::connect_timeout(&remote_socket_addr, time::Duration::from_millis(1000)) {
-		Ok(s) => {
-			stream = s;
-		}
+	let stream = match TcpStream::connect_timeout(&remote_socket_addr, time::Duration::from_millis(1000)) {
+		Ok(s) => s,
 		Err(e) => {
 			println!("Could not connect to '{}': {:?}", remote_addr, e);
 			return;
 		}
-	}
-	let remote_public_id_file_name = connection_guard.user.public_id_file_name.clone();
+	};
 	let cipher = get_local_to_outgoing_secure_stream_cipher(
 		&stream,
 		&local_key_pair,
-		remote_public_id_file_name,
+		connection_guard.user.public_id.clone(),
 	);
 	let mut secure_stream: SecureStream = SecureStream::new(&stream, cipher);
 
@@ -316,6 +300,25 @@ fn handle_outgoing(
 		let mut connection_guard = outgoing_connection
 			.lock()
 			.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		if connection_guard.is_deleted == true {
+			println!("Outgoing Connection deleted. {}", connection_guard.user.display_name);
+			std::mem::drop(connection_guard);
+			break;
+		}
+
+		if connection_guard.should_reset_connection == true {
+			println!("Outgoing Connection reset. {}", connection_guard.user.display_name);
+			std::mem::drop(connection_guard);
+			break;
+		}
+
+		if connection_guard.is_paused == true {
+			std::mem::drop(connection_guard);
+			thread::sleep(time::Duration::from_secs(3));
+			continue;
+		}
+
 		let current_download_file = connection_guard.download_queue.get(0);
 		match current_download_file {
 			Some(file_path) => {
@@ -328,16 +331,19 @@ fn handle_outgoing(
 				file_path = file_path.replace("\\\\", "\\");
 				let shared_file =
 					get_file_by_path(&file_path, &connection_guard.root_file.clone().unwrap());
-				match shared_file {
-					None => {
-						connection_guard.invalid_downloads.push(file_path);
-						connection_guard.download_queue.pop_front();
-						connection_guard.write_queue();
-						continue;
-					}
-					_ => {}
+				
+				if let None = shared_file {
+					println!("Invalid download: {}", file_path);
+					connection_guard.invalid_downloads.push(file_path);
+					connection_guard.download_queue.pop_front();
+					connection_guard.write_queue();
+					connection_guard.active_download = None;
+					std::mem::drop(connection_guard);
+					continue;
 				}
+
 				let shared_file = shared_file.unwrap();
+				connection_guard.stop_active_download = false;
 				connection_guard.active_download_percent = 0;
 				connection_guard.active_download_current_bytes = 0.0;
 				connection_guard.active_download = Some(shared_file.clone());
@@ -345,17 +351,41 @@ fn handle_outgoing(
 				client_download_from_remote(
 					&mut secure_stream,
 					&shared_file,
-					remote_user_name,
+					&remote_user_name,
 					outgoing_connection,
 				);
 				let mut connection_guard = outgoing_connection
 					.lock()
 					.unwrap_or_else(|poisoned| poisoned.into_inner());
-				connection_guard.active_download = None;
-				if shared_file.is_directory {
-					connection_guard.finished_downloads.push(shared_file.path);
+				if connection_guard.should_reset_connection == true || connection_guard.is_deleted == true {
+					std::mem::drop(connection_guard);
+					return;
 				}
-				connection_guard.download_queue.pop_front();
+
+				if connection_guard.is_paused == true {
+					std::mem::drop(connection_guard);
+					continue;
+				}
+
+				connection_guard.active_download = None;
+				
+				if connection_guard.stop_active_download == false {
+					if shared_file.is_directory {
+						// FIXME copied from download_shared_file
+						let destination_path = config::get_path_downloads_dir_user(&remote_user_name);
+						let mut destination_path = destination_path.into_os_string().to_str().unwrap().to_string();
+						destination_path.push_str("/");
+						let current_path_obj = Path::new(&shared_file.path);
+						let current_path_name = current_path_obj.file_name().unwrap().to_str().unwrap();
+						destination_path.push_str(current_path_name);
+						connection_guard.finished_downloads.push((shared_file.path, destination_path));
+					}
+				}
+				
+				// Cancelling all downloads clears the queue
+				if connection_guard.download_queue.is_empty() == false {
+					connection_guard.download_queue.pop_front();
+				}
 				connection_guard.write_queue();
 				std::mem::drop(connection_guard);
 			}
@@ -370,9 +400,9 @@ fn handle_outgoing(
 fn get_local_to_outgoing_secure_stream_cipher(
 	mut stream: &TcpStream,
 	local_key_pair: &signature::Ed25519KeyPair,
-	remote_public_id_file_name: String,
+	remote_public_id: String,
 ) -> Aes256Gcm {
-	let local_diffie_secret = EphemeralSecret::new(&mut OsRng);
+	let local_diffie_secret = EphemeralSecret::new(OsRng);
 	let local_diffie_public = PublicKey::from(&local_diffie_secret);
 	let local_diffie_public_bytes: &[u8; 32] = local_diffie_public.as_bytes();
 	let local_diffie_signature_public_bytes = local_key_pair.sign(local_diffie_public_bytes);
@@ -400,16 +430,23 @@ fn get_local_to_outgoing_secure_stream_cipher(
 	let mut remote_diffie_signed_public_bytes: [u8; 64] = [0; 64];
 	remote_diffie_signed_public_bytes
 		.copy_from_slice(&buffer[PAYLOAD_OFFSET + 32..PAYLOAD_OFFSET + 32 + 64]);
-	let remote_public_key_path = get_path_user_public_id_file(&remote_public_id_file_name);
-	let remote_public_key_bytes = fs::read(&remote_public_key_path).unwrap();
+
+	let remote_public_key_bytes = crypto_ids::get_bytes_from_base64_str(&remote_public_id);
 	let remote_public_key =
 		signature::UnparsedPublicKey::new(&signature::ED25519, remote_public_key_bytes);
-	remote_public_key
+	
+	let client_connecting_addr = stream.peer_addr().unwrap();
+	let client_connecting_ip = client_connecting_addr.ip().to_string();
+	match remote_public_key
 		.verify(
 			&remote_diffie_public_bytes,
 			&remote_diffie_signed_public_bytes,
-		)
-		.unwrap();
+		) {
+			Err(_) => {
+				panic!(format!("ERROR: Remote signature failure. Verify Public ID is correct for {}", client_connecting_ip));
+			}
+			_ => {}
+		}
 
 	// Create encryption key
 	let remote_diffie_public_key = PublicKey::from(remote_diffie_public_bytes);
@@ -424,11 +461,12 @@ fn get_local_to_outgoing_secure_stream_cipher(
 fn client_download_from_remote(
 	secure_stream: &mut SecureStream,
 	download_file: &SharedFile,
-	remote_user_name: String,
+	remote_user_name: &String,
 	outgoing_connection: &Arc<Mutex<OutgoingConnection>>,
 ) {
-	let mut root_download_dir = String::from("./downloads/");
-	root_download_dir.push_str(&remote_user_name);
+
+	let root_download_dir = config::get_path_downloads_dir_user(remote_user_name);
+	let mut root_download_dir = root_download_dir.into_os_string().to_str().unwrap().to_string();
 	root_download_dir.push_str("/");
 	println!("Download start: {:?}", download_file);
 	download_shared_file(
@@ -447,9 +485,8 @@ fn get_file_by_path(file_choice: &str, shared_file: &SharedFile) -> Option<Share
 	}
 
 	for a_file in &shared_file.files {
-		match get_file_by_path(file_choice, &a_file) {
-			None => {}
-			Some(found) => return Some(found.clone()),
+		if let Some(found) =  get_file_by_path(file_choice, &a_file) {
+			return Some(found.clone());
 		}
 	}
 
@@ -480,6 +517,30 @@ fn download_shared_file(
 				outgoing_connection,
 				root_download_dir,
 			);
+					
+			let conn = outgoing_connection
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
+			
+			if conn.is_deleted == true {
+				println!("Connection deleted mid DIR download. {}", conn.user.display_name);
+				std::mem::drop(conn);
+				return;
+			}
+			
+			if conn.should_reset_connection == true {
+				println!("Connection reset mid DIR download. {}", conn.user.display_name);
+				std::mem::drop(conn);
+				return;
+			}
+
+			if conn.stop_active_download == true {
+				println!("Active download cancelled mid DIR download. {}", conn.user.display_name);
+				std::mem::drop(conn);
+				return;
+			}
+
+			std::mem::drop(conn);
 		}
 	} else {
 		// Create directory for file download
@@ -492,16 +553,16 @@ fn download_shared_file(
 		println!("Sending selection to server");
 		let selection_msg: u8;
 		let selection_payload: Vec<u8>;
+		let file_length: u64;
 		if Path::new(&destination_path).exists() {
-			let file_length: u64 = metadata(&destination_path).unwrap().len();
-			let mut file_continue_payload = file_length.to_be_bytes().to_vec();
-			file_continue_payload.extend_from_slice(&shared_file.path.as_bytes());
-			selection_msg = MSG_FILE_SELECTION_CONTINUE;
-			selection_payload = file_continue_payload;
+			file_length = metadata(&destination_path).unwrap().len();
 		} else {
-			selection_msg = MSG_FILE_SELECTION;
-			selection_payload = shared_file.path.as_bytes().to_vec();
+			file_length = 0;
 		}
+		let mut file_continue_payload = file_length.to_be_bytes().to_vec();
+		file_continue_payload.extend_from_slice(&shared_file.path.as_bytes());
+		selection_msg = MSG_FILE_SELECTION_CONTINUE;
+		selection_payload = file_continue_payload;
 		secure_stream.write(selection_msg, &selection_payload);
 
 		// Check first response for error
@@ -552,8 +613,28 @@ fn download_shared_file(
 		}
 		// TODO Inefficient. Every download recalculates dir size
 		let mut conn = outgoing_connection
-			.lock()       
+			.lock()
 			.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		// TODO send server message that mid download is cancelled
+		if conn.is_deleted == true {
+			println!("Connection deleted mid download. {}", conn.user.display_name);
+			std::mem::drop(conn);
+			return;
+		}
+		
+		if conn.should_reset_connection == true {
+			println!("Connection reset mid download. {}", conn.user.display_name);
+			std::mem::drop(conn);
+			return;
+		}
+
+		if conn.stop_active_download == true {
+			println!("Active download cancelled. {}", conn.user.display_name);
+			std::mem::drop(conn);
+			return;
+		}
+		
 		if conn.active_download.as_ref().unwrap().is_directory {
 			let _path_obj = Path::new(&conn.active_download.as_ref().unwrap().path);
 			let _path_name = _path_obj.file_name().unwrap().to_str().unwrap();
@@ -578,6 +659,25 @@ fn download_shared_file(
 			let mut conn = outgoing_connection
 				.lock()
 				.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+			if conn.is_deleted == true {
+				println!("Connection deleted in download. {}", conn.user.display_name);
+				std::mem::drop(conn);
+				return;
+			}
+
+			if conn.should_reset_connection == true {
+				println!("Connection reset in download. {}", conn.user.display_name);
+				std::mem::drop(conn);
+				return;
+			}
+
+			if conn.stop_active_download == true {
+				println!("Active download cancelled in download. {}", conn.user.display_name);
+				std::mem::drop(conn);
+				return;
+			}
+			
 			conn.active_download_current_bytes += actual_payload_size as f64;
 			conn.active_download_percent = ((conn.active_download_current_bytes as f64
 				/ conn.active_download.clone().unwrap().file_size as f64)
@@ -597,40 +697,58 @@ fn download_shared_file(
 			.unwrap_or_else(|poisoned| poisoned.into_inner());
 		//conn.active_download_percent = 0;
 		//conn.active_download = None;
-		conn.finished_downloads.push(shared_file.path.clone());
+		conn.finished_downloads.push((shared_file.path.clone(), destination_path.clone()));
 		std::mem::drop(conn);
 		println!("100%\nDownload finished: {}", destination_path);
 	}
 }
 
 struct OutgoingConnectionManager {
-	config: Config,
+	config: Arc<Mutex<Config>>,
 	outgoing_connections: HashMap<String, Arc<Mutex<OutgoingConnection>>>,
+	is_all_paused: bool,
 }
 
 fn handle_outgoing_forever(
 	outgoing_connection: &Arc<Mutex<OutgoingConnection>>,
-	local_key_pair_bytes: Vec<u8>,
+	local_key_data: Arc<Mutex<LocalKeyData>>,
 ) {
 	loop {
-		let connection_guard = outgoing_connection
-		.lock()
-		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		let mut connection_guard = outgoing_connection
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
+		if connection_guard.is_deleted == true {
+			println!("Outgoing Forever Connection deleted. {}", connection_guard.user.display_name);
+			std::mem::drop(connection_guard);
+			break;
+		}
 		if connection_guard.download_queue.is_empty() {
 			std::mem::drop(connection_guard);
 			thread::sleep(time::Duration::from_millis(1000));
 			continue;
 		}
+		connection_guard.should_reset_connection = false;
 		std::mem::drop(connection_guard);
+		
+		let local_key_data_guard = local_key_data
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		let local_key_pair_bytes_clone = local_key_data_guard.local_key_pair_bytes.clone();
+		std::mem::drop(local_key_data_guard);
 
 		let _ = panic::catch_unwind(|| {
-			handle_outgoing(outgoing_connection, &local_key_pair_bytes);
+			handle_outgoing(outgoing_connection, &local_key_pair_bytes_clone);
 		});
 		std::mem::drop(outgoing_connection);
 		let mut connection_guard = outgoing_connection
 			.lock()
 			.unwrap_or_else(|poisoned| poisoned.into_inner());
 		connection_guard.is_online = false;
+		if connection_guard.is_deleted == true {
+			println!("Connection deleted. {}", connection_guard.user.display_name);
+			std::mem::drop(connection_guard);
+			break;
+		}
 		std::mem::drop(connection_guard);
 		println!("Error. Reconnecting...");
 		thread::sleep(time::Duration::from_millis(10000));
@@ -638,24 +756,33 @@ fn handle_outgoing_forever(
 }
 
 impl OutgoingConnectionManager {
-	pub fn new(config: Config, local_key_pair_bytes: Vec<u8>) -> OutgoingConnectionManager {
+	pub fn new(config: Arc<Mutex<Config>>, local_key_data: Arc<Mutex<LocalKeyData>>, is_all_paused: bool) -> OutgoingConnectionManager {
 		let mut connections: HashMap<String, Arc<Mutex<OutgoingConnection>>> = HashMap::new();
-		for user in config.clone().trusted_users_public_ids {
-			let outgoing_connection = OutgoingConnection::new(user.clone());
+		
+		let config_guard = config			
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
+		for user in config_guard.trusted_users_public_ids.iter() {
+			let outgoing_connection = OutgoingConnection::new(user.clone(), is_all_paused);
 			let outgoing_connection_arc = Arc::new(Mutex::new(outgoing_connection));
 			let outgoing_connection_arc_clone = Arc::clone(&outgoing_connection_arc);
 			let outgoing_connection_arc_clone2 = Arc::clone(&outgoing_connection_arc);
 			connections.insert(user.display_name.clone(), outgoing_connection_arc_clone2);
-			let local_key_pair_bytes_clone = local_key_pair_bytes.clone();
+			let thread_name = user.display_name.clone();
+			
+			let local_key_data_arc = Arc::clone(&local_key_data);
+
 			thread::spawn(move || {
-				handle_outgoing_forever(&outgoing_connection_arc_clone, local_key_pair_bytes_clone);
-				exit_error("Never hit 001".to_string());
+				handle_outgoing_forever(&outgoing_connection_arc_clone, local_key_data_arc);
+				println!("Outgoing final exit {}", thread_name);
 			});
 		}
+		std::mem::drop(config_guard);
 
 		OutgoingConnectionManager {
 			config: config,
 			outgoing_connections: connections,
+			is_all_paused: is_all_paused,
 		}
 	}
 
@@ -674,14 +801,30 @@ impl OutgoingConnectionManager {
 	}
 }
 
-struct Handler {
-	config: Config,
+struct LocalKeyData {
 	local_key_pair: signature::Ed25519KeyPair,
-	outgoing_connection_manager: OutgoingConnectionManager,
-	local_private_key_bytes: Vec<u8>,
-	incoming_connections: Arc<HashMap<String, Arc<Mutex<IncomingConnection>>>>,
-	sharing_status: String,
+	local_key_pair_bytes: Vec<u8>,
 }
+
+struct Handler {
+	config: Arc<Mutex<Config>>,
+	local_key_data: Arc<Mutex<LocalKeyData>>,
+	outgoing_connection_manager: OutgoingConnectionManager,
+	incoming_connections: Arc<Mutex<HashMap<String, Arc<Mutex<IncomingConnection>>>>>,
+	is_first_start: bool,
+	sharing_mode: Arc<Mutex<String>>
+}
+
+fn reset_all_connections(mut connection_guard: MutexGuard<IncomingConnection>) -> MutexGuard<IncomingConnection> {
+	println!("Start reset all connections");
+	for s in connection_guard.single_connections.iter_mut() {
+		s.lock().unwrap().should_reset = true;
+	}
+	connection_guard.single_connections.clear();
+	println!("End reset all connections");
+	return connection_guard;
+}
+
 
 impl Handler {
 	fn download_file_list(&mut self, file_list: Value) {
@@ -698,10 +841,779 @@ impl Handler {
 			.download_files(files_to_download);
 	}
 
+	fn set_sharing_mode(&mut self, sharing_mode: Value) -> Value {
+		let sharing_mode = self.clean_sciter_string(sharing_mode);
+
+		let mut sharing_guard = self.sharing_mode			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		sharing_guard.clear();
+		sharing_guard.push_str(&sharing_mode);
+
+		std::mem::drop(sharing_guard);
+
+		let incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		
+		for (display_name, incoming_connection) in incoming_connections_guard.iter() {
+			let mut connection_guard = incoming_connection
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
+			connection_guard = reset_all_connections(connection_guard);
+			std::mem::drop(connection_guard);
+
+		}
+
+		std::mem::drop(incoming_connections_guard);
+
+		let msg = format!("Sharing has been set to '{}'", sharing_mode);
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+
+	fn remove_file(&mut self, file_path: Value) -> Value {
+		let mut file_path = self.clean_sciter_string(file_path);
+		file_path = file_path.replace("\\\\", "\\");
+
+		let mut config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		
+		let mut shared_with_display_names = Vec::new();
+		for f in config_guard.shared_files.iter() {
+			if f.path == file_path {
+				shared_with_display_names = f.shared_with.clone();
+				break;
+			}
+		}
+
+		config_guard.shared_files.retain(|x|*x.path != file_path);
+
+		config::write_config(&config_guard);
+		std::mem::drop(config_guard);
+
+		let incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		
+		for (display_name, incoming_connection) in incoming_connections_guard.iter() {
+			if shared_with_display_names.contains(display_name) == true {
+				let mut connection_guard = incoming_connection
+				.lock()
+				.unwrap_or_else(|poisoned| poisoned.into_inner());
+				connection_guard = reset_all_connections(connection_guard);
+				std::mem::drop(connection_guard);
+			}
+		}
+
+		std::mem::drop(incoming_connections_guard);
+
+		let msg = format!("'{}' has been removed", file_path);
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+	fn add_files(&mut self, file_paths: Value) -> Value {
+		let mut code = 0;
+		let mut msg = format!("Files have been added");
+		let transmitic_path = config::get_path_transmitic_config_dir().to_str().unwrap().to_string();
+		let mut new_files = Vec::new();
+		for file_path in file_paths.into_iter() {
+			
+			let mut file_path = self.clean_sciter_string(file_path);
+			file_path = file_path.replace("/", "\\");
+			
+			if file_path.contains(&transmitic_path) {
+				code = 1;
+				msg = String::from(format!("No files added. Cannot share the Transmitic configuration folder, or a file in it. {} ", transmitic_path));
+				break;
+			}
+			
+			let blocked_file_name_chars = utils::get_blocked_file_name_chars();
+			for c in blocked_file_name_chars.chars() {
+				if file_path.contains(c) == true {
+					code = 1;
+					msg = String::from(format!("No files added. Cannot share, '{}', since it contains the character: {} . The following are not allowed: {}", file_path, c, blocked_file_name_chars));
+					break;
+				}
+			}
+
+			let new_shared_file = config::ConfigSharedFile {
+				path: file_path.clone(),
+				shared_with: Vec::new(),
+			};
+
+			new_files.push(new_shared_file);
+		}
+
+		if code == 0 {
+			let mut config_guard = self.config			
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+			for f in new_files {
+				
+				let mut skip = false;
+				for c in config_guard.shared_files.iter() {
+					if c.path == f.path {
+						skip = true;
+					}
+				}
+				if skip {
+					continue;
+				}
+
+				config_guard.shared_files.push(f);
+			}
+
+			config::write_config(&config_guard);
+			std::mem::drop(config_guard);
+		}
+
+		
+		let response = self.get_msg_box_response(code, &msg);
+		response
+	}
+
+	fn remove_shared_with(&mut self, display_name: Value, file_path: Value) {
+		let mut file_path = self.clean_sciter_string(file_path);
+		file_path = file_path.replace("\\\\", "\\");
+		let display_name = self.clean_sciter_string(display_name);
+
+		let mut config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		
+		for f in config_guard.shared_files.iter_mut() {
+			if f.path == file_path {
+				f.shared_with.retain(|x|*x != display_name);
+				break;
+			}
+		}
+
+		config::write_config(&config_guard);
+		std::mem::drop(config_guard);
+
+		let incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+	
+		let incoming_connection = incoming_connections_guard
+		.get(&display_name)
+		.unwrap();
+	
+		let mut connection_guard = incoming_connection
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		connection_guard = reset_all_connections(connection_guard);
+		std::mem::drop(connection_guard);
+		std::mem::drop(incoming_connections_guard);
+	}
+
+	fn add_user_to_file(&mut self, file_path: Value, display_name: Value) {
+		let mut file_path = self.clean_sciter_string(file_path);
+		file_path = file_path.replace("\\\\", "\\");
+		let display_name = self.clean_sciter_string(display_name);
+
+		// TODO verify dispaly_name is valid: allowed and exists in keys
+		let mut config_guard = self.config
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		for file in config_guard.shared_files.iter_mut() {
+			if file.path == file_path {
+				file.shared_with.push(display_name.clone());
+				break;
+			}
+		}
+
+		config::write_config(&config_guard);
+		std::mem::drop(config_guard);
+
+		let incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+	
+		let incoming_connection = incoming_connections_guard
+		.get(&display_name)
+		.unwrap();
+	
+		let mut connection_guard = incoming_connection
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		connection_guard = reset_all_connections(connection_guard);
+		std::mem::drop(connection_guard);
+		std::mem::drop(incoming_connections_guard);
+	}
+
+	fn remove_user(&mut self, display_name: Value) {
+		let mut display_name: String = display_name.into_string();
+		display_name = display_name[1..display_name.len()-1].to_string();
+		
+		let mut delete_index = 0;
+		let mut cloned_user: Option<TrustedUser> = None;
+
+		let mut config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		for user in config_guard.trusted_users_public_ids.iter_mut() {
+			if user.display_name == display_name {
+				user.enabled = false;
+				cloned_user = Some(user.clone());
+				break;
+			}
+			delete_index += 1;
+		}
+		let found_cloned_user = cloned_user.unwrap();
+
+		config_guard.trusted_users_public_ids.remove(delete_index);
+
+		
+		// -- Remove user from shared files
+		for files in config_guard.shared_files.iter_mut() {
+			files.shared_with.retain(|x| *x != display_name);
+		}
+
+		config::write_config(&config_guard);
+		std::mem::drop(config_guard);
+
+		let mut incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		let incoming_connection = incoming_connections_guard
+		.get(&display_name)
+		.unwrap();
+
+		let mut connection_guard = incoming_connection
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		
+		connection_guard.is_disabled = true;
+		std::mem::drop(connection_guard);
+
+		incoming_connections_guard.remove(&display_name);
+
+		std::mem::drop(incoming_connections_guard);
+
+		config::delete_download_queue_file(&found_cloned_user);
+
+		let mut outgoing_connection = self.outgoing_connection_manager.outgoing_connections.get(&display_name).unwrap()
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		outgoing_connection.is_deleted = true;
+		std::mem::drop(outgoing_connection);
+
+		self.outgoing_connection_manager.outgoing_connections.remove(&display_name);
+	}
+
+	fn disable_user(&mut self, display_name: Value) {
+		let mut display_name: String = display_name.into_string();
+		display_name = display_name[1..display_name.len()-1].to_string();
+		
+		let mut config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		for user in config_guard.trusted_users_public_ids.iter_mut() {
+			if user.display_name == display_name {
+				user.enabled = false;
+			}
+		}
+
+		config::write_config(&config_guard);
+		std::mem::drop(config_guard);
+
+		let incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		let incoming_connection = incoming_connections_guard
+		.get(&display_name)
+		.unwrap();
+
+		let mut connection_guard = incoming_connection
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		connection_guard.is_disabled = true;
+		std::mem::drop(connection_guard);
+		std::mem::drop(incoming_connections_guard);
+	}
+
+	fn enable_user(&mut self, display_name: Value) {
+		let mut display_name: String = display_name.into_string();
+		display_name = display_name[1..display_name.len()-1].to_string();
+		
+		let mut config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		for user in config_guard.trusted_users_public_ids.iter_mut() {
+			if user.display_name == display_name {
+				user.enabled = true;
+			}
+		}
+
+		config::write_config(&config_guard);
+		std::mem::drop(config_guard);
+
+		let incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		let incoming_connection = incoming_connections_guard
+		.get(&display_name)
+		.unwrap();
+
+		let mut connection_guard = incoming_connection
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		connection_guard.is_disabled = false;
+		std::mem::drop(connection_guard);
+		std::mem::drop(incoming_connections_guard);
+	}
+
+	fn get_msg_box_response(&self, code: i32, msg: &String) -> Value {
+		let mut response = Value::new();
+		response.push(Value::from(code));
+		response.push(Value::from(msg));
+		response
+	}
+
+	fn verify_inital_new_user_data(&self, display_name: &String, public_id: &String, ip_address: &String, port: &String) -> (i32, std::string::String) {
+		// -- Display name
+		// Chars
+		if display_name.len() == 0 {
+			return (1, "Nickname cannot be empty".to_string());
+		}
+		let blocked_chars = utils::get_blocked_display_name_chars();
+		for c in display_name.chars() {
+			if blocked_chars.contains(c) {
+				let msg = format!("Nickname contains disallowed letter '{}'. These letters are not allowed: {}", c, blocked_chars);
+				return (1, msg);
+			}
+		}
+
+		// -- Public ID
+		// Chars
+		if public_id.len() == 0 {
+			return (1, "Public ID cannot be empty".to_string());
+		}
+		// Valid Parse
+		match base64::decode(&public_id) {
+			Ok(_) => {},
+			Err(e) => {
+				let msg = format!("Invalid Public ID. Failed to decode. {}", e);
+				return (1, msg);
+			}
+		}
+		
+		// -- Port
+		// Chars
+		if port.len() == 0 {
+			return (1, "Port cannot be empty".to_string());
+		}
+		
+		// -- IP Address
+		// Chars
+		if ip_address.len() == 0 {
+			return (1, "IP Address cannot be empty".to_string());
+		}
+		// Valid Parse
+		let ip_combo = format!("{}:{}", ip_address, port);
+		let ip_parse: Result<SocketAddr, _> = ip_combo.parse();
+		match ip_parse {
+			Ok(_) => {},
+			Err(e) => {
+				let msg = format!("IP Address and port, {}, is not valid: {}", ip_combo, e);
+				return (1, msg);
+			}
+		}
+
+		return (0, "".to_string());
+	}
+
+	fn clear_finished_downloads(&mut self) -> Value {
+		for (owner, mut outgoing_connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
+			let mut outgoing_connection_guard = outgoing_connection
+			.lock()
+			.unwrap_or_else(|poisoned|poisoned.into_inner());
+
+			outgoing_connection_guard.finished_downloads.clear();
+
+			std::mem::drop(outgoing_connection_guard);
+
+		}
+
+		let msg = format!("Finished Downloads have been cleared");
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+	fn clear_invalid_downloads(&mut self) -> Value {
+		for (owner, mut outgoing_connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
+			let mut outgoing_connection_guard = outgoing_connection
+			.lock()
+			.unwrap_or_else(|poisoned|poisoned.into_inner());
+
+			outgoing_connection_guard.invalid_downloads.clear();
+
+			std::mem::drop(outgoing_connection_guard);
+
+		}
+
+		let msg = format!("Invalid Downloads have been cleared");
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+	fn pause_download(&mut self, display_name: Value) -> Value {
+		let display_name = self.clean_sciter_string(display_name);
+
+		let mut outgoing_connection = self.outgoing_connection_manager.outgoing_connections.get(&display_name).unwrap();
+		let mut outgoing_connection_guard = outgoing_connection
+		.lock()
+		.unwrap_or_else(|poisoned|poisoned.into_inner());
+
+		outgoing_connection_guard.is_paused = true;
+		outgoing_connection_guard.stop_active_download = true;
+
+		std::mem::drop(outgoing_connection_guard);
+
+		let msg = format!("Downlods from '{}' will be paused", display_name);
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+	fn pause_all_downloads(&mut self) -> Value {
+		self.outgoing_connection_manager.is_all_paused = true;
+		for (owner, mut outgoing_connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
+			let mut outgoing_connection_guard = outgoing_connection
+			.lock()
+			.unwrap_or_else(|poisoned|poisoned.into_inner());
+
+			outgoing_connection_guard.is_paused = true;
+			outgoing_connection_guard.stop_active_download = true;
+
+			std::mem::drop(outgoing_connection_guard);
+		}
+
+		let msg = format!("All downloads will be paused");
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+	fn resume_all_downloads(&mut self) -> Value {
+		for (owner, mut outgoing_connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
+			let mut outgoing_connection_guard = outgoing_connection
+			.lock()
+			.unwrap_or_else(|poisoned|poisoned.into_inner());
+
+			outgoing_connection_guard.is_paused = false;
+
+			std::mem::drop(outgoing_connection_guard);
+
+		}
+
+		self.outgoing_connection_manager.is_all_paused = false;
+
+		let msg = format!("All downloads will be resumed");
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+	fn resume_download(&mut self, display_name: Value) -> Value {
+		let display_name = self.clean_sciter_string(display_name);
+
+		let mut outgoing_connection = self.outgoing_connection_manager.outgoing_connections.get(&display_name).unwrap();
+		let mut outgoing_connection_guard = outgoing_connection
+		.lock()
+		.unwrap_or_else(|poisoned|poisoned.into_inner());
+
+		outgoing_connection_guard.is_paused = false;
+
+		std::mem::drop(outgoing_connection_guard);
+
+		let msg = format!("Downloads from '{}' will be resumed", display_name);
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+	fn cancel_download(&mut self, display_name: Value, file_path: Value) -> Value {
+		let display_name = self.clean_sciter_string(display_name);
+		let mut file_path = self.clean_sciter_string(file_path);
+
+		let mut outgoing_connection = self.outgoing_connection_manager.outgoing_connections.get(&display_name).unwrap();
+		let mut outgoing_connection_guard = outgoing_connection
+		.lock()
+		.unwrap_or_else(|poisoned|poisoned.into_inner());
+
+		match &outgoing_connection_guard.active_download {
+			Some(f) => {
+				if f.path == file_path.replace("\\\\", "\\") {
+					outgoing_connection_guard.stop_active_download = true;
+					outgoing_connection_guard.active_download = None; // TODO is this needed?
+				} else {
+					outgoing_connection_guard.download_queue.retain(|x|x != &file_path);
+					outgoing_connection_guard.write_queue();
+				}
+			}
+			_ => {
+				outgoing_connection_guard.download_queue.retain(|x|x != &file_path.replace("\\\\", "\\"));
+				outgoing_connection_guard.write_queue();
+			}
+		}
+		std::mem::drop(outgoing_connection_guard);
+
+		let msg = format!("'{}' will be cancelled", file_path.replace("\\\\", "\\"));
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+	fn cancel_all_downloads(&mut self) -> Value {
+		for (owner, mut outgoing_connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
+			let mut outgoing_connection_guard = outgoing_connection
+			.lock()
+			.unwrap_or_else(|poisoned|poisoned.into_inner());
+
+			match &outgoing_connection_guard.active_download {
+				Some(f) => {
+					//outgoing_connection_guard.active_download = None
+					outgoing_connection_guard.stop_active_download = true;
+					
+				}
+				_ => {
+				}
+			}
+			outgoing_connection_guard.download_queue.clear();
+			std::mem::drop(outgoing_connection_guard);
+
+		}
+
+		let msg = format!("All downloads will be cancelled");
+		let response = self.get_msg_box_response(0, &msg);
+		response
+	}
+
+	fn add_new_user(&mut self, display_name: Value, public_id: Value, ip_address: Value, port: Value) -> Value {
+
+		
+		let display_name = self.clean_sciter_string(display_name);
+		let public_id = self.clean_sciter_string(public_id);
+		let ip_address = self.clean_sciter_string(ip_address);
+		let port = self.clean_sciter_string(port);
+
+		// Initial check
+		let (code, message ) = self.verify_inital_new_user_data(&display_name, &public_id, &ip_address, &port);
+		if code != 0 {
+			return self.get_msg_box_response(code, &message);
+		}
+
+		// -- Look for duplicates
+		let config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		let mut response_code = 0;
+		let mut response_msg: String = String::from("");
+		for user in config_guard.trusted_users_public_ids.iter() {
+			if display_name == user.display_name {
+				response_code = 1;
+				response_msg = "Nickname already in use.".to_string();
+				break;
+			}
+
+			if public_id == user.public_id {
+				response_code = 1;
+				response_msg = format!("Public ID already in use by {}", user.display_name);
+				break;
+			}
+
+			if ip_address == user.ip_address {
+				response_code = 1;
+				response_msg = format!("IP Address already in use by {}", user.display_name);
+				break;
+			}
+		}
+		std::mem::drop(config_guard);
+
+		if response_code == 0 {
+			self.process_new_user(&display_name, &public_id, &ip_address, &port);
+			response_msg = format!("User {} successfully added", &display_name);
+		}
+		
+		
+		let response = self.get_msg_box_response(response_code, &response_msg);
+		response
+	}
+
+	fn edit_user(&mut self, current_display_name: Value, new_public_id: Value, new_ip: Value, new_port: Value) -> Value {
+
+		let current_display_name = self.clean_sciter_string(current_display_name);
+		let new_public_id = self.clean_sciter_string(new_public_id);
+		let new_ip = self.clean_sciter_string(new_ip);
+		let new_port = self.clean_sciter_string(new_port);
+
+		println!("{}", current_display_name);
+		println!("{}", new_public_id);
+		println!("{}", new_ip);
+		println!("{}", new_port);
+
+		// Initial check
+		let (code, message ) = self.verify_inital_new_user_data(&current_display_name, &new_public_id, &new_ip, &new_port);
+		if code != 0 {
+			return self.get_msg_box_response(code, &message);
+		}
+
+		// -- Look for duplicates
+		let mut config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		let mut response_code = 0;
+		let mut response_msg: String = String::from("");
+		for user in config_guard.trusted_users_public_ids.iter() {
+			if current_display_name == user.display_name {
+				continue;
+			}
+
+			if new_public_id == user.public_id {
+				response_code = 1;
+				response_msg = format!("Public ID already in use by {}", user.display_name);
+				break;
+			}
+
+			if new_ip == user.ip_address {
+				response_code = 1;
+				response_msg = format!("IP Address already in use by {}", user.display_name);
+				break;
+			}
+		}
+		
+		if response_code != 0 {
+			std::mem::drop(config_guard);
+			return self.get_msg_box_response(response_code, &response_msg);
+		}
+
+		let incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		let incoming_connection = incoming_connections_guard
+		.get(&current_display_name)
+		.unwrap();
+
+		let mut connection_guard = incoming_connection
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		
+		let mut outgoing_connection = self.outgoing_connection_manager.outgoing_connections.get(&current_display_name).unwrap()
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		/*
+		- resets all connections
+			- new id
+			- local/internet
+		*/
+		// Modify existing user
+		let mut new_trusted_user: Option<TrustedUser> = None;
+		for user in config_guard.trusted_users_public_ids.iter_mut() {
+			if current_display_name == user.display_name {
+				user.ip_address = new_ip;
+				user.port = new_port;
+				user.public_id = new_public_id;
+				new_trusted_user = Some(user.clone());
+				break;
+			}
+		}
+		config::write_config(&config_guard);
+		let new_trusted_user = new_trusted_user.unwrap();
+		response_msg = format!("User '{}' edited successfully", new_trusted_user.display_name);
+
+		connection_guard.user = new_trusted_user.clone();
+		outgoing_connection.user = new_trusted_user.clone();
+		outgoing_connection.should_reset_connection = true;
+		
+		std::mem::drop(config_guard);
+		std::mem::drop(connection_guard);
+		std::mem::drop(incoming_connections_guard);
+		std::mem::drop(outgoing_connection);
+
+		let response = self.get_msg_box_response(response_code, &response_msg);
+		response
+	}
+
+	fn clean_sciter_string(&self, s: Value) -> String {
+		let mut s = s.to_string();
+		s = s[1..s.len()-1].to_string();
+		s = s.trim().to_string();
+		s
+	}
+
+	fn process_new_user(&mut self, display_name: &String, public_id: &String, ip_address: &String, port: &String) {
+		let new_user: config::TrustedUser = TrustedUser {
+			public_id: public_id.clone(),
+			display_name: display_name.clone(),
+			ip_address: ip_address.clone(),
+			port: port.clone(),
+			enabled: true,
+		};
+		let mut config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		config_guard.trusted_users_public_ids.push(new_user.clone());
+		config::write_config(&config_guard);
+		std::mem::drop(config_guard);
+
+		// -- Add incoming connection
+		// dupe
+		let incoming_connection = IncomingConnection {
+			user: new_user.clone(),
+			active_download: None,
+			active_download_percent: 0,
+			active_download_current_bytes: 0.0,
+			is_downloading: false,
+			finished_downloads: Vec::new(),
+			is_disabled: false,
+			//should_reset_connection: false,
+			single_connections: Vec::new(),
+		};
+		let incomig_mutex = Arc::new(Mutex::new(incoming_connection));
+		let mut incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		incoming_connections_guard.insert(display_name.clone(), incomig_mutex);
+		std::mem::drop(incoming_connections_guard);
+		
+		// -- Add outgoing connection
+		// dupe
+		let outgoing_connection = OutgoingConnection::new(new_user.clone(), self.outgoing_connection_manager.is_all_paused);
+		let outgoing_connection_arc = Arc::new(Mutex::new(outgoing_connection));
+		let outgoing_connection_arc_clone = Arc::clone(&outgoing_connection_arc);
+		let outgoing_connection_arc_clone2 = Arc::clone(&outgoing_connection_arc);
+		self.outgoing_connection_manager.outgoing_connections.insert(new_user.display_name.clone(), outgoing_connection_arc_clone2);
+		
+		let local_key_data_arc = Arc::clone(&self.local_key_data);
+
+		let thread_name = display_name.clone();
+		thread::spawn(move || {
+			handle_outgoing_forever(&outgoing_connection_arc_clone, local_key_data_arc);
+			println!("Outgoing final exit {}", thread_name);
+		});
+		
+	}
+
 	fn refresh_shared_with_me(&self) -> Value {
 		let mut users_string = String::new();
 
-		for remote_user in &self.config.trusted_users_public_ids {
+		let config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		for remote_user in config_guard.trusted_users_public_ids.iter() {
 			users_string.push_str("<div><div>");
 			let result = panic::catch_unwind(|| self._refresh_single_user(&remote_user)).ok();
 			match result {
@@ -710,11 +1622,15 @@ impl Handler {
 				}
 				None => {
 					// TODO don't duplicate the user header. remove from _refresh_single_user and have this function do it
-					users_string.push_str(&format!("<h2>{}</h2>User is online, but an error occurred in connection.", remote_user.display_name));
+					users_string.push_str(&format!(
+						"<h2>{}</h2>User is online, but an error occurred in connection.",
+						remote_user.display_name
+					));
 				}
 			}
 			users_string.push_str("</div></div><br>")
 		}
+		std::mem::drop(config_guard);
 		Value::from(format!("{}", users_string))
 	}
 
@@ -726,24 +1642,31 @@ impl Handler {
 		remote_addr.push_str(":");
 		remote_addr.push_str(&remote_user.port);
 		let remote_socket_addr: SocketAddr = remote_addr.parse().unwrap();
-		let stream = TcpStream::connect_timeout(&remote_socket_addr, time::Duration::from_millis(1000));
-		match &stream {
-			Ok(s) => {}
+		let stream =
+			TcpStream::connect_timeout(&remote_socket_addr, time::Duration::from_millis(1000));
+		let stream = match &stream {
+			Ok(s) => s,
 			Err(err) => {
 				ui_string.push_str(&format!(
-					"Cannot Connect. Probably offline. Also verify IP and port are correct.\n{:?}",
+					"Cannot Connect. User is probably offline. Verify user's IP address and port are correct.\n{:?}",
 					err
 				));
 				return ui_string;
 			}
-		}
-		let stream = stream.unwrap();
+		};
 
-		let remote_public_id_file_name = remote_user.public_id_file_name.clone();
+		let local_key_data_guard = self.local_key_data
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		let local_key_pair_bytes = local_key_data_guard.local_key_pair_bytes.clone();
+		std::mem::drop(local_key_data_guard);
+
+		let local_key_pair = signature::Ed25519KeyPair::from_pkcs8(local_key_pair_bytes.as_ref()).unwrap();
+
 		let cipher = get_local_to_outgoing_secure_stream_cipher(
 			&stream,
-			&self.local_key_pair,
-			remote_public_id_file_name,
+			&local_key_pair,
+			remote_user.public_id.clone(),
 		);
 		let mut secure_stream: SecureStream = SecureStream::new(&stream, cipher);
 		let shared_file = request_file_list(&mut secure_stream, &remote_user.display_name);
@@ -767,7 +1690,6 @@ impl Handler {
 			.lock()
 			.unwrap_or_else(|poisoned| poisoned.into_inner());
 		conn.root_file = Some(shared_file);
-		println!("ROOT FILE IS: {:?}", conn.root_file);
 		std::mem::drop(conn);
 
 		return ui_string;
@@ -775,122 +1697,66 @@ impl Handler {
 
 	fn get_users(&self) -> Value {
 		let mut users_string = String::new();
-		for user in &self.config.trusted_users_public_ids {
+		let config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		for user in config_guard.trusted_users_public_ids.iter() {
 			users_string.push_str(&format!(
 				"<div><div><h2>{}</h2>Click Refresh<br></div></div><br>",
 				&user.display_name.clone()
 			));
 		}
+		std::mem::drop(config_guard);
 		Value::from(format!("{}", users_string))
 	}
 
-	fn client_start_sharing(&mut self) {
-		println!("Starting Client Server for sharing");
-		// Start TCP listener
-		let mut ip_address = String::new();
-		if self.config.server_visibility == "local" {
-			ip_address.push_str("127.0.0.1");
-		} else if self.config.server_visibility == "internet" {
-			ip_address.push_str("0.0.0.0");
-		} else {
-			panic!(
-				"Server flag invalid. 'local' or 'internet' is valid. Yours -> {}",
-				&self.config.server_visibility
-			);
-		}
-		ip_address.push_str(":");
-		ip_address.push_str(&self.config.server_port);
-		println!(
-			"\nWaiting for clients on: {}",
-			self.config.server_visibility
-		);
 
-		let config_clone = self.config.clone();
-		let local_key_pair_bytes_clone = self.local_private_key_bytes.clone();
-		let incoming_clone = Arc::clone(&self.incoming_connections);
-		thread::spawn(move || {
-			client_wait_for_incoming(
-				incoming_clone,
-				ip_address,
-				config_clone,
-				local_key_pair_bytes_clone,
-			);
-		});
 
-		self.sharing_status = String::from("Sharing ON. To stop sharing, quit Transmitic.");
-	}
 
-	fn get_page_about(&self) -> Value {
-		let html = format!(
-			"<html>
-		<head>
-		<style>
-			html {{
-				behavior: htmlarea;
-			}}
-		</style>
-		</head>
-		<body>
-			<br>
-			<div style=\"background-color: #f0f0f0; border: 1px solid #a0a0a0;\">
-			<div style=\"padding: -0.5em 0.5em 0.5em 0.5em;\">
-			<h2>{}</h2>
-			<h3>v{}</h3>
-			<a href=\"https://transmitic.io\"><h3>https://transmitic.io</h3></a>
-			</div>
-			</div>
-			<br>
-
-			<div style=\"background-color: #f0f0f0; border: 1px solid #a0a0a0;\">
-			<div style=\"padding: -0.5em 0.5em 0.5em 0.5em;\">
-			<h3>Dependencies</h3>
-			
-			<h4>Rust Programming Language</h4>
-			<a href=\"https://www.rust-lang.org/\">https://www.rust-lang.org/</a>
-
-			<h4>Sciter</h4>
-			This Application (or Component) uses Sciter Engine (http://sciter.com/), copyright Terra Informatica Software, Inc.
-			<br>
-			<a href=\"https://sciter.com/\">https://sciter.com/</a>
-
-			<h4>Serde</h4>
-			<a href=\"https://serde.rs/\">https://serde.rs/</a>
-
-			<h4>ring</h4>
-			<a href=\"https://briansmith.org/rustdoc/ring/\">https://briansmith.org/rustdoc/ring/</a>
-			<br>
-			This product includes software developed by the OpenSSL Projectfor use in the OpenSSL Toolkit (http://www.openssl.org/)
-			<br>  
-			This product includes cryptographic software written by Eric Young (eay@cryptsoft.com)
-			
-			<h4>aes-gcm</h4>
-			<a href=\"https://docs.rs/aes-gcm/0.8.0/aes_gcm/\">https://docs.rs/aes-gcm/0.8.0/aes_gcm/</a>
-
-			<h4>x25519-dalek</h4>
-			<a href=\"https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/\">https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/</a>
-			</div>
-			</div>
-		</body>
-		</html>
-		",
-			NAME, VERSION
-		);
-		Value::from(html)
-	}
 
 	fn get_my_shared_files(&self) -> Value {
 		let mut html = String::new();
-		for file in self.config.shared_files.iter() {
+		let config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		let mut display_names: Vec<String> = Vec::new();
+		for user in config_guard.trusted_users_public_ids.iter() {
+			display_names.push(user.display_name.to_string());
+		}
+		for file in config_guard.shared_files.iter() {
 			html.push_str("<div>");
 			html.push_str(&file.path);
+			html.push_str(&format!("<br><button class=\"remove-file\" data-file-path=\"{}\">Remove from Sharing</button>", file.path));
+			html.push_str("<br>Add User:");
+			html.push_str(&format!("<select class=\"option-add-user\" data-file-path=\"{}\"><option></option>", file.path));
+			for name in display_names.iter() {
+				html.push_str(&format!("<option>{}</option>", name));
+			}
+			html.push_str("</select>");
+
+			
 			html.push_str("<br>Shared With:<br>");
 			for user in file.shared_with.iter() {
-				html.push_str(&format!("&nbsp;&nbsp;&nbsp;&nbsp;{}<br>", user));
+				html.push_str(&format!("&nbsp;&nbsp;&nbsp;&nbsp;{0}<button class=\"remove-shared-with\" data-display-name=\"{0}\" data-file-path=\"{1}\">Remove</button><br>", user, file.path));
 			}
 			html.push_str("</div>");
 			html.push_str("<br>");
 		}
+		std::mem::drop(config_guard);
 		Value::from(html)
+	}
+
+	fn open_downloads(&self) {
+		Command::new("explorer.exe").arg(config::get_path_downloads_dir()).spawn();
+	}
+
+	fn open_a_download(&self, file_path: Value) {
+		let mut file_path = self.clean_sciter_string(file_path);
+		file_path = file_path.replace("\\\\", "\\");
+		println!("Open a download {}", file_path);
+		let p = Path::new(&file_path);
+		let dir_path = p.parent().unwrap();
+		Command::new("explorer.exe").arg(dir_path).spawn();
 	}
 
 	fn get_my_downloads(&self) -> Value {
@@ -899,46 +1765,61 @@ impl Handler {
 			let conn = connection
 				.lock()
 				.unwrap_or_else(|poisoned| poisoned.into_inner());
+			
+			let is_all_paused = self.outgoing_connection_manager.is_all_paused;
 			let is_online = conn.is_online;
+			let is_paused = conn.is_paused;
 			let offline_str = "User is currently offline";
-			match conn.active_download.clone() {
-				Some(shared_file) => {
-					let download_percent = conn.active_download_percent.to_string();
-					let msg: &str;
-					if is_online {
-						msg = "Downloading Now...";
-					} else {
-						msg = offline_str;
-					}
-					download_string.push_str(&format!(
-						"<download>
-					{} | {}% | {}
-					<br>
-					{}
-				  </download>
-				  <hr>
-				  ",
-						&owner, &download_percent, msg, &shared_file.path
-					));
+			if let Some(shared_file) = conn.active_download.clone() {
+				let download_percent = conn.active_download_percent.to_string();
+				let msg: &str;
+				let mut pause_resume = String::from(&format!("<button class=\"pause-download\" data-display-name=\"{0}\">Pause Downloads from {0}</button>", &owner));
+				let mut background_color = String::from("rgb(252, 247, 154)");  // YELLOW
+				if is_all_paused {
+					msg = "All Downloads are Paused";
+					pause_resume = String::from("<button disabled>All Downloads are Paused</button>");
 				}
-				None => {}
+				else if is_paused {
+					msg = "Paused";
+					pause_resume = String::from(&format!("<button class=\"resume-download\" data-display-name=\"{0}\">Resume Downloads from {0}</button>", &owner));
+				} 
+				else if is_online {
+					msg = "Downloading Now...";
+					background_color = String::from("rgb(154, 234, 252)");  // BLUE
+				}
+				else {
+					msg = offline_str;
+				}
+				download_string.push_str(&format!(
+					"<download style=\"background-color: {5};\">
+				{0} | {1}% | {2}
+				<br>
+				{3}
+				<br>
+				<button class=\"cancel-download\" data-display-name=\"{0}\" data-file-path=\"{3}\">Cancel</button>
+				<br>
+				{4}
+				</download>
+				<hr>
+				",
+					&owner, &download_percent, msg, &shared_file.path, pause_resume, background_color
+				));
+
 			}
+			std::mem::drop(conn);
 		}
 		for (owner, connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
 			let conn = connection
-			.lock()
-			.unwrap_or_else(|poisoned| poisoned.into_inner());
+				.lock()
+				.unwrap_or_else(|poisoned| poisoned.into_inner());
 			let is_online = conn.is_online;
 			let offline_str = "User is currently offline";
 			for shared_file in conn.download_queue.iter() {
 				// If active download is still in the queue, don't duplicate it in the queue list
-				match conn.active_download.clone() {
-					Some(s) => {
-						if shared_file.replace("\\\\", "\\") == s.clone().path {
-							continue;
-						}
+				if let Some(s) = conn.active_download.clone() {
+					if shared_file.replace("\\\\", "\\") == s.clone().path {
+						continue;
 					}
-					None => {}
 				}
 
 				let msg: &str;
@@ -949,47 +1830,59 @@ impl Handler {
 				}
 				download_string.push_str(&format!(
 					"<download>
-				{} | {}
+				{0} | {1}
 				<br>
-				{}
+				{2}
+				<br>
+				<button class=\"cancel-download\" data-display-name=\"{0}\" data-file-path=\"{2}\">Cancel</button>
 			  </download>
 			  <hr>
 			  ",
-					&owner, msg, &shared_file.replace("\\\\", "\\")
+					&owner,
+					msg,
+					&shared_file.replace("\\\\", "\\")
 				));
 			}
+			std::mem::drop(conn);
 		}
 		for (owner, connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
 			let conn = connection
-			.lock()
-			.unwrap_or_else(|poisoned| poisoned.into_inner());
-			for file in conn.finished_downloads.iter() {
+				.lock()
+				.unwrap_or_else(|poisoned| poisoned.into_inner());
+			for (file, destination_path) in conn.finished_downloads.iter() {
 				download_string.push_str(&format!(
-					"<download>
-				{} | Finished
+					"<download style=\"background-color: rgb(154, 252, 170);\">
+				{0} | Finished
 				<br>
-				{}
+				{1}
+				<br>
+				<button class=\"open-a-download\" data-file-path=\"{2}\">Open Download</button>
 			  </download>
+
 			  <hr>
 			  ",
-					&owner, &file.replace("\\\\", "\\")
+					&owner,
+					&file.replace("\\\\", "\\"),
+					&destination_path.replace("/", "\\"),
 				));
 			}
+			std::mem::drop(conn);
 		}
 		for (owner, connection) in self.outgoing_connection_manager.outgoing_connections.iter() {
 			let conn = connection
-			.lock()
-			.unwrap_or_else(|poisoned| poisoned.into_inner());
+				.lock()
+				.unwrap_or_else(|poisoned| poisoned.into_inner());
 			for file in conn.invalid_downloads.iter() {
 				download_string.push_str(&format!(
-					"<download>
+					"<download style=\"background-color: rgb(252, 154, 154);\">
 				{} | Invalid. No longer shared with you.
 				<br>
 				{}
 			  </download>
 			  <hr>
 			  ",
-					&owner, &file.replace("\\\\", "\\")
+					&owner,
+					&file.replace("\\\\", "\\")
 				));
 			}
 			std::mem::drop(conn);
@@ -997,11 +1890,24 @@ impl Handler {
 		Value::from(download_string)
 	}
 
-	// TODO helper function for all these
+	fn get_name(&self) -> Value {
+		Value::from(NAME)
+	}
+
+	fn get_version(&self) -> Value {
+		Value::from(VERSION)
+	}
+
 	fn get_icon(&self) -> Value {
 		let bytes = include_bytes!("window_icon.svg");
 		let str = str::from_utf8(bytes).unwrap();
 		Value::from(str)
+	}
+
+	fn get_page_about(&self) -> Value {
+		let page_bytes = include_bytes!("about.htm");
+		let page_str = str::from_utf8(page_bytes).unwrap();
+		Value::from(page_str)
 	}
 
 	fn get_page_downloads(&self) -> Value {
@@ -1022,19 +1928,165 @@ impl Handler {
 		Value::from(page_str)
 	}
 
-	fn get_sharing_status(&self) -> Value {
-		Value::from(self.sharing_status.clone())
+	fn get_page_welcome(&self) -> Value {
+		let page_bytes = include_bytes!("welcome.htm");
+		let page_str = str::from_utf8(page_bytes).unwrap();
+		Value::from(page_str)
+	}
+
+	fn get_page_my_id(&self) -> Value {
+		let page_bytes = include_bytes!("my_id.htm");
+		let page_str = str::from_utf8(page_bytes).unwrap();
+		Value::from(page_str)
+	}
+
+	fn get_page_users(&self) -> Value {
+		let page_bytes = include_bytes!("users.htm");
+		let page_str = str::from_utf8(page_bytes).unwrap();
+		Value::from(page_str)
+	}
+
+	fn create_new_id(&mut self) -> Value {
+		let (private_id_bytes, public_id_bytes) = crypto_ids::generate_id_pair();
+
+		let private_id_string = base64::encode(&private_id_bytes);
+		let public_id_string = base64::encode(&public_id_bytes);
+
+		let mut config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		config_guard.my_private_id = private_id_string;
+
+		let mut local_key_data_guard = self.local_key_data
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		local_key_data_guard.local_key_pair = signature::Ed25519KeyPair::from_pkcs8(private_id_bytes.as_ref()).unwrap();
+		local_key_data_guard.local_key_pair_bytes = private_id_bytes;
+		std::mem::drop(local_key_data_guard);
+
+		config::write_config(&config_guard);
+		std::mem::drop(config_guard);
+		
+		let mut incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		for (display_name, incoming_connection) in incoming_connections_guard.iter_mut() {
+			let mut connection_guard = incoming_connection
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
+			connection_guard = reset_all_connections(connection_guard);
+			std::mem::drop(connection_guard);
+		}
+		std::mem::drop(incoming_connections_guard);
+
+		for (display_name, outgoing_connection) in self.outgoing_connection_manager.outgoing_connections.iter_mut() {
+			let mut outgoing_connection_guard = outgoing_connection
+			.lock()
+			.unwrap_or_else(|poisoned| poisoned.into_inner());
+			outgoing_connection_guard.should_reset_connection = true;
+			std::mem::drop(outgoing_connection_guard);
+		}
+	
+		return self.get_msg_box_response(0, &format!("New ID created. Your new Public ID is: {}", public_id_string));
+	}
+
+	fn get_port(&self) -> Value {
+		let config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		let port = config_guard.server_port.clone();
+		std::mem::drop(config_guard);
+		Value::from(port)
+	}
+
+	fn get_local_ip(&self) -> Value {
+		// TODO
+		Value::from("192.168.X.X")
+	}
+
+	fn get_sharing_mode(&self) -> Value {
+		let sharing_guard = self.sharing_mode	
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		let sharing_mode = sharing_guard.clone();
+		std::mem::drop(sharing_guard);
+		Value::from(sharing_mode.clone())
+	}
+
+	fn get_public_id(&self) -> Value {
+
+		let local_key_data_guard = self.local_key_data
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		let public_id = local_key_data_guard.local_key_pair.public_key().as_ref();
+		let s = crypto_ids::get_base64_str_from_bytes(public_id.to_vec());
+		std::mem::drop(local_key_data_guard);
+		Value::from(s)
+	}
+
+	fn get_is_first_start(&self) -> Value {
+		Value::from(self.is_first_start)
+	}
+
+	fn get_current_users(&self) -> Value {
+		let mut html = String::new();
+		let config_guard = self.config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		for user in config_guard.trusted_users_public_ids.iter() {
+			
+			let enable_button: String;
+			let disable_button: String;
+			let status: String;
+			if user.enabled == true {
+				status = "Allowed".to_string();
+				disable_button = format!("<button style=\"display: inline-block;\" data-display-name=\"{}\" class=\"disable-user\">Block</button>", user.display_name);
+				enable_button = format!("<button style=\"display: none;\" data-display-name=\"{}\" class=\"enable-user\">Allow</button>", user.display_name);
+			} else {
+				status = "Blocked".to_string();
+				disable_button = format!("<button style=\"display: none;\" data-display-name=\"{}\" class=\"disable-user\">Block</button>", user.display_name);
+				enable_button = format!("<button style=\"display: inline-block;\" data-display-name=\"{}\" class=\"enable-user\">Allow</button>", user.display_name);
+			}
+
+			let mut template = String::from(format!("<h3>{}</h3>", user.display_name));
+			template.push_str(&format!("Nickname: <span data-display-name=\"{display_name}\" class=\"user-display-name\">{display_name}</span>", display_name=user.display_name));
+			template.push_str("<br>");
+			template.push_str(&format!("Public ID: <span data-display-name=\"{display_name}\" class=\"user-public-id\">{public_id}</span><input data-display-name=\"{display_name}\" class=\"user-public-id-box\" style=\"display: none;\" type=\"text\" value=\"{public_id}\">", display_name=user.display_name, public_id=user.public_id));
+			template.push_str("<br>");
+			template.push_str(&format!("IP: <span data-display-name=\"{display_name}\" class=\"user-ip\">{ip}</span><input data-display-name=\"{display_name}\" class=\"user-ip-box\" style=\"display: none;\" type=\"text\" value=\"{ip}\">", display_name=user.display_name, ip=user.ip_address));
+			template.push_str("<br>");
+			template.push_str(&format!("Port: <span data-display-name=\"{display_name}\" class=\"user-port\">{port}</span><input data-display-name=\"{display_name}\" class=\"user-port-box\" style=\"display: none;\" type=\"text\" value=\"{port}\">", display_name=user.display_name, port=user.port));
+			template.push_str("<br>");
+			template.push_str(&format!("Status: <span data-display-name=\"{display_name}\" class=\"user-status\">{status}</span>", display_name=user.display_name, status=status));
+			template.push_str("<br>");
+			template.push_str(&format!("<button data-display-name=\"{display_name}\" class=\"edit-user\">Edit</button>", display_name=user.display_name));
+			template.push_str(&format!("<button data-display-name=\"{display_name}\" class=\"apply-user\" style=\"display: none;\">Apply</button>", display_name=user.display_name));
+			template.push_str(&enable_button);
+			template.push_str(&disable_button);
+			template.push_str(&format!("<button data-display-name=\"{display_name}\" class=\"remove-user\">Remove</button>", display_name=user.display_name));
+			template.push_str("<br><br><hr>");
+			html.push_str(&template);
+		}
+		std::mem::drop(config_guard);
+		Value::from(html)
 	}
 
 	fn get_downloading_from_me(&self) -> Value {
 		let mut download_string = String::new();
-		for (user_name, connection) in self.incoming_connections.iter() {
+
+		let incoming_connections_guard = self.incoming_connections
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		for (user_name, connection) in incoming_connections_guard.iter() {
 			let conn = connection
 				.lock()
 				.unwrap_or_else(|poisoned| poisoned.into_inner());
-			let is_downloading = conn.is_downloading;
 
-			if is_downloading {
+			if conn.is_downloading {
 				download_string.push_str(&format!(
 					"<download>
 				{} | {}% | In Progress
@@ -1051,7 +2103,7 @@ impl Handler {
 			std::mem::drop(conn);
 		}
 
-		for (user_name, connection) in self.incoming_connections.iter() {
+		for (user_name, connection) in incoming_connections_guard.iter() {
 			let conn = connection
 				.lock()
 				.unwrap_or_else(|poisoned| poisoned.into_inner());
@@ -1070,55 +2122,170 @@ impl Handler {
 			}
 			std::mem::drop(conn);
 		}
+		std::mem::drop(incoming_connections_guard);
 		Value::from(download_string)
+	}
+
+	fn client_start_sharing(&mut self) {
+		println!("Starting Client Server for sharing");
+
+		let config_clone = Arc::clone(&self.config);
+		let local_key_data_clone = Arc::clone(&self.local_key_data);
+		let incoming_clone = Arc::clone(&self.incoming_connections);
+		let sharing_clone = Arc::clone(&self.sharing_mode);
+		thread::spawn(move || {
+			client_wait_for_incoming(
+				incoming_clone,
+				config_clone,
+				local_key_data_clone,
+				sharing_clone,
+			);
+		});
+
 	}
 }
 
 fn client_wait_for_incoming(
-	incoming_connections: Arc<HashMap<String, Arc<Mutex<IncomingConnection>>>>,
-	ip_address: String,
-	config: Config,
-	local_key_pair_bytes: Vec<u8>,
+	incoming_connections: Arc<Mutex<HashMap<String, Arc<Mutex<IncomingConnection>>>>>,
+	config: Arc<Mutex<Config>>,
+	local_key_data: Arc<Mutex<LocalKeyData>>,
+	sharing_mode_arc: Arc<Mutex<String>>,
 ) {
-	println!("Server waiting for incoming connections...");
-	let listener = TcpListener::bind(ip_address).unwrap();
-	for stream in listener.incoming() {
-		let stream = stream;
-		let stream = match stream {
-			Ok(s) => s,
-			Err(error) => {
-				println!("ERROR: Failed initial client connection");
-				println!("{:?}", error);
-				continue;
-			}
-		};
 
-		let config_clone = config.clone();
-		let local_key_pair_bytes_clone = local_key_pair_bytes.clone();
-		let incoming_clone = Arc::clone(&incoming_connections);
-		thread::spawn(move || {
-			let client_connecting_ip = stream.peer_addr().unwrap().ip().to_string();
-			println!("Client connecting: {}", client_connecting_ip);
-			let _ = panic::catch_unwind(|| {
-				client_handle_incoming(
-					incoming_clone,
-					&stream,
-					config_clone,
-					local_key_pair_bytes_clone,
-				);
-			});
-			stream
-				.shutdown(Shutdown::Both)
-				.expect("shutdown call failed");
-			println!("Connection ended: {}", client_connecting_ip);
-		});
+	println!("Client wait for incoming");
+
+	loop {
+
+
+
+		let sharing_guard = sharing_mode_arc	
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		let sharing_mode = sharing_guard.clone();
+
+		std::mem::drop(sharing_guard);
+
+		
+
+		
+
+		if sharing_mode == "Off" {
+			thread::sleep(time::Duration::from_secs(1));
+			continue;
+		}
+
+		let config_guard = config			
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		let mut ip_address = String::new();
+
+		
+
+
+		if sharing_mode == "Local Network" {
+			ip_address.push_str("127.0.0.1");
+		} else if sharing_mode == "Internet" {
+			ip_address.push_str("0.0.0.0");
+		} else {
+			std::mem::drop(config_guard);
+			panic!(
+				"Server flag invalid. 'Local Network' or 'Internet' is valid. Yours -> {}",
+				sharing_mode
+			);
+		}
+		ip_address.push_str(":");
+		ip_address.push_str(&config_guard.server_port);
+		println!(
+			"\nWaiting for clients on: {}",
+			sharing_mode
+		);
+
+		std::mem::drop(config_guard);
+
+		println!("Server waiting for incoming connections...");
+		println!("{}", ip_address);
+		let listener = TcpListener::bind(ip_address).unwrap();
+		listener.set_nonblocking(true).expect("Cannot set non-blocking");
+
+
+		for stream in listener.incoming() {
+
+			match stream {
+				Ok(s) => {
+					let sharing_guard = sharing_mode_arc	
+					.lock()
+					.unwrap_or_else(|poisoned| poisoned.into_inner());
+			
+					let new_sharing_mode = sharing_guard.clone();
+			
+					std::mem::drop(sharing_guard);
+
+					if new_sharing_mode == "Off" || new_sharing_mode != sharing_mode {
+						s.shutdown(Shutdown::Both).expect("shutdown call failed");
+						break;
+					}
+
+					s.set_nonblocking(false).unwrap();
+
+					let config_clone = Arc::clone(&config);
+					let local_key_data_guard = local_key_data
+					.lock()
+					.unwrap_or_else(|poisoned| poisoned.into_inner());
+					let local_key_pair_bytes_clone = local_key_data_guard.local_key_pair_bytes.clone();
+					std::mem::drop(local_key_data_guard);
+			
+					let incoming_clone = Arc::clone(&incoming_connections);
+					thread::spawn(move || {
+						let client_connecting_ip = s.peer_addr().unwrap().ip().to_string();
+						println!("Client connecting: {}", client_connecting_ip);
+						let _ = panic::catch_unwind(|| {
+							client_handle_incoming(
+								incoming_clone,
+								&s,
+								config_clone,
+								local_key_pair_bytes_clone,
+							);
+						});
+						s
+							.shutdown(Shutdown::Both)
+							.expect("shutdown call failed");
+						println!("Connection ended: {}", client_connecting_ip);
+					});
+				}
+				Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+					let sharing_guard = sharing_mode_arc	
+					.lock()
+					.unwrap_or_else(|poisoned| poisoned.into_inner());
+			
+					let new_sharing_mode = sharing_guard.clone();
+			
+					std::mem::drop(sharing_guard);
+
+					if new_sharing_mode == "Off" || new_sharing_mode != sharing_mode {
+						break;
+					}
+					thread::sleep(time::Duration::from_secs(1));
+
+				}
+				Err(e) => {
+					println!("ERROR: Failed initial client connection");
+					println!("{:?}", e);
+					continue;
+				}
+			}
+			
+		}
+		std::mem::drop(listener);
 	}
+
 }
 
+
 fn client_handle_incoming(
-	incoming_connections: Arc<HashMap<String, Arc<Mutex<IncomingConnection>>>>,
+	incoming_connections: Arc<Mutex<HashMap<String, Arc<Mutex<IncomingConnection>>>>>,
 	mut stream: &TcpStream,
-	config: Config,
+	config: Arc<Mutex<Config>>,
 	local_key_pair_bytes: Vec<u8>,
 ) {
 	let client_connecting_addr = stream.peer_addr().unwrap();
@@ -1126,30 +2293,67 @@ fn client_handle_incoming(
 
 	// Find client config
 	let mut client_config: Option<&TrustedUser> = None;
-	for client in config.trusted_users_public_ids.iter() {
+	let config_guard = config			
+	.lock()
+	.unwrap_or_else(|poisoned| poisoned.into_inner());
+	for client in config_guard.trusted_users_public_ids.iter() {
 		if client.ip_address == client_connecting_ip {
 			client_config = Some(client);
 		}
 	}
 
-	match client_config {
-		Some(found) => client_config = Some(found),
+	let client_config = match client_config {
+		Some(found) => Some(found),
 		None => {
-			println!("!!!! WARNING: Rejected IP: {}", client_connecting_ip);
+			println!("!!!! WARNING: Rejected unknown IP: {}", client_connecting_ip);
 			stream
 				.shutdown(Shutdown::Both)
 				.expect("shutdown call failed");
 			println!("\tConnection has been shutdown");
 			return;
 		}
-	}
+	};
 
 	let remote_config = client_config.unwrap();
+
+	let current_incoming_ip = client_connecting_ip.clone();
+	let current_incoming_public_id = remote_config.public_id.clone();
+
+	// Check if disabled
+	let incoming_connections_guard = incoming_connections
+	.lock()
+	.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+	let incoming_connection = incoming_connections_guard
+	.get(&remote_config.display_name)
+	.unwrap();
+
+	let mut connection_guard = incoming_connection
+	.lock()
+	.unwrap_or_else(|poisoned| poisoned.into_inner());
+	let is_disabled = connection_guard.is_disabled;
+	let single_connection = SingleConnection {
+		should_reset: false,
+	};
+	let single_connection_arc = Arc::new(Mutex::new(single_connection));
+	let single_connection_arc_clone = Arc::clone(&single_connection_arc);
+	connection_guard.single_connections.push(single_connection_arc_clone);
+	std::mem::drop(connection_guard);
+	std::mem::drop(incoming_connections_guard);
+	if is_disabled == true {
+		std::mem::drop(config_guard);
+		println!("!!!! WARNING: Disabled user connecting. Rejected.: {}", client_connecting_ip);
+		stream
+			.shutdown(Shutdown::Both)
+			.expect("shutdown call failed");
+		println!("\tConnection has been shutdown");
+		return;
+	}
 
 	println!("Connected: {}", remote_config.display_name);
 	let local_key_pair =
 		signature::Ed25519KeyPair::from_pkcs8(local_key_pair_bytes.as_ref()).unwrap();
-	let local_diffie_secret = EphemeralSecret::new(&mut OsRng);
+	let local_diffie_secret = EphemeralSecret::new(OsRng);
 	let local_diffie_public = PublicKey::from(&local_diffie_secret);
 	let local_diffie_public_bytes: &[u8; 32] = local_diffie_public.as_bytes();
 	let local_diffie_signature_public_bytes = local_key_pair.sign(local_diffie_public_bytes);
@@ -1163,22 +2367,22 @@ fn client_handle_incoming(
 	let mut remote_diffie_signed_public_bytes: [u8; 64] = [0; 64];
 	remote_diffie_signed_public_bytes
 		.copy_from_slice(&buffer[PAYLOAD_OFFSET + 32..PAYLOAD_OFFSET + 32 + 64]);
-	let remote_public_key_path = get_path_user_public_id_file(&remote_config.public_id_file_name);
-	println!("**KEY PATH: {:?}", remote_public_key_path);
-	let remote_public_key_bytes = fs::read(&remote_public_key_path).unwrap();
+
+	let remote_public_key_bytes = crypto_ids::get_bytes_from_base64_str(&remote_config.public_id);
 	let remote_public_key =
 		signature::UnparsedPublicKey::new(&signature::ED25519, remote_public_key_bytes);
-	match remote_public_key
-		.verify(
-			&remote_diffie_public_bytes,
-			&remote_diffie_signed_public_bytes,
-		) {
-			Err(e) => {
-				panic!("ERROR: Incoming connection failed signature. Public key isn't valid. {} - {}", remote_config.display_name, client_connecting_ip);
-			}
-			_ => {}
+	match remote_public_key.verify(
+		&remote_diffie_public_bytes,
+		&remote_diffie_signed_public_bytes,
+	) {
+		Err(_) => {
+			panic!(
+				"ERROR: Incoming connection failed signature. Public key isn't valid. {} - {}",
+				remote_config.display_name, client_connecting_ip
+			);
 		}
-	
+		_ => {}
+	}
 
 	// Send remote the local's diffie public key
 	let mut diffie_payload: Vec<u8> = Vec::with_capacity(32 + 64); // diffie public key + signature
@@ -1203,18 +2407,58 @@ fn client_handle_incoming(
 	let mut secure_stream: SecureStream = SecureStream::new(stream, cipher);
 
 	// Get list of files shared with user
-	let everything_file = get_everything_file(&config, &remote_config.display_name);
+	let everything_file = get_everything_file(&config_guard, &remote_config.display_name);
 	let everything_file_json: String = serde_json::to_string(&everything_file).unwrap();
 	let everything_file_json_bytes = everything_file_json.as_bytes().to_vec();
 
 	// IncomingConnection
-	let incoming_connection = incoming_connections
-		.get(&remote_config.display_name)
-		.unwrap();
+	let incoming_connections_guard = incoming_connections
+	.lock()
+	.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+	let incoming_connection = incoming_connections_guard
+	.get(&remote_config.display_name)
+	.unwrap();
+
+	let incoming_connection_clone = Arc::clone(&incoming_connection);
+
+	// TODO should this be dropped earlier? When is this needed?
+	std::mem::drop(incoming_connections_guard);
+	std::mem::drop(config_guard);
+
 
 	loop {
+		let mut connection_guard = incoming_connection_clone
+		.lock()
+		.unwrap_or_else(|poisoned| poisoned.into_inner());
+
+		// Check if IP or Public ID has changed
+		let has_public_id_changed = connection_guard.user.public_id != current_incoming_public_id;
+		let has_ip_changed = connection_guard.user.ip_address != current_incoming_ip;
+		if has_ip_changed {
+			println!("Incoming conn. IP changed for {}. {} -> {}", connection_guard.user.display_name, current_incoming_ip, connection_guard.user.ip_address);
+		}
+		if has_public_id_changed {
+			println!("Incoming conn. Public ID changed for {}. {} -> {}", connection_guard.user.display_name, current_incoming_public_id, connection_guard.user.public_id);
+		}
+		let should_reset_connection = single_connection_arc.lock().unwrap().should_reset;
+		let should_stop = connection_guard.is_disabled || has_public_id_changed || has_ip_changed || should_reset_connection;
+		if should_stop == true {
+			connection_guard.is_downloading = false;
+			println!("Incoming conn stopped. {}", connection_guard.user.display_name);
+		}
+		if should_reset_connection {
+			println!("Incoming conn reset. {}", connection_guard.user.display_name);
+		}
+		std::mem::drop(connection_guard);
+
+		if should_stop == true {
+			break;
+		}
+
 		client_handle_incoming_loop(
-			&incoming_connection,
+			&incoming_connection_clone,
+			&single_connection_arc,
 			&mut secure_stream,
 			&everything_file_json_bytes,
 			&everything_file,
@@ -1224,20 +2468,30 @@ fn client_handle_incoming(
 
 fn client_handle_incoming_loop(
 	incoming_connection: &Arc<Mutex<IncomingConnection>>,
+	single_connection_arc: &Arc<Mutex<SingleConnection>>,
 	secure_stream: &mut SecureStream,
 	everything_file_json_bytes: &Vec<u8>,
 	everything_file: &SharedFile,
 ) {
 	println!("Wait for client");
 
+	if single_connection_arc.lock().unwrap().should_reset {
+		return;
+	}
+
 	secure_stream.read();
+
+	if single_connection_arc.lock().unwrap().should_reset {
+		return;
+	}
+
 	let client_msg = secure_stream.buffer[0];
 
 	if client_msg == MSG_FILE_LIST {
 		println!("Client requests file list");
 		secure_stream.write(MSG_FILE_LIST, &everything_file_json_bytes);
 		println!("File list sent");
-	} else if client_msg == MSG_FILE_SELECTION || client_msg == MSG_FILE_SELECTION_CONTINUE {
+	} else if client_msg == MSG_FILE_SELECTION_CONTINUE {
 		println!("Client sent file selection for downloading");
 
 		// Get client's file selection and optional seek point if continuing download
@@ -1250,32 +2504,30 @@ fn client_handle_incoming_loop(
 
 		let file_seek_point: u64;
 		let client_file_choice: &str;
-		if client_msg == MSG_FILE_SELECTION_CONTINUE {
-			let mut seek_bytes: [u8; 8] = [0; 8];
-			seek_bytes.copy_from_slice(&payload_bytes[0..8]);
-			file_seek_point = u64::from_be_bytes(seek_bytes);
-			client_file_choice = str::from_utf8(&payload_bytes[8..]).unwrap();
-		} else {
-			file_seek_point = 0;
-			client_file_choice = str::from_utf8(&payload_bytes).unwrap();
-		}
+		let mut seek_bytes: [u8; 8] = [0; 8];
+		seek_bytes.copy_from_slice(&payload_bytes[0..8]);
+		file_seek_point = u64::from_be_bytes(seek_bytes);
+		client_file_choice = str::from_utf8(&payload_bytes[8..]).unwrap();
+
 		println!("    File seek point: {}", file_seek_point);
 		println!("    Client chose file {}", client_file_choice);
 
 		// Determine if client's choice is valid
-		let client_shared_file: SharedFile;
-		match get_file_by_path(client_file_choice, &everything_file) {
-			Some(file) => client_shared_file = file,
+		let client_shared_file = match get_file_by_path(client_file_choice, &everything_file) {
+			Some(file) =>  file,
 			None => {
-				println!("    ! Invalid file choice");
+				println!("    ! Invalid file choice");				
 				secure_stream.write(MSG_FILE_INVALID_FILE, &Vec::with_capacity(1));
+				if single_connection_arc.lock().unwrap().should_reset {
+					return;
+				}
 				return;
 			}
-		}
+		};
 
 		// Client cannot select a directory. Client should not allow this to happen.
 		if client_shared_file.is_directory {
-			println!("    ! Selected directory");
+			println!("    ! Selected directory. Not allowed.");
 			secure_stream.write(MSG_CANNOT_SELECT_DIRECTORY, &Vec::with_capacity(1));
 			return;
 		}
@@ -1310,6 +2562,10 @@ fn client_handle_incoming_loop(
 				.lock()
 				.unwrap_or_else(|poisoned| poisoned.into_inner());
 			connection_guard.active_download_percent = download_percent as usize;
+			if single_connection_arc.lock().unwrap().should_reset == true || connection_guard.is_disabled == true {
+				std::mem::drop(connection_guard);
+				return;
+			}
 			std::mem::drop(connection_guard);
 		}
 
@@ -1330,107 +2586,56 @@ fn client_handle_incoming_loop(
 	}
 }
 
-fn get_everything_file(config: &Config, display_name: &String) -> SharedFile {
-	// The "root" everything directory
-	let mut everything_file: SharedFile = SharedFile {
-		path: "everything/".to_string(),
-		is_directory: true,
-		files: Vec::new(),
-		file_size: 0,
-	};
-
-	// Get SharedFiles
-	for file in &config.shared_files {
-		if file.shared_with.contains(&display_name) == false {
-			continue;
-		}
-
-		let path: String = file.path.clone();
-		let is_directory: bool = metadata(&path).unwrap().is_dir();
-
-		let mut file_size: u64 = 0; // directory size calculated by all files
-		if is_directory == false {
-			file_size = metadata(&path).unwrap().len();
-		}
-
-		let mut shared_file: SharedFile = SharedFile {
-			path,
-			is_directory,
-			files: Vec::new(),
-			file_size,
-		};
-		process_shared_file(&mut shared_file);
-		everything_file.file_size += shared_file.file_size;
-		everything_file.files.push(shared_file);
-	}
-
-	return everything_file;
-}
-
-fn process_shared_file(shared_file: &mut SharedFile) {
-	if shared_file.is_directory == false {
-		return;
-	}
-
-	if shared_file.is_directory {
-		for file in fs::read_dir(&shared_file.path).unwrap() {
-			let file = file.unwrap();
-			let path = file.path();
-			let path_string = String::from(path.to_str().unwrap());
-			let is_directory = path.is_dir();
-
-			let mut file_size: u64 = 0; // directory size calculated by all files
-			if is_directory == false {
-				file_size = metadata(&path_string).unwrap().len();
-			}
-			let mut new_shared_file = SharedFile {
-				path: path_string,
-				is_directory,
-				files: Vec::new(),
-				file_size,
-			};
-			if is_directory {
-				process_shared_file(&mut new_shared_file);
-			}
-			shared_file.file_size += new_shared_file.file_size;
-			shared_file.files.push(new_shared_file);
-		}
-	}
-}
 
 impl sciter::EventHandler for Handler {
 	dispatch_script_call! {
-		fn refresh_shared_with_me();
-		fn get_users();
+		fn create_new_id();
+		fn set_sharing_mode(Value);
+		fn remove_file(Value);
+		fn remove_shared_with(Value, Value);
+		fn add_files(Value);
+		fn add_user_to_file(Value, Value);
 		fn download_file_list(Value);
+		fn add_new_user(Value, Value, Value, Value);
+		fn clear_finished_downloads();
+		fn clear_invalid_downloads();
+		fn pause_download(Value);
+		fn pause_all_downloads();
+		fn resume_download(Value);
+		fn resume_all_downloads();
+		fn cancel_download(Value, Value);
+		fn cancel_all_downloads();
+		fn remove_user(Value);
+		fn disable_user(Value);
+		fn enable_user(Value);
+		fn edit_user(Value, Value, Value, Value);
+		fn open_downloads();
+		fn open_a_download(Value);
 		fn get_downloading_from_me();
+		fn get_icon();
+		fn get_is_first_start();
+		fn get_local_ip();
 		fn get_my_downloads();
 		fn get_my_shared_files();
-		fn client_start_sharing();
-		fn get_icon();
+		fn get_name();
 		fn get_page_about();
 		fn get_page_downloads();
-		fn get_page_shared_with_me();
+		fn get_page_my_id();
 		fn get_page_my_sharing();
-		fn get_sharing_status();
+		fn get_page_shared_with_me();
+		fn get_page_welcome();
+		fn get_page_users();
+		fn get_port();
+		fn get_public_id();
+		fn get_sharing_mode();
+		fn get_users();
+		fn get_current_users();
+		fn get_version();
+		fn refresh_shared_with_me();
 	}
 }
 
-fn get_size_of_directory(path: &str) -> usize {
-	let mut size: usize = 0;
-	for entry in fs::read_dir(path).unwrap() {
-		let entry = entry.unwrap();
-		let path = entry.path();
-		let path_str = path.to_str().unwrap();
-		if path.is_dir() {
-			size += get_size_of_directory(path_str);
-		} else {
-			size += metadata(path_str).unwrap().len() as usize;
-		}
-	}
 
-	return size;
-}
 
 fn main() {
 	println!("##########################################");
@@ -1446,33 +2651,20 @@ fn main() {
 	println!("Transmitic Path: {:?}", env::current_exe().unwrap());
 
 	create_config_dir();
-	if args.len() != 1 {
-		if args[1] == "generate-keys" {
-			if args.len() != 3 {
-				println!("ERROR: You must specify the name of your key as an arg");
-				process::exit(1);
-			} else {
-				println!("Generating Keys");
-				generate_keys(args[2].as_str());
-				println!("Keys generated");
-				process::exit(0);
-			}
-		} else {
-			println!("ERROR: Invalid cli arg: {}", args[1]);
-			process::exit(1);
-		}
-	}
+	let first_load = init_config();
 	let config = get_config();
 	verify_config(&config);
-	let remote_config = config.clone();
 
 	// Load local private key pair
-	let mut local_key_pair_path = get_path_my_config_dir();
-	local_key_pair_path.push(&config.my_private_id_file_name);
-	println!("Local Key Pair Path: {:?}", &local_key_pair_path);
-	let local_private_key_bytes = fs::read(local_key_pair_path).unwrap();
+	let local_private_key_bytes = crypto_ids::get_bytes_from_base64_str(&config.my_private_id);
 	let local_key_pair =
 		signature::Ed25519KeyPair::from_pkcs8(local_private_key_bytes.as_ref()).unwrap();
+	
+	let local_key_data = LocalKeyData {
+		local_key_pair: local_key_pair,
+		local_key_pair_bytes: local_private_key_bytes,
+	};
+	let local_key_data_arc = Arc::new(Mutex::new(local_key_data));
 
 	// Incoming Connection
 	let mut incoming_connections: HashMap<String, Arc<Mutex<IncomingConnection>>> = HashMap::new();
@@ -1484,6 +2676,9 @@ fn main() {
 			active_download_current_bytes: 0.0,
 			is_downloading: false,
 			finished_downloads: Vec::new(),
+			is_disabled: false,
+			//should_reset_connection: false,
+			single_connections: Vec::new(),
 		};
 		let incomig_mutex = Arc::new(Mutex::new(incoming_connection));
 		incoming_connections.insert(user.display_name.clone(), incomig_mutex);
@@ -1499,18 +2694,23 @@ fn main() {
 
 	sciter::set_options(sciter::RuntimeOptions::DebugMode(true)).unwrap();
 
-	let arc_incoming = Arc::new(incoming_connections);
-	let handler = Handler {
-		config: config,
-		local_key_pair: local_key_pair,
+	let arc_incoming = Arc::new(Mutex::new(incoming_connections));
+
+	let config_arc = Arc::new(Mutex::new(config));
+	let config_arc_clone: Arc<Mutex<Config>> = Arc::clone(&config_arc);
+	let mut handler = Handler {
+		config: config_arc,
+		local_key_data: Arc::clone(&local_key_data_arc),
 		outgoing_connection_manager: OutgoingConnectionManager::new(
-			remote_config,
-			local_private_key_bytes.clone(),
+			config_arc_clone,
+			Arc::clone(&local_key_data_arc),
+			false,
 		),
-		local_private_key_bytes: local_private_key_bytes.clone(),
-		incoming_connections: arc_incoming,
-		sharing_status: String::from("Sharing OFF.")
+		incoming_connections:arc_incoming,
+		is_first_start: first_load,
+		sharing_mode: Arc::new(Mutex::new(String::from("Off"))),
 	};
+	handler.client_start_sharing();
 
 	let mut frame = sciter::Window::new();
 	frame.event_handler(handler);
@@ -1524,219 +2724,7 @@ fn main() {
 	frame.run_app();
 }
 
-fn get_blocked_file_name_chars() -> String {
-	return String::from("{}\"'$<>#?&;%!|*");
-}
 
-fn get_blocked_display_name_chars() -> String {
-	let mut chars = get_blocked_file_name_chars();
-	chars.push_str("/\\[]()");
-	return chars;
-}
-
-fn verify_config(config: &Config) {
-	let blocked_file_name_chars = get_blocked_file_name_chars();
-	let blocked_extended = get_blocked_display_name_chars();
-
-	// my_private_id_file_name file name is valid
-	for c in blocked_extended.chars() {
-		if config.my_private_id_file_name.contains(c) == true {
-			exit_error(format!("my_private_id_file_name file name from config.json contains char '{}'. The following are not allowed '{}'", c, blocked_extended));
-		}
-	}
-
-	// my_private_id_file_name exists
-	let mut local_key_pair_path = get_path_my_config_dir();
-	local_key_pair_path.push(&config.my_private_id_file_name);
-	if local_key_pair_path.exists() == false {
-		exit_error(format!(
-			"my_private_id_file_name file from config.json doesn't exist: '{}'",
-			local_key_pair_path.to_str().unwrap()
-		));
-	}
-
-	// server vis
-	let server_vis = &config.server_visibility;
-	if server_vis != "local" && server_vis != "internet" {
-		exit_error(format!(
-			"config.json 'server_visibility' can only be 'local' or 'internet'"
-		));
-	}
-
-	// public ids file name is valid
-	for key in &config.trusted_users_public_ids {
-		for c in blocked_extended.chars() {
-			if key.public_id_file_name.contains(c) == true {
-				exit_error(format!("public id file name '{}' from config.json contains char '{}'. The following are not allowed '{}'", key.public_id_file_name, c, blocked_extended));
-			}
-		}
-	}
-
-	// public ids exist
-	for key in &config.trusted_users_public_ids {
-		let path = get_path_user_public_id_file(&key.public_id_file_name);
-		if path.exists() == false {
-			exit_error(format!(
-				"Public ID key in config for user '{}' doesn't exist: '{}'",
-				key.display_name,
-				path.to_str().unwrap()
-			));
-		}
-	}
-
-	// public ids display name is valid
-	for key in &config.trusted_users_public_ids {
-		for c in blocked_extended.chars() {
-			if key.display_name.contains(c) == true {
-				exit_error(format!("public id display name '{}' from config.json contains char '{}'. The following are not allowed '{}'", key.display_name, c, blocked_extended));
-			}
-		}
-	}
-
-	// duplicate public id display names
-	for key in &config.trusted_users_public_ids {
-		let mut count = 0;
-		for keyj in &config.trusted_users_public_ids {
-			if keyj.display_name == key.display_name {
-				count += 1;
-			}
-		}
-		if count > 1 {
-			exit_error(format!(
-				"Public ID display name '{}' appears '{}' times. It can only be used once.",
-				key.display_name, count
-			));
-		}
-	}
-
-	// shared file valid file names
-	for f in &config.shared_files {
-		for c in blocked_file_name_chars.chars() {
-			if f.path.contains(c) == true {
-				exit_error(format!("Shared file path '{}' from config.json contains char '{}'. The following are not allowed '{}'", f.path, c, blocked_file_name_chars));
-			}
-		}
-	}
-
-	// shared files exist
-	for f in &config.shared_files {
-		if Path::new(&f.path).exists() == false {
-			exit_error(format!("Shared file in config doesn't exist: '{}'", f.path));
-		}
-	}
-
-	// Shared With is valid
-	let mut display_names: Vec<String> = Vec::new();
-	for key in &config.trusted_users_public_ids {
-		display_names.push(key.display_name.clone());
-	}
-	for f in &config.shared_files {
-		for name in f.shared_with.iter() {
-			if display_names.contains(name) == false {
-				exit_error(format!(
-					"Shared file '{}' is shared with '{}', which isn't found in the config.json",
-					f.path, name
-				));
-			}
-		}
-	}
-}
-
-fn get_path_user_public_id_file(file_name: &String) -> PathBuf {
-	let mut path = get_path_users_public_ids_dir();
-	path.push(file_name);
-	return path;
-}
-
-fn get_config() -> Config {
-	let config_path = get_path_config_json();
-	println!("config path: {:?}", config_path);
-	if config_path.exists() == false {
-		exit_error(format!(
-			"config.json does not exist at '{}'",
-			config_path.to_str().unwrap()
-		));
-	}
-	let config_string = fs::read_to_string(&config_path).unwrap();
-	let config: Config;
-	match serde_json::from_str(&config_string.clone()) {
-		Ok(c) => {
-			config = c;
-		}
-		Err(e) => {
-			println!("{:?}", e);
-			exit_error(format!(
-				"config.json is invalid '{}'",
-				config_path.to_str().unwrap()
-			));
-		}
-	}
-	return config;
-}
-
-fn exit_error(msg: String) -> ! {
-	println!("\n!!!! ERROR: {}", msg);
-	println!("Transmitic has stopped");
-	process::exit(1);
-}
-
-fn create_config_dir() {
-	let path = get_path_transmitic_config_dir();
-	println!("Transmitic Config Dir: {:?}", path);
-	fs::create_dir_all(path).unwrap();
-
-	let path = get_path_my_config_dir();
-	fs::create_dir_all(path).unwrap();
-
-	let path = get_path_users_public_ids_dir();
-	fs::create_dir_all(path).unwrap();
-}
-
-fn get_path_transmitic_config_dir() -> PathBuf {
-	let mut path = env::current_dir().unwrap();
-	path.push("transmitic_config");
-	return path;
-}
-
-fn get_path_my_config_dir() -> PathBuf {
-	let mut path = get_path_transmitic_config_dir();
-	path.push("my_config");
-	return path;
-}
-
-fn get_path_users_public_ids_dir() -> PathBuf {
-	let mut path = get_path_transmitic_config_dir();
-	path.push("users_public_ids");
-	return path;
-}
-
-fn get_path_config_json() -> PathBuf {
-	let mut path = get_path_my_config_dir();
-	path.push("config.json");
-	return path;
-}
-
-fn generate_keys(name: &str) {
-	// Generate a key pair in PKCS#8 (v2) format.
-	let rng = rand::SystemRandom::new();
-	let pkcs8_bytes = signature::Ed25519KeyPair::generate_pkcs8(&rng).unwrap();
-
-	let key_pair = signature::Ed25519KeyPair::from_pkcs8(pkcs8_bytes.as_ref()).unwrap();
-
-	let public_key_bytes = key_pair.public_key().as_ref();
-
-	let mut file_name_private_key = String::from(name);
-	file_name_private_key.push_str("_private_id.id");
-
-	let mut file_name_public_key = String::from(name);
-	file_name_public_key.push_str("_public_id.id");
-
-	let mut private_key_file = File::create(file_name_private_key).unwrap();
-	private_key_file.write(pkcs8_bytes.as_ref()).unwrap();
-
-	let mut public_key_file = File::create(file_name_public_key).unwrap();
-	public_key_file.write(public_key_bytes).unwrap();
-}
 
 fn get_payload_size_from_buffer(buffer: &[u8]) -> usize {
 	let mut payload_size_bytes = [0; PAYLOAD_SIZE_LEN];
@@ -1781,26 +2769,10 @@ fn request_file_list(secure_stream: &mut SecureStream, client_display_name: &Str
 	// Verify file names are valid
 	quit_if_invalid_file(&all_files, &client_display_name);
 
-	println!("\n\n#### Available Files & Directories ####");
-	print_shared_files(&all_files, &"".to_string());
-
 	return all_files;
 }
 
-fn quit_if_invalid_file(shared_file: &SharedFile, client_display_name: &String) {
-	let blocked_chars = get_blocked_file_name_chars();
-	for c in blocked_chars.chars() {
-		if shared_file.path.contains(c) == true {
-			exit_error(format!("ALERT: The user '{}' attempted to send you a file with the blocked char '{}'. This might have been a malicious attempt.", client_display_name, c.to_string()));
-		}
-	}
 
-	if shared_file.is_directory {
-		for sub_file in &shared_file.files {
-			quit_if_invalid_file(&sub_file, &client_display_name);
-		}
-	}
-}
 
 fn user_files_checkboxes(
 	shared_file: &SharedFile,
@@ -1836,56 +2808,6 @@ fn user_files_checkboxes(
 	}
 }
 
-fn print_shared_files(shared_file: &SharedFile, spacer: &String) {
-	let file_size_string = get_file_size_string(shared_file.file_size);
 
-	let mut ftype = "file";
-	if shared_file.is_directory {
-		ftype = "dir";
-	}
 
-	println!(
-		"{}{} | ({}) ({})",
-		spacer, shared_file.path, file_size_string, ftype
-	);
-	if shared_file.is_directory {
-		let mut new_spacer = spacer.clone();
-		new_spacer.push_str("    ");
-		for sub_file in &shared_file.files {
-			print_shared_files(&sub_file, &new_spacer);
-		}
-	}
-}
 
-fn get_file_size_string(mut bytes: u64) -> String {
-	let gig: u64 = 1_000_000_000;
-	let meg: u64 = 1_000_000;
-	let byte: u64 = 1000;
-
-	let divisor: u64;
-	let unit: String;
-
-	if bytes == 0 {
-		bytes = 1;
-		divisor = 1;
-		unit = "b".to_string();
-	} else if bytes >= gig {
-		divisor = gig;
-		unit = "GB".to_string();
-	} else if bytes >= meg {
-		divisor = meg;
-		unit = "MB".to_string();
-	} else if bytes >= byte {
-		divisor = byte;
-		unit = "KB".to_string();
-	} else {
-		divisor = byte;
-		unit = "b".to_string();
-	}
-
-	let size = bytes as f64 / divisor as f64;
-	let mut size_string = String::from(format!("{:.2}", size));
-	size_string.push_str(" ");
-	size_string.push_str(&unit);
-	return size_string;
-}

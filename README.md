@@ -1,12 +1,12 @@
 # Transmitic: In Development Alpha
 
-Transmitic is an encrypted, peer to peer, file transfer program.  
+Transmitic is an encrypted, peer to peer, file transfer program with download pause and resume.  
 Transmitic is in early development.
 
-Discord: https://discord.gg/tRT3J6T  
-Reddit: https://www.reddit.com/r/transmitic/   
-Twitter: https://twitter.com/transmitic  
-Website: https://transmitic.io/
+Discord: [https://discord.gg/tRT3J6T](https://discord.gg/tRT3J6T)  
+Reddit: [https://www.reddit.com/r/transmitic/](https://www.reddit.com/r/transmitic/)  
+Twitter: [https://twitter.com/transmitic](https://twitter.com/transmitic)  
+Website: [https://transmitic.io/](https://transmitic.io/)  
 
 ## Support Transmitic
 
@@ -28,21 +28,19 @@ Transmitic does not support bittorrent, or bittorent like functionality. Transmi
 Users connect to one another directly via IP.  
 
 **File Syncing**  
-Transmitic does not have any file syncing capability and should never be used for this purpose.
+Transmitic does _not_ have any file syncing capability and should never be used for this purpose.
 
 ## Development Status
 
 Transmitic is an alpha that is in early development.  
-Only power users who are curious about this project should use it right now.   
 At this time, expect:  
 
-- No error handling
+- Incomplete error handling on edge cases
+- Config file usage for advanced configuration
 - No attention to performance
-- CLI usage required
-- Manual config file usage
+- No code quality
 - No code reviews
 - No tests
-- No code quality
 
 This project is slowly being hacked on during nights and weekends.  
 It will eventually reach a stable and tested point.
@@ -50,30 +48,36 @@ It will eventually reach a stable and tested point.
 ## Contributing
 
 The only area of contribution that is needed at this time is a review of the cryptography usage.  
-If you are interested please visit the chat.
+If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 
 ## Dependencies
 
 - [Rust (backend)](https://www.rust-lang.org/)
+- [Sciter (GUI)](http://sciter.com/)
 - [ring](https://briansmith.org/rustdoc/ring/)
 - [aes-gcm](https://docs.rs/aes-gcm/0.8.0/aes_gcm/)
 - [x25519_dalek](https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/)
 - [serde](https://serde.rs/)
-- [Sciter (GUI)](http://sciter.com/)
+
+## Primary Known Issues
+
+- Sharing too many files fails to send file list
 
 ## Goals (Short Term and Long Term)
 
-- Full GUI support. CLI and manual config not required at all.
-- Code refactor
-- Error handling
+- Fix sending large number of files to user
 - GUI redesign
+- GUI for advanced settings
+- Additional error handling around edge cases
+- Major code refactor
 - Tests
+- Transmitic Discovery
+  - Server to discover users without requiring IPs to be known by users (optional to users)
+- UPnP
 - Add Users with a "friend request"
 - Auto updates
 - Transmitic Mini
   - CLI only version with minimal dependencies
-- Transmitic Discovery
-  - Server to discover users without requiring IPs to be known by users (optional to users)
 - Rewrite for performance?
   - tokio?
 - Verify file downloads with hashes?

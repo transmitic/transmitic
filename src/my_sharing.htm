@@ -10,40 +10,167 @@
         border: 1px solid #a0a0a0;
         padding: 0.5em;
       }
+
+      #msg_box {
+            padding: 1em 1em 1em 1em;
+            width: 100%;
+            background-color: rgb(85, 255, 79);
+            color: #000;
+            margin-bottom: 1em;
+            display: none;
+        }
     </style>
     <script type="text/tiscript">
-      $(button#start_sharing).on("click", function() {
-        stdout.println("start sharing");
-        $(#status).html = "Starting Sharing..."
-        view.client_start_sharing();
-        $(#status).html = view.get_sharing_status();
+
+      function update_msg_box(response) {
+        if (response[0] == 0) {
+            $(#msg_box).text = response[1];
+            $(#msg_box).style["background-color"] = "rgb(85, 255, 79)";
+        } else {
+            $(#msg_box).text = "Error: " + response[1];
+            $(#msg_box).style["background-color"] = "rgb(255, 79, 79)";
+        }
+        $(#msg_box).style["display"] = "block";
+    }
+
+      event click $(button.remove-file) (evt,button) {
+        stdout.println("remove file");
+        var file_path = this.@["data-file-path"];
+        stdout.println(file_path);
+
+        var response = view.remove_file(file_path);
+        update_msg_box(response);
+        if (response[0] == 0) {
+            
+        }
+        load_my_shared_files();
+      }
+
+      event change $(select.option-add-user) (evt,button) {
+        stdout.println("add user");
+        stdout.println(this.value);
+        var file_path = this.@["data-file-path"];
+        stdout.println(file_path);
+        view.add_user_to_file(file_path, this.value);
+        load_my_shared_files();
+    }
+
+    event click $(button.remove-shared-with) (evt,button) {
+        stdout.println("Remove shared with");
+        var display_name = this.@['data-display-name'];
+        var file_path = this.@['data-file-path'];
+
+        view.remove_shared_with(display_name, file_path);
+        load_my_shared_files();
+      }
+      
+      $(button#add_file).on("click", function() {
+        stdout.println("Add file");
+        const filter = "All Files (*.*)|*.*";
+        const defaultExt = "*.*";
+        const initialPath = System.path(#USER_DOCUMENTS);
+        const caption = "Select file to share";
+      
+        var url = view.selectFile(#open-multiple, filter, defaultExt, initialPath, caption );
+        if( url ) {
+          if( typeof url != #array ){
+              url = [url];
+          }
+          stdout.println(url);
+          var outPath = [];
+          for (var i = 0; i < url.length; i++) {
+            outPath.push(URL.toPath(url[i]));
+          }
+          //var outPath = URL.toPath(url);
+          stdout.println(outPath);
+          var response = view.add_files(outPath);
+          update_msg_box(response);
+          if (response[0] == 0) {
+              
+          }
+        }
+        
+        load_my_shared_files();
+
+        return true;
       });
 
-      $(#status).html = view.get_sharing_status();
+      $(button#add_folder).on("click", function() {
+        stdout.println("Add folder");
+        const caption = "Select folder to share";
+      
+        var url = view.selectFolder(caption);
+        if( url ) {
+          var outPath = URL.toPath(url);
+          var outlist = [];
+          outlist.push(outPath);
+          stdout.println(outlist);
+          var response = view.add_files(outlist);
+          update_msg_box(response);
+          if (response[0] == 0) {
+              
+          }
+        }
+        
+        load_my_shared_files();
 
-      var html_shared_files = view.get_my_shared_files();
-      $(#myfiles).html = html_shared_files;
+        return true;
+      });
+
+      function load_my_shared_files() {
+        var html_shared_files = view.get_my_shared_files();
+        $(#myfiles).html = html_shared_files;
+      }
+
+      event change $(form.sharing-form) {
+        stdout.println("sharing form");
+        stdout.println(this.value.Sharing);
+
+        var response = view.set_sharing_mode(this.value.Sharing);
+        update_msg_box(response);
+        if (response[0] == 0) {
+            
+        }
+      }
+
+      function self.ready() {
+        let sharing_mode = view.get_sharing_mode();
+        $(form).value = { 'Sharing': sharing_mode };
+      }
+      
+      load_my_shared_files();
     </script>
   </head>
 <body>
   <div style="background-color: yellow; padding: 1em">
-    Only share with people you trust<br>
-    Users will see the full file path of your files<br>
-    Use a firewall to control access to transmitic.exe<br>
+    - This is alpha software and not fully tested yet<br>
+    - Only share with people you trust<br>
+    - Users will see the full file path of your files<br>
+    - Use a firewall to control access to transmitic.exe<br>
   </div>
   <h1>
     My Sharing
     </h1>
-  <section>
-    <div>
-      <button #start_sharing>Start Sharing</button>
-      <br><br>
-      <div #status></div>
-      <br>
-      <div #myfiles>
+    <div #msg_box></div>
+    <section>
+      <div>
+        <form class="sharing-form">
+          <label>Sharing:</label>
+          <div>
+             <button|radio name="Sharing" value="Off">Off</button>
+             <button|radio name="Sharing" value="Internet">Internet</button>
+             <button|radio name="Sharing" value="Local Network">Local Network</button>
+          </div>
+        </form>
+        <br>
+        <button #add_file>Add Files</button>
+        <button #add_folder>Add Folder</button>
+        <div #status></div>
+        <br>
+        <div #myfiles>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
 </body>
 </html>

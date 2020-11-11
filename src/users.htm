@@ -1,0 +1,160 @@
+<html>
+
+<head>
+    <style>
+        html {
+            behavior: htmlarea;
+        }
+
+        #msg_box {
+            padding: 1em 1em 1em 1em;
+            width: 100%;
+            background-color: rgb(85, 255, 79);
+            color: #000;
+            margin-bottom: 1em;
+            display: none;
+        }
+    </style>
+    <script type="text/tiscript">
+
+        function update_msg_box(response) {
+            if (response[0] == 0) {
+                $(#msg_box).text = response[1];
+                $(#msg_box).style["background-color"] = "rgb(85, 255, 79)";
+            } else {
+                $(#msg_box).text = "Error: " + response[1];
+                $(#msg_box).style["background-color"] = "rgb(255, 79, 79)";
+            }
+            $(#msg_box).style["display"] = "block";
+        }
+
+        $(button#add_user).on("click", function() {            
+            stdout.println("add user");
+            
+            var display_name = $(#new_user_nickname).text;
+            var public_id = $(#new_user_public_id).text;
+            var ip_address = $(#new_user_ip).text;
+            var port = $(#new_user_port).text;
+
+            var response = view.add_new_user(display_name, public_id, ip_address, port);
+            stdout.println(response[0]);
+            stdout.println(response[1]);
+            update_msg_box(response);
+            if (response[0] == 0) {
+                load_current_users();
+            }
+
+        });
+
+        event click $(button.remove-user) (evt,button) {
+            stdout.println("remove user");
+            var display_name = this.@["data-display-name"];
+            stdout.println(display_name);
+            view.remove_user(display_name);
+            load_current_users();
+            return true; // consume the event 
+        }
+
+        event click $(button.disable-user) (evt,button) {
+            stdout.println("disable user");
+            var display_name = this.@["data-display-name"];
+            stdout.println(display_name);
+            view.disable_user(display_name);
+            this.style["display"] = "none";
+            
+            $(button.enable-user[data-display-name='{display_name}']).style["display"] = "inline-block";
+            $(span.user-status[data-display-name='{display_name}']).html = "Blocked";
+
+            return true; // consume the event 
+        }
+
+        event click $(button.enable-user) (evt,button) {
+            stdout.println("enable user");
+            var display_name = this.@["data-display-name"];
+            stdout.println(display_name);
+            view.enable_user(display_name);
+            this.style["display"] = "none";
+            
+            $(button.disable-user[data-display-name='{display_name}']).style["display"] = "inline-block";
+            $(span.user-status[data-display-name='{display_name}']).html = "Allowed";
+
+            return true; // consume the event 
+        }
+
+        event click $(button.edit-user) (evt,button) {
+            stdout.println("edit user");
+            var display_name = this.@["data-display-name"];
+            stdout.println(display_name);
+            
+            this.style["display"] = "none";
+            $(button.apply-user[data-display-name='{display_name}']).style["display"] = "inline-block";
+
+            $(span.user-public-id[data-display-name='{display_name}']).style["display"] = "none";
+            $(input.user-public-id-box[data-display-name='{display_name}']).style["display"] = "inline-block";
+
+            $(span.user-ip[data-display-name='{display_name}']).style["display"] = "none";
+            $(input.user-ip-box[data-display-name='{display_name}']).style["display"] = "inline-block";
+
+            $(span.user-port[data-display-name='{display_name}']).style["display"] = "none";
+            $(input.user-port-box[data-display-name='{display_name}']).style["display"] = "inline-block";
+
+            return true; // consume the event 
+        }
+
+        event click $(button.apply-user) (evt,button) {
+            stdout.println("apply user");
+            var display_name = this.@["data-display-name"];
+
+            var new_public_id = $(input.user-public-id-box[data-display-name='{display_name}']).text
+            var new_ip = $(input.user-ip-box[data-display-name='{display_name}']).text
+            var new_port = $(input.user-port-box[data-display-name='{display_name}']).text
+
+            var response = view.edit_user(display_name, new_public_id, new_ip, new_port);
+            update_msg_box(response);
+            if (response[0] == 0) {
+                load_current_users();
+            }
+        }
+
+        function load_current_users() {
+            $(#current_users).html = view.get_current_users();
+        }
+        load_current_users();
+
+    </script>
+</head>
+
+<body>
+    <div style="background-color: yellow; padding: 1em">
+        - This is alpha software and not fully tested yet<br>
+        - Only share with people you trust<br>
+        - People you share with will see the full file path of your files and folders<br>
+        - Use a firewall to control access to transmitic.exe<br>
+      </div>
+    <section>
+        <h1>Users</h1>
+        <div #msg_box></div>
+        <div style="background-color: #f0f0f0; border: 1px solid #a0a0a0;">
+            <div style="padding: -0.5em 0.5em 0.5em 0.5em;">
+                <h2 #name>Add New User</h2>
+                Nickname: <input #new_user_nickname type="text"><br>
+                Public ID: <input #new_user_public_id type="text"><br>
+                IP Address: <input #new_user_ip type="text"><br>
+                Port: <input #new_user_port type="text" value="7878"><br>
+                <button #add_user>Add New User</button>
+            </div>
+        </div>
+        <br>
+
+        <div style="background-color: #f0f0f0; border: 1px solid #a0a0a0;">
+            <div style="padding: -0.5em 0.5em 0.5em 0.5em;">
+                <h2 #name>Current Users</h2>
+                <div #current_users></div>
+            </div>
+        </div>
+
+    </section>
+</body>
+
+
+</html>

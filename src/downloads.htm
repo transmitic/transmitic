@@ -10,6 +10,15 @@
         border-spacing:8dip; /* defines spacing between cells */
       }
 
+      #msg_box {
+            padding: 1em 1em 1em 1em;
+            width: 100%;
+            background-color: rgb(85, 255, 79);
+            color: #000;
+            margin-bottom: 1em;
+            display: none;
+        }
+
       section > div {size:*;}
       section > div > h2 { text-align:center; vertical-align:top;}
       section > div {background-color: #f0f0f0; border: 1px solid #a0a0a0;}
@@ -17,6 +26,121 @@
       
     </style>
     <script type="text/tiscript">
+
+      function update_msg_box(response) {
+        if (response[0] == 0) {
+            $(#msg_box).text = response[1];
+            $(#msg_box).style["background-color"] = "rgb(85, 255, 79)";
+        } else {
+            $(#msg_box).text = "Error: " + response[1];
+            $(#msg_box).style["background-color"] = "rgb(255, 79, 79)";
+        }
+        $(#msg_box).style["display"] = "block";
+    }
+
+      event click $(button.cancel-download) (evt,button) {
+        stdout.println("cancel download");
+        var display_name = this.@["data-display-name"];
+        var file_path = this.@["data-file-path"];
+        stdout.println(display_name);
+        stdout.println(file_path);
+
+        var response = view.cancel_download(display_name, file_path);
+        update_msg_box(response);
+        if (response[0] == 0) {
+          update_downloads();
+        }
+    }
+
+    event click $(button.resume-download) (evt,button) {
+      stdout.println("resume download");
+      var display_name = this.@["data-display-name"];
+      stdout.println(display_name);
+
+      var response = view.resume_download(display_name);
+      update_msg_box(response);
+      if (response[0] == 0) {
+        update_downloads();
+      }
+  }
+
+  event click $(button.open-a-download) (evt,button) {
+    stdout.println("open a download");
+    var file_path = this.@["data-file-path"];
+    stdout.println(file_path);
+
+    view.open_a_download(file_path);
+
+}
+
+    event click $(button.pause-download) (evt,button) {
+      stdout.println("pause download");
+      var display_name = this.@["data-display-name"];
+      stdout.println(display_name);
+
+      var response = view.pause_download(display_name);
+      update_msg_box(response);
+      if (response[0] == 0) {
+        update_downloads();
+      }
+  }
+
+  $(button#opendownloads).on("click", function() {    
+    stdout.println("open downloads");
+
+    view.open_downloads();
+  });
+
+  $(button#resumealldownloads).on("click", function() {    
+    stdout.println("resume all downloads");
+
+    var response = view.resume_all_downloads();
+    update_msg_box(response);
+    if (response[0] == 0) {
+      update_downloads();
+    }
+  });
+
+  $(button#pausealldownloads).on("click", function() {    
+    stdout.println("pause all downloads");
+
+    var response = view.pause_all_downloads();
+    update_msg_box(response);
+    if (response[0] == 0) {
+      update_downloads();
+    }
+  });
+
+  $(button#clearfinished).on("click", function() {    
+    stdout.println("clear finished downloads");
+
+    var response = view.clear_finished_downloads();
+    update_msg_box(response);
+    if (response[0] == 0) {
+      update_downloads();
+    }
+  });
+
+  $(button#clearinvalid).on("click", function() {    
+    stdout.println("clear invalid downloads");
+
+    var response = view.clear_invalid_downloads();
+    update_msg_box(response);
+    if (response[0] == 0) {
+      update_downloads();
+    }
+  });
+
+    $(button#cancelalldownloads).on("click", function() {    
+        stdout.println("cancel all downloads");
+
+        var response = view.cancel_all_downloads();
+        update_msg_box(response);
+        if (response[0] == 0) {
+          update_downloads();    
+        }
+      });
+
       function update_downloads() {
         var html_my_downloads = view.get_my_downloads();
         $(#mydownloads).html = html_my_downloads;
@@ -36,9 +160,16 @@
   <h1>
     Downloads
     </h1>
+    <div #msg_box></div>
   <section>
     <div>
       <h2>My Downloads</h2>
+      <button #opendownloads>Open Downloads</button>
+      <button #cancelalldownloads>Cancel All</button>
+      <button #pausealldownloads>Pause All</button>
+      <button #resumealldownloads>Resume All</button>
+      <button #clearfinished>Clear Finished</button>
+      <button #clearinvalid>Clear Invalid</button>
       <hr>
       <div #mydownloads>
       </div>

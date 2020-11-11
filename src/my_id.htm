@@ -1,0 +1,78 @@
+<html>
+  <head>
+    <style>
+      html {
+        behavior: htmlarea;
+      }
+
+      .highlight {
+        color: rgb(255, 255, 255);
+        background-color: rgb(79, 120, 255);
+        padding: 0.3em 0.5em 0.3em 0.5em;
+        display: inline-block;
+      }
+
+      #msg_box {
+            padding: 1em 1em 1em 1em;
+            width: 100%;
+            background-color: rgb(85, 255, 79);
+            color: #000;
+            margin-bottom: 1em;
+            display: none;
+        }
+
+    </style>
+
+    <script type="text/tiscript">
+      function update_msg_box(response) {
+        if (response[0] == 0) {
+            $(#msg_box).text = response[1];
+            $(#msg_box).style["background-color"] = "rgb(85, 255, 79)";
+        } else {
+            $(#msg_box).text = "Error: " + response[1];
+            $(#msg_box).style["background-color"] = "rgb(255, 79, 79)";
+        }
+        $(#msg_box).style["display"] = "block";
+    }
+
+      $(button#create_new_id).on("click", function() {
+        let response = view.create_new_id();
+        load_private_id();
+        update_msg_box(response);
+      });
+
+      function load_private_id() {
+        $(#publicid).html = view.get_public_id();
+      }
+
+      $(#copy) << event click() 
+      {
+        view.clipboard(#put,$(#publicid).text);
+        $(#copysuccess).text = "(copied)";
+      }
+
+      load_private_id();
+    </script>
+  </head>
+<body>
+
+    <h1>My ID</h1>
+    <div #msg_box></div>
+
+    <h2>My Public ID</h2>
+    Share your Public ID with people you want to connect with.
+    <br><br>
+    Your Public ID is: <span #publicid class="highlight">X</span>&nbsp;<button #copy>Copy</button><span #copysuccess></span>
+
+    
+    <br><br>
+
+    <h2>Create New ID</h2>
+    Creating a new ID will require all the people you share with to change the ID they have for you.
+    <br>
+    Your current ID will no longer work.
+    <br><br>
+    <button #create_new_id>Create New ID</button>
+
+</body>
+</html>

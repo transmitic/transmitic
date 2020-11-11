@@ -1,19 +1,21 @@
 {
-	"my_private_id_file_name": "my_private_id.id",
+	"my_private_id": "my_private_id.id",
 	"server_port": "7878",
 	"server_visibility": "local",
 	"trusted_users_public_ids": [
 		{
-			"public_id_file_name": "foo_public_id.key",
+			"public_id": "foo_public_id.key",
 			"display_name": "Foo Bar",
 			"ip_address": "127.0.0.1",
-			"port": "7878"
+			"port": "7878",
+			"enabled": true
 		},
 		{
-			"public_id_file_name": "lorem_ipsum_id.key",
+			"public_id": "lorem_ipsum_id.key",
 			"display_name": "Lorem Ipsum",
-			"ip_address": "127.0.0.1",
-			"port": "7878"
+			"ip_address": "127.0.0.2",
+			"port": "7878",
+			"enabled": false
 		}
 	],
 	"shared_files": [

@@ -1,0 +1,3 @@
+[build]
+rustc = "rustc"           # the rust compiler tool
+rustflags = ["-Ctarget-cpu=sandybridge", "-Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"]    # custom flags to pass to all compiler invocations
