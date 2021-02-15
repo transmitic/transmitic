@@ -61,7 +61,6 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 
 ## Goals (Short Term and Long Term)
 
-- Fix sending large number of files to user
 - GUI redesign
 - GUI for advanced settings
 - Additional error handling around edge cases
