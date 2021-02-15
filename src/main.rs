@@ -67,13 +67,18 @@ const MSG_TYPE_SIZE: usize = 1;
 const PAYLOAD_SIZE_LEN: usize = 4;
 
 const MSG_FILE_LIST: u8 = 1;
-const MSG_FILE_CHUNK: u8 = 2;
-const MSG_FILE_FINISHED: u8 = 4;
-const MSG_FILE_INVALID_FILE: u8 = 5;
-const MSG_CANNOT_SELECT_DIRECTORY: u8 = 6;
-const MSG_FILE_SELECTION_CONTINUE: u8 = 7; // TODO Only use CONTINUE?
-const MSG_CLIENT_DIFFIE_PUBLIC: u8 = 8;
-const MSG_SERVER_DIFFIE_PUBLIC: u8 = 9;
+const MSG_FILE_LIST_PIECE: u8 = 2;
+const MSG_FILE_LIST_FINAL: u8 = 3;
+
+const MSG_FILE_CHUNK: u8 = 4;
+const MSG_FILE_FINISHED: u8 = 5;
+
+const MSG_FILE_INVALID_FILE: u8 = 6;
+const MSG_CANNOT_SELECT_DIRECTORY: u8 = 7;
+const MSG_FILE_SELECTION_CONTINUE: u8 = 8; // TODO Only use CONTINUE?
+
+const MSG_CLIENT_DIFFIE_PUBLIC: u8 = 9;
+const MSG_SERVER_DIFFIE_PUBLIC: u8 = 10;
 
 const MAX_DATA_SIZE: usize = 100_000;
 const TOTAL_BUFFER_SIZE: usize = MSG_TYPE_SIZE + PAYLOAD_SIZE_LEN + MAX_DATA_SIZE;
@@ -2489,7 +2494,25 @@ fn client_handle_incoming_loop(
 
 	if client_msg == MSG_FILE_LIST {
 		println!("Client requests file list");
-		secure_stream.write(MSG_FILE_LIST, &everything_file_json_bytes);
+		if everything_file_json_bytes.len() <= MAX_DATA_SIZE {
+			secure_stream.write(MSG_FILE_LIST_FINAL, &everything_file_json_bytes);
+		} else {
+			let mut remaining_bytes = everything_file_json_bytes.len();
+			let mut sent_bytes = 0;
+			loop {
+				if remaining_bytes <= MAX_DATA_SIZE {
+					let send_vec = Vec::from(&everything_file_json_bytes[sent_bytes..remaining_bytes+sent_bytes]);
+					secure_stream.write(MSG_FILE_LIST_FINAL, &send_vec);
+					break;
+				} else {
+					let send_vec = Vec::from(&everything_file_json_bytes[sent_bytes..MAX_DATA_SIZE+sent_bytes]);
+					secure_stream.write(MSG_FILE_LIST_PIECE, &send_vec);
+				}
+				
+				sent_bytes += MAX_DATA_SIZE;
+				remaining_bytes -= MAX_DATA_SIZE;
+			}
+		}
 		println!("File list sent");
 	} else if client_msg == MSG_FILE_SELECTION_CONTINUE {
 		println!("Client sent file selection for downloading");
@@ -2750,15 +2773,24 @@ fn set_buffer(buffer: &mut [u8], msg_type: u8, payload: &Vec<u8>) {
 
 fn request_file_list(secure_stream: &mut SecureStream, client_display_name: &String) -> SharedFile {
 	// Request file list
+	let mut payload_bytes: Vec<u8> = Vec::new();
+
 	secure_stream.write(MSG_FILE_LIST, &Vec::with_capacity(1));
 
 	// Receive file list
-	secure_stream.read();
-	let actual_payload_size = get_payload_size_from_buffer(&secure_stream.buffer);
-	let mut payload_bytes: Vec<u8> = Vec::with_capacity(actual_payload_size);
-	for mut i in 0..actual_payload_size {
-		i += PAYLOAD_OFFSET;
-		payload_bytes.push(secure_stream.buffer[i]);
+	loop {
+		secure_stream.read();
+		let server_msg: u8 = secure_stream.buffer[0];
+		if server_msg != MSG_FILE_LIST_PIECE && server_msg != MSG_FILE_LIST_FINAL {
+			exit_error(format!("Request file list got unexpected MSG: '{:?}'", server_msg));
+		}
+		let actual_payload_size = get_payload_size_from_buffer(&secure_stream.buffer);
+		
+		payload_bytes.extend_from_slice(&secure_stream.buffer[PAYLOAD_OFFSET..PAYLOAD_OFFSET+actual_payload_size]);
+		
+		if server_msg == MSG_FILE_LIST_FINAL {
+			break;
+		}
 	}
 
 	// Create FilesJson struct
