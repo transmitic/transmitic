@@ -59,10 +59,6 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 - [x25519_dalek](https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/)
 - [serde](https://serde.rs/)
 
-## Primary Known Issues
-
-- Sharing too many files fails to send file list
-
 ## Goals (Short Term and Long Term)
 
 - Fix sending large number of files to user
