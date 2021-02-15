@@ -17,10 +17,6 @@ Website: [https://transmitic.io/](https://transmitic.io/)
 
 [Patreon](https://www.patreon.com/andrewshay)
 
-## Setup & Usage
-
-See wiki [https://github.com/transmitic/transmitic/wiki](https://github.com/transmitic/transmitic/wiki)
-
 ## Comparison To Other Tools
 
 **Bittorrent**  
@@ -44,6 +40,10 @@ At this time, expect:
 
 This project is slowly being hacked on during nights and weekends.  
 It will eventually reach a stable and tested point.
+
+## More Info
+
+See wiki [https://github.com/transmitic/transmitic/wiki](https://github.com/transmitic/transmitic/wiki)
 
 ## Contributing
 
