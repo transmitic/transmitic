@@ -30,7 +30,7 @@ pub fn get_size_of_directory(path: &str) -> usize {
 }
 
 pub fn get_blocked_file_name_chars() -> String {
-	return String::from("{}\"'$<>#?&;%!|*");
+	return String::from("{};*?'\"<>|");
 }
 
 pub fn get_blocked_display_name_chars() -> String {

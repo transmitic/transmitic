@@ -93,19 +93,26 @@ pub fn process_shared_file(shared_file: &mut SharedFile) {
     }
 }
 
-pub fn quit_if_invalid_file(shared_file: &SharedFile, client_display_name: &String) {
+// FIXME - how to handle files with invalid file names?
+pub fn remove_invalid_files(shared_file: &mut SharedFile, client_display_name: &String) {
+    if shared_file.is_directory {
+        shared_file.files.retain(|x|file_contains_valid_chars(&x));
+
+        for s in shared_file.files.iter_mut() {
+            remove_invalid_files(s, client_display_name);
+        }
+    }
+}
+
+fn file_contains_valid_chars(shared_file: &SharedFile) -> bool {
     let blocked_chars = get_blocked_file_name_chars();
     for c in blocked_chars.chars() {
         if shared_file.path.contains(c) == true {
-            exit_error(format!("ALERT: The user '{}' attempted to send you a file with the blocked char '{}'. This might have been a malicious attempt.", client_display_name, c.to_string()));
+            println!("WARNING: Rejecting file that contains invalid char '{}'", c);
+            return false;        
         }
     }
-
-    if shared_file.is_directory {
-        for sub_file in &shared_file.files {
-            quit_if_invalid_file(&sub_file, &client_display_name);
-        }
-    }
+    return true;
 }
 
 pub fn print_shared_files(shared_file: &SharedFile, spacer: &String) {

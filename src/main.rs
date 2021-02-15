@@ -7,7 +7,7 @@ use shared_file::{
 	SharedFile,
 	FileToDownload,
 	get_everything_file,
-	quit_if_invalid_file,
+	remove_invalid_files,
 	print_shared_files,
 };
 use config::{
@@ -512,7 +512,7 @@ fn download_shared_file(
 	if shared_file.is_directory {
 		let mut new_download_dir = String::from(download_dir);
 		new_download_dir.push_str(current_path_name);
-		new_download_dir.push_str(&'/'.to_string());
+		new_download_dir.push_str(&"/".to_string());
 		for a_file in &shared_file.files {
 			download_shared_file(
 				secure_stream,
@@ -2495,6 +2495,7 @@ fn client_handle_incoming_loop(
 	if client_msg == MSG_FILE_LIST {
 		println!("Client requests file list");
 		if everything_file_json_bytes.len() <= MAX_DATA_SIZE {
+			// TODO is this branch not needed?
 			secure_stream.write(MSG_FILE_LIST_FINAL, &everything_file_json_bytes);
 		} else {
 			let mut remaining_bytes = everything_file_json_bytes.len();
@@ -2795,11 +2796,11 @@ fn request_file_list(secure_stream: &mut SecureStream, client_display_name: &Str
 
 	// Create FilesJson struct
 	let files_str = str::from_utf8(&payload_bytes).unwrap();
-	let all_files: SharedFile = serde_json::from_str(&files_str).unwrap();
+	let mut all_files: SharedFile = serde_json::from_str(&files_str).unwrap();
 	//println!("{:?}", all_files);
 
-	// Verify file names are valid
-	quit_if_invalid_file(&all_files, &client_display_name);
+	// Keep valid file names
+	remove_invalid_files(&mut all_files, &client_display_name);
 
 	return all_files;
 }
@@ -2839,7 +2840,3 @@ fn user_files_checkboxes(
 		}
 	}
 }
-
-
-
-

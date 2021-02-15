@@ -37,45 +37,6 @@ pub fn verify_config(config: &Config) {
 	let blocked_file_name_chars = get_blocked_file_name_chars();
 	let blocked_extended = get_blocked_display_name_chars();
 
-	// my_private_id_file_name file name is valid
-	// for c in blocked_extended.chars() {
-	// 	if config.my_private_id_file_name.contains(c) == true {
-	// 		exit_error(format!("my_private_id_file_name file name from config.json contains char '{}'. The following are not allowed '{}'", c, blocked_extended));
-	// 	}
-	// }
-
-	// my_private_id_file_name exists
-	// let mut local_key_pair_path = get_path_my_config_dir();
-	// local_key_pair_path.push(&config.my_private_id_file_name);
-	// if local_key_pair_path.exists() == false {
-	// 	exit_error(format!(
-	// 		"my_private_id_file_name file from config.json doesn't exist: '{}'",
-	// 		local_key_pair_path.to_str().unwrap()
-	// 	));
-	// }
-
-
-	// public ids file name is valid
-	// for key in &config.trusted_users_public_ids {
-	// 	for c in blocked_extended.chars() {
-	// 		if key.public_id_file_name.contains(c) == true {
-	// 			exit_error(format!("public id file name '{}' from config.json contains char '{}'. The following are not allowed '{}'", key.public_id_file_name, c, blocked_extended));
-	// 		}
-	// 	}
-	// }
-
-	// public ids exist
-	// for key in &config.trusted_users_public_ids {
-	// 	let path = get_path_user_public_id_file(&key.public_id_file_name);
-	// 	if path.exists() == false {
-	// 		exit_error(format!(
-	// 			"Public ID key in config for user '{}' doesn't exist: '{}'",
-	// 			key.display_name,
-	// 			path.to_str().unwrap()
-	// 		));
-	// 	}
-	// }
-
 	// public ids display name is valid
 	for key in &config.trusted_users_public_ids {
 		for c in blocked_extended.chars() {
