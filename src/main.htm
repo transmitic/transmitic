@@ -1,41 +1,25 @@
+<!--<html window-frame="extended">-->
 <html>
-  <head>
-    <title>Transmitic In Development Alpha</title>
-    <style>
 
-      html {
-        background-color:rgb(255, 255, 255);
-        color: #000;
-        behavior: htmlarea;
-        context-menu: selector(menu#for-htmlarea);
-      }
+<head>
+  <title>Transmitic In Development Alpha</title>
+  <style>
+    /* AUTO CSS INJECTION */
+  </style>
 
-      html:rtl {
-        mapping: left-to-right(background);
-      }
+  <script type="text/tiscript">
+      
+      // Nav bar
+      event click $(div.nav-button) (evt,button) {
+        stdout.println("click nav-block");
 
-      a { color: blue; }
-      code { font-weight: bold; }
-
-      #msg_box {
-            padding: 1em 1em 1em 1em;
-            width: 100%;
-            background-color: rgb(85, 255, 79);
-            color: #000;
-            margin-bottom: 1em;
-            display: none;
+        for (var block in $(body).selectAll("div[class=nav-block]")) {
+          block.style["background-color"] = "none";
         }
 
-    </style>
-
-<menu.context #for-htmlarea style="background-color: #f0f0f0; border: 1px solid #a0a0a0;">
-  <li command="edit:copy"	style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span class="accesskey">Ctrl+C</span></li>
-  <hr/>
-  <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
-</menu>
-
-    <script type="text/tiscript">
-    
+        button.select("div[class=nav-block]").style["background-color"] = "#0078D7";
+      }
+      // End nav bar
       // Window icon
       var bytes_string = view.get_icon();
       var bytes = Bytes.fromString(bytes_string, "utf-8");
@@ -50,13 +34,13 @@
       });
       //
 
-      $(button#load_about).on("click", function() {
+      $(div#load_about).on("click", function() {
         stdout.println("load about");
         var page_html = view.get_page_about();
         $(frame#content).load(page_html, "example://about.htm");
       });
 
-      $(button#load_downloads).on("click", function() {
+      $(div#load_downloads).on("click", function() {
         load_downloads();
       });
 
@@ -66,13 +50,13 @@
         $(frame#content).load(page_html, "example://downloads.htm");
       }
 
-      $(button#load_my_sharing).on("click", function() {
+      $(div#load_my_sharing).on("click", function() {
         stdout.println("load my sharing");
         var page_html = view.get_page_my_sharing();
         $(frame#content).load(page_html, "example://my_sharing.htm");
       });
 
-      $(button#load_users).on("click", function() {
+      $(div#load_users).on("click", function() {
         load_users();
       });
 
@@ -93,16 +77,17 @@
         $(frame#content).load(page_html, "example://welcome.htm");
       }
 
-      $(button#load_my_id).on("click", function() {
+      $(div#load_my_id).on("click", function() {
         var page_html = view.get_page_my_id();
         $(frame#content).load(page_html, "example://my_id.htm");
       });
 
-      $(button#load_shared_with_me).on("click", function() {
+      $(div#load_shared_with_me).on("click", function() {
         stdout.println("load shared with me");
         load_shared_with_me();
       });
 
+      stdout.println("pre load!");
       if (view.get_is_first_start()) {
         load_welcome();
       } else {
@@ -128,21 +113,93 @@
       $(div.selectable).on("click","li#selected-text", function() { view.msgbox(#information,getSelectedText().htmlEscape()); })
                        .on("click","li#selected-html", function() { view.msgbox(#information,getSelectedHTML().htmlEscape()); })
                        .on("keydown", function(evt) { return true; /*supress key handling in selectable */ } );
-
     </script>
-  </head>
+  <menu.context #for-htmlarea>
+    <li command="edit:copy" style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span
+        class="accesskey">Ctrl+C</span></li>
+    <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
+    </menu>
+</head>
+
 <body>
+  <menu.context #for-htmlarea>
+    <li command="edit:copy"	style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span class="accesskey">Ctrl+C</span></li>
+    <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
+  </menu>
+  <section style="height: *;">
+    <div class="nav-bar">
+      <div id="load_downloads" class="nav-button">
+        <div class="nav-block" style="background-color: color(main-accent);"> </div>
+        <img class="nav-icon" src="ic_fluent_arrow_download_48_regular.svg"></img>
+        <div class="nav-text">Downloads</div>
+      </div>
+      <div id="load_shared_with_me" class="nav-button">
+        <div class="nav-block"> </div>
+        <img class="nav-icon" src="ic_fluent_globe_32_regular.svg"></img>
+        <div class="nav-text">Shared With Me</div>
+      </div>
+      <div id="load_my_sharing" class="nav-button">
+        <div class="nav-block"> </div>
+        <img class="nav-icon" src="ic_fluent_folder_48_regular.svg"></img>
+        <div class="nav-text">My Shared</div>
+      </div>
+      <div id="load_users" class="nav-button">
+        <div class="nav-block"> </div>
+        <img class="nav-icon" src="ic_fluent_people_32_regular.svg"></img>
+        <div class="nav-text">Users</div>
+      </div>
+      <div id="load_my_id" class="nav-button">
+        <div class="nav-block"> </div>
+        <img class="nav-icon" src="ic_fluent_guest_28_regular.svg"></img>
+        <div class="nav-text">My ID</div>
+      </div>
+      <div id="load_about" class="nav-button">
+        <div class="nav-block"> </div>
+        <img class="nav-icon" src="ic_fluent_info_28_regular.svg"></img>
+        <div class="nav-text">About</div>
+      </div>
+    </div>
+    <div style="width:*; height: *;">
+      <frame#content>
 
-  <button #load_downloads>Downloads</button>
-  <button #load_shared_with_me>Shared With Me</button>
-  <button #load_my_sharing>My Sharing</button>
-  <button #load_users>Users</button>
-  <button #load_my_id>My ID</button>
-  <button #load_about>About</button>
+        </frame>
+    </div>
 
-  <frame#content>
+  </section>
 
-  </frame>
+  <script type="text/tiscript">
+    var icon_bytes_string = view.get_icon_nav_downloads();
+    var icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
+    var icon_image = Image.fromBytes(icon_bytes);
+    $(div#load_downloads).$(img.nav-icon).value = icon_image;
+
+    icon_bytes_string = view.get_icon_nav_shared_with_me();
+    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
+    icon_image = Image.fromBytes(icon_bytes);
+    $(div#load_shared_with_me).$(img.nav-icon).value = icon_image;
+
+    icon_bytes_string = view.get_icon_nav_my_sharing();
+    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
+    icon_image = Image.fromBytes(icon_bytes);
+    $(div#load_my_sharing).$(img.nav-icon).value = icon_image;
+
+    icon_bytes_string = view.get_icon_nav_users();
+    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
+    icon_image = Image.fromBytes(icon_bytes);
+    $(div#load_users).$(img.nav-icon).value = icon_image;
+
+    icon_bytes_string = view.get_icon_nav_my_id();
+    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
+    icon_image = Image.fromBytes(icon_bytes);
+    $(div#load_my_id).$(img.nav-icon).value = icon_image;
+
+    icon_bytes_string = view.get_icon_nav_about();
+    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
+    icon_image = Image.fromBytes(icon_bytes);
+    $(div#load_about).$(img.nav-icon).value = icon_image;
+  </script>
+
 
 </body>
+
 </html>

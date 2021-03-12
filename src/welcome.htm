@@ -1,24 +1,15 @@
 <html>
-  <head>
-    <style>
-      html {
-        behavior: htmlarea;
-      }
 
-      body {
-        text-align: center;
-      }
+<head>
+  <style>
+    /* AUTO CSS INJECTION */
 
-      .highlight {
-        color: rgb(255, 255, 255);
-        background-color: rgb(79, 120, 255);
-        padding: 0.3em 0.5em 0.3em 0.5em;
-        display: inline-block;
-      }
+    body {
+      text-align: center;
+    }
+  </style>
 
-    </style>
-
-    <script type="text/tiscript">
+  <script type="text/tiscript">
 
       $(button#continue).on("click", function() {
         load_users();
@@ -34,73 +25,99 @@
       $(#internalport).html = view.get_port();
       $(#externalport).html = view.get_port();
       $(#localip).html = view.get_local_ip();
+      
+      // -- RIGHT CLICK CONTEXT MENU
+      function getSelectedText() {
+        return $(div.selectable).selection.text;
+      }
+      
+      function getSelectedHTML() {
+        return $(div.selectable).selection.html;
+      }
+      
+      function hasSelection() {
+        return $(div.selectable).selection.type;
+      }
+    
+      $(div.selectable).on("click","li#selected-text", function() { view.msgbox(#information,getSelectedText().htmlEscape()); })
+                       .on("click","li#selected-html", function() { view.msgbox(#information,getSelectedHTML().htmlEscape()); })
+                       .on("keydown", function(evt) { return true; /*supress key handling in selectable */ } );
     </script>
-  </head>
-<body>
+</head>
 
-    <h1>Welcome to Transmitic</h1>
-    <p>
+<body>
+  <menu.context #for-htmlarea>
+    <li command="edit:copy"	style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span class="accesskey">Ctrl+C</span></li>
+    <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
+  </menu>
+
+  <h1>Welcome to Transmitic</h1>
+  <p>
     Transmitic allows you to securely share files and folders with people.
     <br>
     Downloads can be paused or lose their connection, and the download will continue where it left off.
     <br>
     You will connect to people directly. There is no 3rd party server.
     <br>
-    </p>
+  </p>
 
-    <br><br>
-    <h1>Getting Started</h1>
-    <h2>1. Your Public ID</h2>
-    Your Public ID is: <span #publicid class="highlight">X</span>&nbsp;<button #copy>Copy</button><span #copysuccess></span>
-    <br>
-    Share your Public ID with people you want to connect with.
-    <br><br>
-    <h2>2. Finding Your IP Address</h2>
-    People need your IP address to directly connect to you.
-    <br>
-    Search online "what is my IP".
-    <br>
-    It will be numbers separated with dots.
-    <br>
-    Share your IP address.
+  <br><br>
+  <h1>Getting Started</h1>
+  <h2>1. Your Public ID</h2>
+  Your Public ID is: <span #publicid class="highlight">X</span>&nbsp;<button #copy>Copy</button><span
+    #copysuccess></span>
+  <br>
+  Share your Public ID with people you want to connect with.
+  <br><br>
+  <h2>2. Finding Your IP Address</h2>
+  People need your IP address to directly connect to you.
+  <br>
+  Search online "what is my IP".
+  <br>
+  It will be numbers separated with dots.
+  <br>
+  Share your IP address.
 
-    <br><br>
-    <h2>3. Opening a Port</h2>
-    This part might seem difficult, but it's not.
-    <br>
-    A port is used with an IP address to direct internet connections to software (like Transmitic).
-    <br>
-    In your browser, login to your router by going to either <span class="highlight">http://192.168.0.1</span> OR <span class="highlight">http://192.168.1.1</span>
-    <br>
-    Login to your router. If you have never logged in before, the credentials might be on a sticker on the router itself.
-    <br>
-    Look for one of these sections <span class="highlight">NAT Forwarding</span> / <span class="highlight">Port Forwarding</span> / <span class="highlight">Virtual Servers</span>.
-    <br>
-    Add a new entry (Your router's terminology may differ slightly).
-    <br><br>
-    Interal Port: <span #internalport class="highlight">X</span>
-    <br><br>
-    External Port: <span #externalport class="highlight">X</span>
-    <br><br>
-    Protocol: <span class="highlight">TCP</span>
-    <br><br>
-    Internal IP Address: Local IP address for your computer
-    <br><br>
+  <br><br>
+  <h2>3. Opening a Port</h2>
+  This part might seem difficult, but it's not.
+  <br>
+  A port is used with an IP address to direct internet connections to software (like Transmitic).
+  <br>
+  In your browser, login to your router by going to either <span class="highlight">http://192.168.0.1</span> OR <span
+    class="highlight">http://192.168.1.1</span>
+  <br>
+  Login to your router. If you have never logged in before, the credentials might be on a sticker on the router itself.
+  <br>
+  Look for one of these sections <span class="highlight">NAT Forwarding</span> / <span class="highlight">Port
+    Forwarding</span> / <span class="highlight">Virtual Servers</span>.
+  <br>
+  Add a new entry (Your router's terminology may differ slightly).
+  <br><br>
+  Interal Port: <span #internalport class="highlight">X</span>
+  <br><br>
+  External Port: <span #externalport class="highlight">X</span>
+  <br><br>
+  Protocol: <span class="highlight">TCP</span>
+  <br><br>
+  Internal IP Address: Local IP address for your computer
+  <br><br>
 
 
-    <br><br>
-    <h2>4. Adding People to Share With</h2>
-    After clicking the "Continue" button below, you will be directed to the "Users" tab.
-    <br>
-    Add users' Public IDs and IP addresses to start sharing with them.
+  <br><br>
+  <h2>4. Adding People to Share With</h2>
+  After clicking the "Continue" button below, you will be directed to the "Users" tab.
+  <br>
+  Add users' Public IDs and IP addresses to start sharing with them.
 
-    <br><br>
-    <h2>5. Sharing Your Files</h2>
-    After adding users, click the "My Sharing" tab to add files you want to share.
+  <br><br>
+  <h2>5. Sharing Your Files</h2>
+  After adding users, click the "My Sharing" tab to add files you want to share.
 
-    <br><br><br>
-    <button #continue>Continue</button>
-    <br><br><br>
+  <br><br><br>
+  <button #continue>Continue</button>
+  <br><br><br>
 
 </body>
+
 </html>

@@ -28,7 +28,7 @@ use utils::{
 	get_file_size_string,
 };
 
-use sciter::dispatch_script_call;
+use sciter::{dispatch_script_call, host::{LOAD_RESULT, SCN_LOAD_DATA}, request::Request, s2w};
 use sciter::Value;
 
 extern crate sciter;
@@ -85,7 +85,7 @@ const TOTAL_BUFFER_SIZE: usize = MSG_TYPE_SIZE + PAYLOAD_SIZE_LEN + MAX_DATA_SIZ
 const TOTAL_CRYPTO_BUFFER_SIZE: usize = TOTAL_BUFFER_SIZE + 16;
 const PAYLOAD_OFFSET: usize = MSG_TYPE_SIZE + PAYLOAD_SIZE_LEN;
 
-const VERSION: &str = "0.2.0"; // Note: And cargo.toml
+const VERSION: &str = "0.3.0"; // Note: And cargo.toml
 const NAME: &str = "Transmitic In Development Alpha";
 
 
@@ -831,7 +831,59 @@ fn reset_all_connections(mut connection_guard: MutexGuard<IncomingConnection>) -
 }
 
 
+/// Default `HostHandler` implementation
+#[derive(Default)]
+struct DefaultHandler;
+
+/// Default `HostHandler` implementation
+impl sciter::HostHandler for DefaultHandler {
+	fn on_data_load(&mut self, pnm: &mut SCN_LOAD_DATA) -> Option<LOAD_RESULT> { 
+		println!("!!!!!!!!!!!!! DATA LOAD");
+		let mut rq = Request::from(pnm.request_id);
+
+		match rq.url() {
+			Ok(s) => {
+				println!("{:?}", s);
+				if s.contains("page.css") {
+					println!("CONTAINS");
+					let nav_css = include_bytes!("page.css");
+					self.data_ready(pnm.hwnd, &s, nav_css, Some(pnm.request_id));
+				}
+				if s.contains("nav.css") {
+					println!("CONTAINS");
+					let nav_css = include_bytes!("nav.css");
+					self.data_ready(pnm.hwnd, &s, nav_css, Some(pnm.request_id));
+				}
+				return None;
+				
+			},
+			_ => {return None; }
+		}
+
+
+		return None; 
+	}
+}
+
+/// This is hack to get around loading CSS on htm pages with sciter
+/// 1. I can't get a relative to path to load css in a frame page
+/// 2. SC_LOAD_DATA works for loading files, but using a frame causes a crash
+/// I don't have any more time to deal with this, so I inject the CSS into the page
+fn inject_css_into_page(page: &str) -> String {
+	let bytes = include_bytes!("style.css");
+	let css_str = str::from_utf8(bytes).unwrap();
+	let new_page = page.replace("/* AUTO CSS INJECTION */", css_str);
+	return new_page;
+}
+
+fn finalize_htm_page(page_bytes: &[u8]) -> String {
+	let page_str = str::from_utf8(page_bytes).unwrap();
+	let page_str = inject_css_into_page(page_str);
+	return page_str;
+}
+
 impl Handler {
+	
 	fn download_file_list(&mut self, file_list: Value) {
 		let mut files_to_download: Vec<FileToDownload> = Vec::new();
 		for v in file_list.values() {
@@ -1730,9 +1782,8 @@ impl Handler {
 		}
 		for file in config_guard.shared_files.iter() {
 			html.push_str("<div>");
-			html.push_str(&file.path);
-			html.push_str(&format!("<br><button class=\"remove-file\" data-file-path=\"{}\">Remove from Sharing</button>", file.path));
-			html.push_str("<br>Add User:");
+			html.push_str(&format!("<div style=\"padding-bottom: 5dip;\"><strong>{}</strong></div>", &file.path));
+			html.push_str("<br>Add User: ");
 			html.push_str(&format!("<select class=\"option-add-user\" data-file-path=\"{}\"><option></option>", file.path));
 			for name in display_names.iter() {
 				html.push_str(&format!("<option>{}</option>", name));
@@ -1740,12 +1791,14 @@ impl Handler {
 			html.push_str("</select>");
 
 			
-			html.push_str("<br>Shared With:<br>");
+			html.push_str("<br><br>Shared With:<br>");
 			for user in file.shared_with.iter() {
-				html.push_str(&format!("&nbsp;&nbsp;&nbsp;&nbsp;{0}<button class=\"remove-shared-with\" data-display-name=\"{0}\" data-file-path=\"{1}\">Remove</button><br>", user, file.path));
+				html.push_str(&format!("&nbsp;&nbsp;&nbsp;&nbsp;{0} <button class=\"remove-shared-with\" data-display-name=\"{0}\" data-file-path=\"{1}\">Remove</button><br><br>", user, file.path));
 			}
+			html.push_str(&format!("<br><button class=\"remove-file\" data-file-path=\"{}\">Remove from Sharing</button>", file.path));
+
 			html.push_str("</div>");
-			html.push_str("<br>");
+			html.push_str("<br><hr><br>");
 		}
 		std::mem::drop(config_guard);
 		Value::from(html)
@@ -1796,18 +1849,19 @@ impl Handler {
 					msg = offline_str;
 				}
 				download_string.push_str(&format!(
-					"<download style=\"background-color: {5};\">
+					"<download>
 				{0} | {1}% | {2}
-				<br>
+				<br><br>
 				{3}
-				<br>
+				<br><br>
 				<button class=\"cancel-download\" data-display-name=\"{0}\" data-file-path=\"{3}\">Cancel</button>
-				<br>
 				{4}
 				</download>
+				<br><br>
 				<hr>
+				<br>
 				",
-					&owner, &download_percent, msg, &shared_file.path, pause_resume, background_color
+					&owner, &download_percent, msg, &shared_file.path, pause_resume
 				));
 
 			}
@@ -1836,12 +1890,14 @@ impl Handler {
 				download_string.push_str(&format!(
 					"<download>
 				{0} | {1}
-				<br>
+				<br><br>
 				{2}
-				<br>
+				<br><br>
 				<button class=\"cancel-download\" data-display-name=\"{0}\" data-file-path=\"{2}\">Cancel</button>
 			  </download>
+			  <br><br>
 			  <hr>
+			  <br>
 			  ",
 					&owner,
 					msg,
@@ -1856,15 +1912,17 @@ impl Handler {
 				.unwrap_or_else(|poisoned| poisoned.into_inner());
 			for (file, destination_path) in conn.finished_downloads.iter() {
 				download_string.push_str(&format!(
-					"<download style=\"background-color: rgb(154, 252, 170);\">
+					"<download>
 				{0} | Finished
-				<br>
+				<br><br>
 				{1}
-				<br>
+				<br><br>
 				<button class=\"open-a-download\" data-file-path=\"{2}\">Open Download</button>
 			  </download>
 
+			  <br><br>
 			  <hr>
+			  <br>
 			  ",
 					&owner,
 					&file.replace("\\\\", "\\"),
@@ -1879,12 +1937,14 @@ impl Handler {
 				.unwrap_or_else(|poisoned| poisoned.into_inner());
 			for file in conn.invalid_downloads.iter() {
 				download_string.push_str(&format!(
-					"<download style=\"background-color: rgb(252, 154, 154);\">
+					"<download>
 				{} | Invalid. No longer shared with you.
-				<br>
+				<br><br>
 				{}
 			  </download>
+			  <br><br>
 			  <hr>
+			  <br>
 			  ",
 					&owner,
 					&file.replace("\\\\", "\\")
@@ -1894,6 +1954,10 @@ impl Handler {
 		}
 		Value::from(download_string)
 	}
+
+
+
+
 
 	fn get_name(&self) -> Value {
 		Value::from(NAME)
@@ -1909,45 +1973,81 @@ impl Handler {
 		Value::from(str)
 	}
 
+	fn get_icon_nav_downloads(&self) -> Value {
+		let bytes = include_bytes!("ic_fluent_arrow_download_48_regular.svg");
+		let str = str::from_utf8(bytes).unwrap();
+		Value::from(str)
+	}
+
+	fn get_icon_nav_shared_with_me(&self) -> Value {
+		let bytes = include_bytes!("ic_fluent_globe_32_regular.svg");
+		let str = str::from_utf8(bytes).unwrap();
+		Value::from(str)
+	}
+
+	fn get_icon_nav_my_sharing(&self) -> Value {
+		let bytes = include_bytes!("ic_fluent_folder_48_regular.svg");
+		let str = str::from_utf8(bytes).unwrap();
+		Value::from(str)
+	}
+
+	fn get_icon_nav_users(&self) -> Value {
+		let bytes = include_bytes!("ic_fluent_people_32_regular.svg");
+		let str = str::from_utf8(bytes).unwrap();
+		Value::from(str)
+	}
+
+	fn get_icon_nav_my_id(&self) -> Value {
+		let bytes = include_bytes!("ic_fluent_guest_28_regular.svg");
+		let str = str::from_utf8(bytes).unwrap();
+		Value::from(str)
+	}
+
+	fn get_icon_nav_about(&self) -> Value {
+		let bytes = include_bytes!("ic_fluent_info_28_regular.svg");
+		let str = str::from_utf8(bytes).unwrap();
+		Value::from(str)
+	}
+
 	fn get_page_about(&self) -> Value {
 		let page_bytes = include_bytes!("about.htm");
-		let page_str = str::from_utf8(page_bytes).unwrap();
+		let page_str = finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_downloads(&self) -> Value {
 		let page_bytes = include_bytes!("downloads.htm");
-		let page_str = str::from_utf8(page_bytes).unwrap();
+		let page_str = finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_my_sharing(&self) -> Value {
 		let page_bytes = include_bytes!("my_sharing.htm");
-		let page_str = str::from_utf8(page_bytes).unwrap();
+		let page_str = finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_shared_with_me(&self) -> Value {
 		let page_bytes = include_bytes!("shared_with_me.htm");
-		let page_str = str::from_utf8(page_bytes).unwrap();
+		let page_str = finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_welcome(&self) -> Value {
 		let page_bytes = include_bytes!("welcome.htm");
-		let page_str = str::from_utf8(page_bytes).unwrap();
+		let page_str = finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_my_id(&self) -> Value {
 		let page_bytes = include_bytes!("my_id.htm");
-		let page_str = str::from_utf8(page_bytes).unwrap();
+		let page_str = finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_users(&self) -> Value {
 		let page_bytes = include_bytes!("users.htm");
-		let page_str = str::from_utf8(page_bytes).unwrap();
+		let page_str = finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
@@ -2048,12 +2148,12 @@ impl Handler {
 			let status: String;
 			if user.enabled == true {
 				status = "Allowed".to_string();
-				disable_button = format!("<button style=\"display: inline-block;\" data-display-name=\"{}\" class=\"disable-user\">Block</button>", user.display_name);
+				disable_button = format!("<button style=\"display: inline-block;\" data-display-name=\"{}\" class=\"disable-user\">Block</button> ", user.display_name);
 				enable_button = format!("<button style=\"display: none;\" data-display-name=\"{}\" class=\"enable-user\">Allow</button>", user.display_name);
 			} else {
 				status = "Blocked".to_string();
 				disable_button = format!("<button style=\"display: none;\" data-display-name=\"{}\" class=\"disable-user\">Block</button>", user.display_name);
-				enable_button = format!("<button style=\"display: inline-block;\" data-display-name=\"{}\" class=\"enable-user\">Allow</button>", user.display_name);
+				enable_button = format!("<button style=\"display: inline-block;\" data-display-name=\"{}\" class=\"enable-user\">Allow</button> ", user.display_name);
 			}
 
 			let mut template = String::from(format!("<h3>{}</h3>", user.display_name));
@@ -2066,9 +2166,9 @@ impl Handler {
 			template.push_str(&format!("Port: <span data-display-name=\"{display_name}\" class=\"user-port\">{port}</span><input data-display-name=\"{display_name}\" class=\"user-port-box\" style=\"display: none;\" type=\"text\" value=\"{port}\">", display_name=user.display_name, port=user.port));
 			template.push_str("<br>");
 			template.push_str(&format!("Status: <span data-display-name=\"{display_name}\" class=\"user-status\">{status}</span>", display_name=user.display_name, status=status));
-			template.push_str("<br>");
-			template.push_str(&format!("<button data-display-name=\"{display_name}\" class=\"edit-user\">Edit</button>", display_name=user.display_name));
-			template.push_str(&format!("<button data-display-name=\"{display_name}\" class=\"apply-user\" style=\"display: none;\">Apply</button>", display_name=user.display_name));
+			template.push_str("<br><br>");
+			template.push_str(&format!("<button data-display-name=\"{display_name}\" class=\"edit-user\">Edit</button> ", display_name=user.display_name));
+			template.push_str(&format!("<button data-display-name=\"{display_name}\" class=\"apply-user\" style=\"display: none;\">Apply</button> ", display_name=user.display_name));
 			template.push_str(&enable_button);
 			template.push_str(&disable_button);
 			template.push_str(&format!("<button data-display-name=\"{display_name}\" class=\"remove-user\">Remove</button>", display_name=user.display_name));
@@ -2637,6 +2737,12 @@ impl sciter::EventHandler for Handler {
 		fn open_a_download(Value);
 		fn get_downloading_from_me();
 		fn get_icon();
+		fn get_icon_nav_downloads();
+		fn get_icon_nav_shared_with_me();
+		fn get_icon_nav_my_sharing();
+		fn get_icon_nav_users();
+		fn get_icon_nav_my_id();
+		fn get_icon_nav_about();
 		fn get_is_first_start();
 		fn get_local_ip();
 		fn get_my_downloads();
@@ -2709,6 +2815,8 @@ fn main() {
 	}
 
 	let html = include_bytes!("main.htm");
+	let html_final = finalize_htm_page(html);
+	let html_bytes = html_final.as_bytes();
 
 	sciter::set_options(sciter::RuntimeOptions::ScriptFeatures(
 		sciter::SCRIPT_RUNTIME_FEATURES::ALLOW_SYSINFO as u8
@@ -2737,6 +2845,7 @@ fn main() {
 	handler.client_start_sharing();
 
 	let mut frame = sciter::Window::new();
+	//frame.sciter_handler(DefaultHandler::default());
 	frame.event_handler(handler);
 
 	if cfg!(target_os = "macos") {
@@ -2744,7 +2853,9 @@ fn main() {
 			.set_options(sciter::window::Options::DebugMode(true))
 			.unwrap();
 	}
-	frame.load_html(html, Some("example://main.htm"));
+
+	// TODO fix
+	frame.load_html(html_bytes, Some("example://main.htm"));
 	frame.run_app();
 }
 
@@ -2830,7 +2941,7 @@ fn user_files_checkboxes(
 	}
 	let mut check_label = String::from(files_owner);
 	check_label.push_str(&shared_file.path);
-	let check_str = format!("{}<input type=\"checkbox\" name=\"{4}\" value=\"{1}\" data-owner=\"{5}\"><label for=\"{4}\">{}</label> | ({}) ({})<br>", html_spacer, shared_file.path, file_size_string, ftype, check_label, files_owner);
+	let check_str = format!("{0}<checkbox data-owner=\"{4}\">{1}</checkbox> | ({2}) ({3})<br>", html_spacer, shared_file.path, file_size_string, ftype, files_owner);
 	html_str.push_str(&check_str);
 	if shared_file.is_directory {
 		let mut new_spacer = spacer.clone();

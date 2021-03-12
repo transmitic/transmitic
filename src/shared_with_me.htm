@@ -1,28 +1,26 @@
 <html>
-  <head>
-    <style>
-      html {
-        behavior: htmlarea;
-      }
 
-      #users > div {
-        background-color: #f0f0f0; 
-        border: 1px solid #a0a0a0;
-      }
+<head>
+  <style>
+    /* AUTO CSS INJECTION */
 
-      #users > div > div {
-        padding: -0.5em 0.5em 0.5em 0.5em;
-      }
+    #users>div {
+      background-color: #000;
+      border: 1px solid #a0a0a0;
+    }
 
+    #users>div>div {
+      padding: -0.5em 0.5em 0.5em 0.5em;
+    }
+  </style>
 
-    </style>
-<script type="text/tiscript">
+  <script type="text/tiscript">
   $(button#download_selected).on("click", function() {
-    var selected_files = $(body).selectAll("input[type=checkbox]:checked");
+    var selected_files = $(body).selectAll("checkbox:checked");
     var clean_files = [];
     stdout.println(selected_files);
     for (var a in selected_files){
-      clean_files.push([a.attributes["data-owner"], a.value]);
+      clean_files.push([a.attributes["data-owner"], a.text]);
     }
     stdout.println(clean_files);
     if (clean_files.length > 0) {
@@ -46,23 +44,27 @@
     
   });
 
-
   $(#users).html = view.get_users();
 </script>
 </head>
+
 <body>
-  <div style="background-color: yellow; padding: 1em">
-    - This is alpha software and not fully tested yet<br>
-    - Only download files from people you trust<br>
+  <div class="main-body">
+
+    <div #warning-box>
+      - This is alpha software and not fully tested yet<br>
+      - Only download files from people you trust<br>
+    </div>
+    <h1>Shared With Me</h1>
+
+    <button #refresh_shared_with_me>Refresh</button>
+    <button #download_selected>Download Selected</button>
+    <br><br>
+    <div #status>Click Refresh</div>
+    <br>
+    <div #users></div>
+
   </div>
-<h1>Shared With Me</h1>
-
-<button #refresh_shared_with_me>Refresh</button>
-<button #download_selected>Download Selected</button>
-<br><br>
-<div #status>Click Refresh</div>
-<br>
-<div #users></div>
-
 </body>
+
 </html>

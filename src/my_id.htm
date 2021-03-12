@@ -1,29 +1,11 @@
 <html>
-  <head>
-    <style>
-      html {
-        behavior: htmlarea;
-      }
 
-      .highlight {
-        color: rgb(255, 255, 255);
-        background-color: rgb(79, 120, 255);
-        padding: 0.3em 0.5em 0.3em 0.5em;
-        display: inline-block;
-      }
+<head>
+  <style>
+    /* AUTO CSS INJECTION */
+  </style>
 
-      #msg_box {
-            padding: 1em 1em 1em 1em;
-            width: 100%;
-            background-color: rgb(85, 255, 79);
-            color: #000;
-            margin-bottom: 1em;
-            display: none;
-        }
-
-    </style>
-
-    <script type="text/tiscript">
+  <script type="text/tiscript">
       function update_msg_box(response) {
         if (response[0] == 0) {
             $(#msg_box).text = response[1];
@@ -48,31 +30,61 @@
       $(#copy) << event click() 
       {
         view.clipboard(#put,$(#publicid).text);
-        $(#copysuccess).text = "(copied)";
+        $(#copysuccess).text = " (copied)";
       }
 
       load_private_id();
+
+      // -- RIGHT CLICK CONTEXT MENU
+      function getSelectedText() {
+        return $(div.selectable).selection.text;
+      }
+      
+      function getSelectedHTML() {
+        return $(div.selectable).selection.html;
+      }
+      
+      function hasSelection() {
+        return $(div.selectable).selection.type;
+      }
+    
+      $(div.selectable).on("click","li#selected-text", function() { view.msgbox(#information,getSelectedText().htmlEscape()); })
+                       .on("click","li#selected-html", function() { view.msgbox(#information,getSelectedHTML().htmlEscape()); })
+                       .on("keydown", function(evt) { return true; /*supress key handling in selectable */ } );
     </script>
-  </head>
+</head>
+
 <body>
 
-    <h1>My ID</h1>
-    <div #msg_box></div>
 
-    <h2>My Public ID</h2>
-    Share your Public ID with people you want to connect with.
-    <br><br>
-    Your Public ID is: <span #publicid class="highlight">X</span>&nbsp;<button #copy>Copy</button><span #copysuccess></span>
+  <div class="main-body">
+    <menu.context #for-htmlarea>
+      <li command="edit:copy" style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span
+          class="accesskey">Ctrl+C</span></li>
+      <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
+      </menu>
 
-    
-    <br><br>
+      <h1>My ID</h1>
+      <div #msg_box></div>
 
-    <h2>Create New ID</h2>
-    Creating a new ID will require all the people you share with to change the ID they have for you.
-    <br>
-    Your current ID will no longer work.
-    <br><br>
-    <button #create_new_id>Create New ID</button>
+      <h2>My Public ID</h2>
+      Share your Public ID with people you want to connect with.
+      <br>
+      <p>
+        Your Public ID is: <span #publicid class="highlight">X</span>&nbsp;<button #copy>Copy</button><span
+          #copysuccess></span>
+      </p>
 
+
+
+      <h2>Create New ID</h2>
+      Creating a new ID will require all the people you share with to change the ID they have for you.
+      <br>
+      Your current ID will no longer work.
+      <br><br>
+      <button #create_new_id>Create New ID</button>
+
+  </div>
 </body>
+
 </html>

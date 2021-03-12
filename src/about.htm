@@ -1,74 +1,86 @@
 <html>
 
 <head>
-    <style>
-        html {
-            behavior: htmlarea;
+<style>
+    /* AUTO CSS INJECTION */
+</style>
+
+<script type="text/tiscript">
+    self.on("click", "a[href^=http]", function(evt) {
+        var href = this.attributes["href"];
+        Sciter.launch(href); // will open the url in default browser
+        return true; // consume the event
+      });
+      
+        var name = view.get_name();
+        $(#name).html = name;
+
+        var version = view.get_version();
+        $(#version).append(version); 
+
+        // -- RIGHT CLICK CONTEXT MENU
+        function getSelectedText() {
+          return $(div.selectable).selection.text;
         }
-    </style>
-    <script type="text/tiscript">
-        self.on("click", "a[href^=http]", function(evt) {
-            var href = this.attributes["href"];
-            Sciter.launch(href); // will open the url in default browser
-            return true; // consume the event
-          });
-          
-            var name = view.get_name();
-            $(#name).html = name;
-
-            var version = view.get_version();
-            $(#version).append(version); 
-    </script>
+        
+        function getSelectedHTML() {
+          return $(div.selectable).selection.html;
+        }
+        
+        function hasSelection() {
+          return $(div.selectable).selection.type;
+        }
+      
+        $(div.selectable).on("click","li#selected-text", function() { view.msgbox(#information,getSelectedText().htmlEscape()); })
+                         .on("click","li#selected-html", function() { view.msgbox(#information,getSelectedHTML().htmlEscape()); })
+                         .on("keydown", function(evt) { return true; /*supress key handling in selectable */ } );
+</script>
 </head>
-
 <body>
-    <section>
-        <br>
-        <div style="background-color: #f0f0f0; border: 1px solid #a0a0a0;">
-            <div style="padding: -0.5em 0.5em 0.5em 0.5em;">
-                <h2 #name></h2>
-                <h3 #version>v</h3>
-                <a href="https://transmitic.io">
-                    <h3>https://transmitic.io</h3>
-                </a>
-            </div>
-        </div>
-        <br>
+<div class="main-body">
+    <menu.context #for-htmlarea>
+        <li command="edit:copy"	style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span class="accesskey">Ctrl+C</span></li>
+        <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
+      </menu>
+    <h1 #name>Transmitic</h1>
+    <h3 #version>v</h3>
+    <a href="https://transmitic.io">
+        <h3>https://transmitic.io</h3>
+    </a>
 
-        <div style="background-color: #f0f0f0; border: 1px solid #a0a0a0;">
-            <div style="padding: -0.5em 0.5em 0.5em 0.5em;">
-                <h3>Dependencies</h3>
+    <h1>Dependencies</h1>
 
-                <h4>Rust Programming Language</h4>
-                <a href="https://www.rust-lang.org/">https://www.rust-lang.org/</a>
+    <h4>Rust Programming Language</h4>
+    <a href="https://www.rust-lang.org/">https://www.rust-lang.org/</a>
+    <br><br>
 
-                <h4>Sciter</h4>
-                This Application (or Component) uses Sciter Engine (http://sciter.com/), copyright Terra Informatica
-                Software, Inc.
-                <br>
-                <a href="https://sciter.com/">https://sciter.com/</a>
+    <h4>Sciter</h4>
+    This Application (or Component) uses Sciter Engine (http://sciter.com/), copyright Terra Informatica
+    Software, Inc.
+    <br>
+    <a href="https://sciter.com/">https://sciter.com/</a>
+    <br><br>
 
-                <h4>Serde</h4>
-                <a href="https://serde.rs/">https://serde.rs/</a>
+    <h4>Serde</h4>
+    <a href="https://serde.rs/">https://serde.rs/</a>
+    <br><br>
 
-                <h4>ring</h4>
-                <a href="https://briansmith.org/rustdoc/ring/">https://briansmith.org/rustdoc/ring/</a>
-                <br>
-                This product includes software developed by the OpenSSL Projectfor use in the OpenSSL Toolkit
-                (http://www.openssl.org/)
-                <br>
-                This product includes cryptographic software written by Eric Young (eay@cryptsoft.com)
+    <h4>ring</h4>
+    <a href="https://briansmith.org/rustdoc/ring/">https://briansmith.org/rustdoc/ring/</a>
+    <br>
+    This product includes software developed by the OpenSSL Projectfor use in the OpenSSL Toolkit
+    (http://www.openssl.org/)
+    <br>
+    This product includes cryptographic software written by Eric Young (eay@cryptsoft.com)
+    <br><br>
 
-                <h4>aes-gcm</h4>
-                <a href="https://docs.rs/aes-gcm/0.8.0/aes_gcm/">https://docs.rs/aes-gcm/0.8.0/aes_gcm/</a>
+    <h4>aes-gcm</h4>
+    <a href="https://docs.rs/aes-gcm/0.8.0/aes_gcm/">https://docs.rs/aes-gcm/0.8.0/aes_gcm/</a>
+    <br><br>
 
-                <h4>x25519-dalek</h4>
-                <a
-                    href="https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/">https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/</a>
-            </div>
-        </div>
-    </section>
+    <h4>x25519-dalek</h4>
+    <a href="https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/">https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/</a>
+
+</div>
 </body>
-
-
 </html>
