@@ -831,40 +831,6 @@ fn reset_all_connections(mut connection_guard: MutexGuard<IncomingConnection>) -
 }
 
 
-/// Default `HostHandler` implementation
-#[derive(Default)]
-struct DefaultHandler;
-
-/// Default `HostHandler` implementation
-impl sciter::HostHandler for DefaultHandler {
-	fn on_data_load(&mut self, pnm: &mut SCN_LOAD_DATA) -> Option<LOAD_RESULT> { 
-		println!("!!!!!!!!!!!!! DATA LOAD");
-		let mut rq = Request::from(pnm.request_id);
-
-		match rq.url() {
-			Ok(s) => {
-				println!("{:?}", s);
-				if s.contains("page.css") {
-					println!("CONTAINS");
-					let nav_css = include_bytes!("page.css");
-					self.data_ready(pnm.hwnd, &s, nav_css, Some(pnm.request_id));
-				}
-				if s.contains("nav.css") {
-					println!("CONTAINS");
-					let nav_css = include_bytes!("nav.css");
-					self.data_ready(pnm.hwnd, &s, nav_css, Some(pnm.request_id));
-				}
-				return None;
-				
-			},
-			_ => {return None; }
-		}
-
-
-		return None; 
-	}
-}
-
 /// This is hack to get around loading CSS on htm pages with sciter
 /// 1. I can't get a relative to path to load css in a frame page
 /// 2. SC_LOAD_DATA works for loading files, but using a frame causes a crash
