@@ -43,7 +43,7 @@ It will eventually reach a stable and tested point.
 
 ## More Info
 
-See wiki [https://github.com/transmitic/transmitic/wiki](https://github.com/transmitic/transmitic/wiki)
+See wiki for more information and limitations [https://github.com/transmitic/transmitic/wiki](https://github.com/transmitic/transmitic/wiki)
 
 ## Contributing
 
@@ -55,16 +55,17 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 - [Rust (backend)](https://www.rust-lang.org/)
 - [Sciter (GUI)](http://sciter.com/)
 - [ring](https://briansmith.org/rustdoc/ring/)
-- [aes-gcm](https://docs.rs/aes-gcm/0.8.0/aes_gcm/)
-- [x25519_dalek](https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/)
+- [aes-gcm](https://docs.rs/aes-gcm/)
+- [x25519_dalek](https://docs.rs/x25519-dalek/)
 - [serde](https://serde.rs/)
 
 ## Goals (Short Term and Long Term)
 
-- GUI redesign
-- GUI for advanced settings
+- Major refactor
 - Additional error handling around edge cases
-- Major code refactor
+- Port to SciterJS
+- GUI for advanced settings
+- GUI refinement
 - Tests
 - Transmitic Discovery
   - Server to discover users without requiring IPs to be known by users (optional to users)
@@ -73,14 +74,11 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 - Auto updates
 - Transmitic Mini
   - CLI only version with minimal dependencies
-- Rewrite for performance?
-  - tokio?
-- Verify file downloads with hashes?
 
 ## Cryptography Usage
 
 - Public, Private signing keys generated with `ring`
-- Signing `ring` keys are exchanged out of band
+- Signing `ring` keys are exchanged out of band, manually
 - Diffie-Hellman key generation with `x25519_dalek`
   - Diffie-Hellman keys are regenerated for every new TCP stream. Never reused.
 - Diffie-Hellman `x25519_dalek` keys are signed with the `ring` keys
