@@ -20,5 +20,7 @@ aes-gcm = { version = "0.8.0", features = ["heapless"]}
 ring = "0.16.20"
 base64 = "0.13.0"
 
+transmitic_core = { path = "../transmitic-core" }
+
 [dependencies.x25519-dalek]
 version = "1.1.0"
