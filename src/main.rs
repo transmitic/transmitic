@@ -1,73 +1,31 @@
-mod utils;
+use std::env;
+use std::panic;
+use std::time;
+use std::net::{Shutdown, TcpStream, SocketAddr};
+use std::path::Path;
+use std::process::Command;
+use std::str;
+
 extern crate transmitic_core;
-use transmitic_core::{config, core_consts::{MAX_DATA_SIZE, MSG_CANNOT_SELECT_DIRECTORY, MSG_CLIENT_DIFFIE_PUBLIC, MSG_FILE_CHUNK, MSG_FILE_FINISHED, MSG_FILE_INVALID_FILE, MSG_FILE_LIST, MSG_FILE_LIST_FINAL, MSG_FILE_LIST_PIECE, MSG_FILE_SELECTION_CONTINUE, MSG_SERVER_DIFFIE_PUBLIC, PAYLOAD_OFFSET, PAYLOAD_SIZE_LEN, TOTAL_BUFFER_SIZE}, incoming::{IncomingConnectionManager, client_wait_for_incoming}, secure_stream::SecureStream, transmitic_core::TransmiticCore, utils::{LocalKeyData, set_buffer}};
+use transmitic_core::config;
+use transmitic_core::config::TrustedUser;
+use transmitic_core::outgoing::{
+	get_local_to_outgoing_secure_stream_cipher,
+};
+use transmitic_core::secure_stream::SecureStream;
 use transmitic_core::shared_file::{
 	SharedFile,
 	FileToDownload,
-	get_everything_file,
-	remove_invalid_files,
-	print_shared_files,
 };
-use transmitic_core::config::{
-	TrustedUser,
-	get_path_transmitic_config_dir,
-	get_path_my_config_dir,
-	get_path_user_public_id_file,
-	Config,
-	create_config_dir,
-	verify_config,
-	get_config,
-	init_config,
-	
-};
+use transmitic_core::transmitic_core::TransmiticCore;
+use transmitic_core::utils::{get_file_size_string, request_file_list};
 
-use transmitic_core::utils::{exit_error, get_file_size_string, get_blocked_file_name_chars, get_blocked_display_name_chars, request_file_list, get_file_by_path, get_payload_size_from_buffer};
-
-use transmitic_core::outgoing::{
-	OutgoingConnectionManager,
-	OutgoingConnection,
-	handle_outgoing_forever,
-	get_local_to_outgoing_secure_stream_cipher,
-};
-
-use transmitic_core::incoming::{
-	IncomingConnection,
-	SingleConnection,
-};
-
-use sciter::{dispatch_script_call, host::{LOAD_RESULT, SCN_LOAD_DATA}, request::Request, s2w};
-use sciter::Value;
-extern crate sciter;
+use ring::signature;
 use serde::{Deserialize, Serialize};
-use std::{collections::VecDeque, net::{IpAddr, Ipv4Addr}, process::Command, sync::MutexGuard};
-use std::env;
-use std::fs;
-use std::fs::metadata;
-use std::fs::File;
-use std::fs::OpenOptions;
-use std::io::prelude::*;
-use std::io::SeekFrom;
-use std::io::{Read, Write};
-use std::net::{Shutdown, TcpListener, TcpStream};
-use std::path::Path;
-use std::str;
-use std::sync::Mutex;
-use std::{collections::HashMap, net::SocketAddr};
-use std::{panic, process, thread, time};
-use std::{path::PathBuf, sync::Arc};
-
-// CRYPTO
+extern crate sciter;
+use sciter::dispatch_script_call;
+use sciter::Value;
 extern crate x25519_dalek;
-use aes_gcm::aead::{generic_array::GenericArray, Aead, NewAead};
-use aes_gcm::Aes256Gcm;
-
-use rand_core::OsRng;
-use ring::{
-	rand,
-	signature::{self, KeyPair},
-};
-use x25519_dalek::EphemeralSecret;
-use x25519_dalek::PublicKey;
 
 const VERSION: &str = "0.3.0"; // Note: And cargo.toml
 const NAME: &str = "Transmitic In Development Alpha";
@@ -76,24 +34,14 @@ struct Handler {
 	transmitic_core: TransmiticCore,
 }
 
-
-
-
-/// This is hack to get around loading CSS on htm pages with sciter
-/// 1. I can't get a relative to path to load css in a frame page
-/// 2. SC_LOAD_DATA works for loading files, but using a frame causes a crash
-/// I don't have any more time to deal with this, so I inject the CSS into the page
-fn inject_css_into_page(page: &str) -> String {
-	let bytes = include_bytes!("style.css");
-	let css_str = str::from_utf8(bytes).unwrap();
-	let new_page = page.replace("/* AUTO CSS INJECTION */", css_str);
-	return new_page;
+#[derive(Serialize, Deserialize, Debug)]
+struct FilesJson {
+    files: Vec<PathJson>,
 }
 
-fn finalize_htm_page(page_bytes: &[u8]) -> String {
-	let page_str = str::from_utf8(page_bytes).unwrap();
-	let page_str = inject_css_into_page(page_str);
-	return page_str;
+#[derive(Serialize, Deserialize, Debug)]
+struct PathJson {
+    path: String,
 }
 
 impl Handler {
@@ -134,9 +82,6 @@ impl Handler {
 	}
 
 	fn add_files(&mut self, file_paths: Value) -> Value {
-		let mut code = 0;
-		let mut msg = format!("Files have been added");
-
 		let mut clean_paths = Vec::new();
 		for file_path in file_paths.into_iter() {
 			let mut file_path = self.clean_sciter_string(file_path);
@@ -172,22 +117,19 @@ impl Handler {
 	}
 
 	fn remove_user(&mut self, display_name: Value) {
-		let mut display_name: String = display_name.into_string();
-		display_name = display_name[1..display_name.len()-1].to_string();
+		let display_name = self.clean_sciter_string(display_name);
 
 		self.transmitic_core.remove_user(&display_name);
 	}
 
 	fn disable_user(&mut self, display_name: Value) {
-		let mut display_name: String = display_name.into_string();
-		display_name = display_name[1..display_name.len()-1].to_string();
+		let display_name = self.clean_sciter_string(display_name);
 		
 		self.transmitic_core.disable_user(&display_name);
 	}
 
 	fn enable_user(&mut self, display_name: Value) {
-		let mut display_name: String = display_name.into_string();
-		display_name = display_name[1..display_name.len()-1].to_string();
+		let display_name = self.clean_sciter_string(display_name);
 		
 		self.transmitic_core.enable_user(&display_name);
 	}
@@ -198,8 +140,6 @@ impl Handler {
 		response.push(Value::from(msg));
 		response
 	}
-
-
 
 	fn clear_finished_downloads(&mut self) -> Value {
 		self.transmitic_core.outgoing_connection_manager.clear_finished_downloads();
@@ -256,7 +196,7 @@ impl Handler {
 
 	fn cancel_download(&mut self, display_name: Value, file_path: Value) -> Value {
 		let display_name = self.clean_sciter_string(display_name);
-		let mut file_path = self.clean_sciter_string(file_path);
+		let file_path = self.clean_sciter_string(file_path);
 
 		self.transmitic_core.outgoing_connection_manager.cancel_single_download(&display_name, &file_path);
 
@@ -274,8 +214,6 @@ impl Handler {
 	}
 
 	fn add_new_user(&mut self, display_name: Value, public_id: Value, ip_address: Value, port: Value) -> Value {
-
-		
 		let display_name = self.clean_sciter_string(display_name);
 		let public_id = self.clean_sciter_string(public_id);
 		let ip_address = self.clean_sciter_string(ip_address);
@@ -294,7 +232,6 @@ impl Handler {
 	}
 
 	fn edit_user(&mut self, current_display_name: Value, new_public_id: Value, new_ip: Value, new_port: Value) -> Value {
-
 		let current_display_name = self.clean_sciter_string(current_display_name);
 		let new_public_id = self.clean_sciter_string(new_public_id);
 		let new_ip = self.clean_sciter_string(new_ip);
@@ -321,10 +258,6 @@ impl Handler {
 		s = s[1..s.len()-1].to_string();
 		s = s.trim().to_string();
 		s
-	}
-
-	fn process_new_user(&mut self, display_name: &String, public_id: &String, ip_address: &String, port: &String) {
-		self.transmitic_core.process_new_user(display_name, public_id, ip_address, port);
 	}
 
 	fn refresh_shared_with_me(&self) -> Value {
@@ -482,7 +415,6 @@ impl Handler {
 				let download_percent = conn.active_download_percent.to_string();
 				let msg: &str;
 				let mut pause_resume = String::from(&format!("<button class=\"pause-download\" data-display-name=\"{0}\">Pause Downloads from {0}</button>", &owner));
-				let mut background_color = String::from("rgb(252, 247, 154)");  // YELLOW
 				if is_all_paused {
 					msg = "All Downloads are Paused";
 					pause_resume = String::from("<button disabled>All Downloads are Paused</button>");
@@ -493,7 +425,6 @@ impl Handler {
 				} 
 				else if is_online {
 					msg = "Downloading Now...";
-					background_color = String::from("rgb(154, 234, 252)");  // BLUE
 				}
 				else {
 					msg = offline_str;
@@ -655,46 +586,70 @@ impl Handler {
 		Value::from(str)
 	}
 
+	fn get_page_main_bytes(&self) -> Vec<u8> {
+		let html = include_bytes!("main.htm");
+		let html_final = self.finalize_htm_page(html);
+		let html_bytes = html_final.as_bytes().to_vec();
+		return html_bytes;
+	}
+
 	fn get_page_about(&self) -> Value {
 		let page_bytes = include_bytes!("about.htm");
-		let page_str = finalize_htm_page(page_bytes);
+		let page_str = self.finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_downloads(&self) -> Value {
 		let page_bytes = include_bytes!("downloads.htm");
-		let page_str = finalize_htm_page(page_bytes);
+		let page_str = self.finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_my_sharing(&self) -> Value {
 		let page_bytes = include_bytes!("my_sharing.htm");
-		let page_str = finalize_htm_page(page_bytes);
+		let page_str = self.finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_shared_with_me(&self) -> Value {
 		let page_bytes = include_bytes!("shared_with_me.htm");
-		let page_str = finalize_htm_page(page_bytes);
+		let page_str = self.finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_welcome(&self) -> Value {
 		let page_bytes = include_bytes!("welcome.htm");
-		let page_str = finalize_htm_page(page_bytes);
+		let page_str = self.finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_my_id(&self) -> Value {
 		let page_bytes = include_bytes!("my_id.htm");
-		let page_str = finalize_htm_page(page_bytes);
+		let page_str = self.finalize_htm_page(page_bytes);
 		Value::from(page_str)
 	}
 
 	fn get_page_users(&self) -> Value {
 		let page_bytes = include_bytes!("users.htm");
-		let page_str = finalize_htm_page(page_bytes);
+		let page_str = self.finalize_htm_page(page_bytes);
 		Value::from(page_str)
+	}
+
+	/// This is hack to get around loading CSS on htm pages with sciter
+	/// 1. I can't get a relative to path to load css in a frame page
+	/// 2. SC_LOAD_DATA works for loading files, but using a frame causes a crash
+	/// I don't have any more time to deal with this, so I inject the CSS into the page
+	fn inject_css_into_page(&self, page: &str) -> String {
+		let bytes = include_bytes!("style.css");
+		let css_str = str::from_utf8(bytes).unwrap();
+		let new_page = page.replace("/* AUTO CSS INJECTION */", css_str);
+		return new_page;
+	}
+
+	fn finalize_htm_page(&self, page_bytes: &[u8]) -> String {
+		let page_str = str::from_utf8(page_bytes).unwrap();
+		let page_str = self.inject_css_into_page(page_str);
+		return page_str;
 	}
 
 	fn create_new_id(&mut self) -> Value {
@@ -809,7 +764,6 @@ impl Handler {
 	}
 }
 
-
 impl sciter::EventHandler for Handler {
 	dispatch_script_call! {
 		fn create_new_id();
@@ -864,8 +818,6 @@ impl sciter::EventHandler for Handler {
 	}
 }
 
-
-
 fn main() {
 	println!("##########################################");
 	println!("# {} v{} #", NAME, VERSION);
@@ -879,30 +831,21 @@ fn main() {
 	println!("Current Working Dir: {:?}", env::current_dir().unwrap());
 	println!("Transmitic Path: {:?}", env::current_exe().unwrap());
 
-
-	let transmitic_core = TransmiticCore::new();
-
-
-	let html = include_bytes!("main.htm");
-	let html_final = finalize_htm_page(html);
-	let html_bytes = html_final.as_bytes();
-
 	sciter::set_options(sciter::RuntimeOptions::ScriptFeatures(
 		sciter::SCRIPT_RUNTIME_FEATURES::ALLOW_SYSINFO as u8
 			| sciter::SCRIPT_RUNTIME_FEATURES::ALLOW_FILE_IO as u8,
 	))
 	.unwrap();
-
 	sciter::set_options(sciter::RuntimeOptions::DebugMode(true)).unwrap();
 
-	
+	let transmitic_core = TransmiticCore::new();
 	let mut handler = Handler {
-		transmitic_core: transmitic_core,
+		transmitic_core,
 	};
+	let html_main_bytes = handler.get_page_main_bytes();
 	handler.client_start_sharing();
 
 	let mut frame = sciter::Window::new();
-	//frame.sciter_handler(DefaultHandler::default());
 	frame.event_handler(handler);
 
 	if cfg!(target_os = "macos") {
@@ -911,12 +854,9 @@ fn main() {
 			.unwrap();
 	}
 
-	// TODO fix
-	frame.load_html(html_bytes, Some("example://main.htm"));
+	frame.load_html(&html_main_bytes, Some("example://main.htm"));
 	frame.run_app();
 }
-
-
 
 fn user_files_checkboxes(
 	shared_file: &SharedFile,
