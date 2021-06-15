@@ -266,7 +266,7 @@ impl Handler {
 		// TODO config_guard
 		let config_guard = self.transmitic_core.config			
 		.lock()
-		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		.unwrap();
 		for remote_user in config_guard.trusted_users_public_ids.iter() {
 			users_string.push_str("<div><div>");
 			let result = panic::catch_unwind(|| self._refresh_single_user(&remote_user)).ok();
@@ -311,7 +311,7 @@ impl Handler {
 
 		let local_key_data_guard = self.transmitic_core.local_key_data
 		.lock()
-		.unwrap_or_else(|poisoned| poisoned.into_inner());
+		.unwrap();
 		let local_key_pair_bytes = local_key_data_guard.local_key_pair_bytes.clone();
 		std::mem::drop(local_key_data_guard);
 
@@ -342,7 +342,7 @@ impl Handler {
 			.get(&remote_user.display_name)
 			.unwrap()
 			.lock()
-			.unwrap_or_else(|poisoned| poisoned.into_inner());
+			.unwrap();
 		conn.root_file = Some(shared_file);
 		std::mem::drop(conn);
 
@@ -405,7 +405,7 @@ impl Handler {
 		for (owner, connection) in self.transmitic_core.outgoing_connection_manager.outgoing_connections.iter() {
 			let conn = connection
 				.lock()
-				.unwrap_or_else(|poisoned| poisoned.into_inner());
+				.unwrap();
 			
 			let is_all_paused = self.transmitic_core.outgoing_connection_manager.is_all_paused;
 			let is_online = conn.is_online;
@@ -451,7 +451,7 @@ impl Handler {
 		for (owner, connection) in self.transmitic_core.outgoing_connection_manager.outgoing_connections.iter() {
 			let conn = connection
 				.lock()
-				.unwrap_or_else(|poisoned| poisoned.into_inner());
+				.unwrap();
 			let is_online = conn.is_online;
 			let offline_str = "User is currently offline";
 			for shared_file in conn.download_queue.iter() {
@@ -490,7 +490,7 @@ impl Handler {
 		for (owner, connection) in self.transmitic_core.outgoing_connection_manager.outgoing_connections.iter() {
 			let conn = connection
 				.lock()
-				.unwrap_or_else(|poisoned| poisoned.into_inner());
+				.unwrap();
 			for (file, destination_path) in conn.finished_downloads.iter() {
 				download_string.push_str(&format!(
 					"<download>
@@ -515,7 +515,7 @@ impl Handler {
 		for (owner, connection) in self.transmitic_core.outgoing_connection_manager.outgoing_connections.iter() {
 			let conn = connection
 				.lock()
-				.unwrap_or_else(|poisoned| poisoned.into_inner());
+				.unwrap();
 			for file in conn.invalid_downloads.iter() {
 				download_string.push_str(&format!(
 					"<download>
