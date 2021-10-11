@@ -1,8 +1,10 @@
-html:not(:theme(dark)) {
-  var(panel-back): #000;
-  var(side-panel-back): #1f1f1f;
+html:theme(dark) {
+
+  var(accent): morph(window-accent-color,lightness:40%);  
+  var(accent-text): highlighttext;  
+
+  var(panel-back): #000; //#383838;
   var(popup-panel-back): #555; 
-  var(nav-button-hover): #353535;
   var(panel-text): #eee;
   var(back): #000;
   var(text): #fff;
@@ -13,13 +15,17 @@ html:not(:theme(dark)) {
   var(disabled-text): #888;
   var(disabled-back): #444;
   var(hover-option-cover): rgba(255,255,255,0.1);
-
-  var(main-accent): #0078D7;
+  
+  var(side-panel-back): #1f1f1f;
+  var(nav-button-hover): #353535;
 }
 
 //html:theme(light) 
-/* html:not(:theme(dark))
+html:not(:theme(dark))
 {
+  var(accent): window-accent-color;  
+  var(accent-text): highlighttext;  
+
   var(panel-back): #f8f8f8;
   var(popup-panel-back): #f7f7f7; 
   var(panel-text): #333;
@@ -32,14 +38,13 @@ html:not(:theme(dark)) {
   var(disabled-text): #888;
   var(disabled-back): #eee;
   var(hover-option-cover): rgba(0,0,0,0.1);
-} */
+}
 
 html {
+
   font-family: "Segoe UI", Helvetica, sans-serif;
   font-size:11pt;
 
-  var(accent): highlight;  
-  var(accent-text): highlighttext;  
   var(border-width): 0.14em;
   var(border-double-width): 0.28em;
   var(border-radius):0dip;
@@ -47,65 +52,11 @@ html {
 
   background:color(panel-back);
   color: color(panel-text);
-
 }
 
-/* custom */
-html[ui-size=compact] { font-size:9pt;  }
-
-body {
-  width: 100%;
-  margin: 0;
+html[ui-size="compact"] {
+  font-size:9pt;
 }
-
-
-section {
-  flow: horizontal;
-}
-
-h1 {
-  font-weight: 380;
-}
-
-.nav-button{
-  height: 50dip;
-  text-align: left;
-  vertical-align: middle;
-}
-
-.nav-button:hover {
-  background-color: color(nav-button-hover);
-}
-
-.nav-bar{
-  background-color: color(side-panel-back);
-  width: 250dip;
-  height: *;
-}
-
-.nav-block {
-  width: 4dip;
-  height: 50%;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.nav-text {
-  display: inline-block;
-  padding-left: 5dip;
-}
-
-.nav-icon {
-  height: 20dip;
-  vertical-align: middle;
-  padding-left: 5dip;
-}
-
-a {
-  color: color(main-accent);
-}
-
-/* end custom */
 
 .hbox { flow:horizontal-wrap; border-spacing:0.5em; }
 .vbox { flow:vertical; border-spacing:0.5em; }
@@ -131,8 +82,9 @@ a {
     width:2.24em; 
     height:1.05em;
     background:var(back,threedlight);
-    border:length(border-width) solid color(border);
+    border:var(border-width,0.14em) solid var(border,#000);
     border-radius:0.7em;
+
     margin:* * * 0.21em;
     foreground-image:url(stock:disk);
     foreground-repeat:no-repeat;
@@ -405,24 +357,92 @@ checkbox { display:inline-block; style-set: std-checkbox; }
   :root:tab-focus   { @STD-TAB-FOCUS; }
 
   :root[nullable] {
-    aspect: Flat.Nullable url(flat-theme.tis);
-    padding-right:1.2em;
-  }
-
-  :root[nullable]:not(:empty) {
-    stroke-width:1.44dip;
-    stroke:color(border);
-    foreground-position-top: 50%;
-    foreground-position-right: 0.5em;
+    padding-right: 1.2em;
+    foreground-position: top 50% right 0.5em;
     foreground-repeat: no-repeat;
-    foreground-size:0.7em;
+    foreground-image: url(stock:cross-x);
     foreground-image-cursor: pointer;
-    foreground-image: url(path:M0 0 L9 9 M9 0 L0 9);     
+    foreground-size: 0.5em;
+    fill:currentcolor;
+    stroke:none;
+    box-sizing: content-box;
+  }
+  :root[nullable]:empty {
+    fill:transparent;
   }
 
 }
 
 editbox { display:inline-block; style-set:std-edit; }
+
+@set std-number-edit < std-number-edit-base
+{
+  :root
+  {
+    width:10em;
+    @STD-BOX-NORMAL;
+    padding:0;
+    overflow:none;
+    height:1.8em;
+    display:block;
+  }
+
+  :root:owns-popup,
+  :root:focus       { @STD-BOX-FOCUS; }
+
+  :root:hover       { @STD-BOX-HOVER; }
+
+  :root:disabled    { @STD-BOX-DISABLED; }     
+
+  :root:empty       { @STD-BOX-EMPTY; }
+
+  :root:tab-focus   { @STD-TAB-FOCUS; }
+
+  :root > caption 
+  { 
+    width:*;
+    height:*;
+    line-height:1.2em;
+    padding:0.3em 0.4em;
+  }
+  
+  :root > button
+  {
+    appearance: none;
+    display:block;
+    height:*;
+    width:1.2em;
+    padding:0;
+    foreground-position:50% 50%;
+    foreground-size:5dip;
+    foreground-repeat:no-repeat;
+    border-width:0;
+  }
+
+  :root > button:hover
+  {
+    @STD-BUTTON-HOVER;
+  }
+  :root > button:active
+  {
+    @STD-BUTTON-PRESSED;
+  }
+  :root:disabled > button
+  {
+  }
+  
+  :root > button.minus
+  {
+    foreground-image: url(stock:chevron-down); 
+  }
+ 
+  :root > button.plus
+  {
+    foreground-image: url(stock:chevron-up); 
+  }
+
+}
+
 
 
 /* dropdown combobox */
@@ -576,48 +596,58 @@ editbox { display:inline-block; style-set:std-edit; }
 
 slider { display:inline-block; style-set:std-hslider; }
 
-@set std-progress
+@keyframes flat-progress-slide {
+  from { background-position-left: 0%; }
+  to { background-position-left: 100%; }
+} 
+
+
+@set std-progress < std-progress-base
 {
   :root
   {
     @STD-BOX-NORMAL;
-    behavior:none; // not using default behavior
-    aspect: Flat.Progress url(flat-theme.tis);
     width:8em;
     height:0.28em;
-    color: color(accent);
-    //color: red;
     border-style:none;
-    border-radius:0;
     padding:0;
+    margin:* 0;
   }
+
+  :root:not(:busy)::marker {
+    width: length(progress-percent);
+    height: *;
+    background: color(accent);
+    stroke:none;
+    stroke-width:0;
+  }
+
+  :root:busy::marker 
+  {
+    width:*;
+    height:*;
+    background-repeat: no-repeat;
+    background-image: url(path: M 0 0 L 9 0 L 9 9 L 0 9 Z);
+    background-size: 25% 100%;
+    fill: color(accent);
+    stroke:none;
+    stroke-width:0;
+    animation: 1.2s infinite alternate flat-progress-slide;
+  }
+
 }
 
 progress { display:inline-block; style-set:std-progress; }
 
-/* TRANSMITIC */
-#msg_box {
-  padding: 1em 1em 1em 1em;
-  width: 100%;
-  background-color: rgb(85, 255, 79);
-  color: #000;
-  margin-bottom: 1em;
-  padding-right: -30dip;
-  display: none;
-}
+/********************* TRANSMITIC CUSTOM *********************/
 
-#warning-box {
-  background: yellow;
-  color: #000;
-  padding: 1em 1em 1em 1em;
-  width: 100%;
-  padding-right: -30dip;
+h1 {
+  font-weight: 380;
 }
 
 section {
-  size:*; 
-  flow:grid(1 2);
-  border-spacing:8dip; /* defines spacing between cells */
+  flow: horizontal;
+    border-spacing:8dip;
 }
 
 section > div {size:*;}
@@ -625,12 +655,54 @@ section > div {size:*;}
 .main-body {
   padding-top: 5dip;
   padding-left: 15dip;
-  behavior: htmlarea;
-  context-menu: selector(menu#for-htmlarea);
+}
+
+
+.highlight {
+  color: #000;
+  background-color: #66ff6b;
+  padding: 0.3em 0.5em 0.3em 0.5em;
+  display: inline-block;
+}
+
+
+.nav-button{
+  height: 50dip;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.nav-button:hover {
+  background-color: color(nav-button-hover);
+}
+
+.nav-bar{
+  background-color: color(side-panel-back);
+  width: 250dip;
+  height: *;
+}
+
+.nav-block {
+  width: 4dip;
+  height: 50%;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.nav-text {
+  display: inline-block;
+  padding-left: 5dip;
+}
+
+.nav-icon {
+  height: 20dip;
+  vertical-align: middle;
+  padding-left: 5dip;
 }
 
 .menu-bar {
   background-color: color(side-panel-back);
+  font-size:9pt;
 }
 
 .menu-bar > button {
@@ -649,12 +721,33 @@ section > div {size:*;}
   padding-bottom: 15dip;
 }
 
+.download-inner {
+	padding-left: 20dip;
+}
+
+.download-active {
+	border-left: 2px solid #66ff6b;	
+}
+
+.download-invalid {
+	border-left: 2px solid #ff6666;	
+}
+
+.download-offline {
+	border-left: 2px solid #ccc;	
+}
+
+.download-finished {
+	border-left: 2px solid #6696ff;	
+}
+
 .cancel-download{
 margin-right: 5dip;
+font-size:9pt;
 }
 
 .pause-all{
-
+font-size:9pt;
 }
 
 .my-downloads{
@@ -663,19 +756,15 @@ margin-right: 5dip;
 .from-me{
 }
 
-#for-htmlarea {
-  background-color: color(side-panel-back);
-  border: 0;
+.my-file-inner{
+	padding-left: 30dip;
 }
 
-#for-htmlarea > li {
-  color: color(text);
-  font-size: 12pt;
+.my-shared-remove-shared-with {
+	font-size: 9pt;
+	margin-left: 10dip;
 }
 
-.highlight {
-  color: rgb(255, 255, 255);
-  background-color: color(main-accent);
-  padding: 0.3em 0.5em 0.3em 0.5em;
-  display: inline-block;
+.shared-with {
+	padding-left: 30dip;
 }

@@ -1,70 +1,47 @@
 <html>
+	<head>
+		<title>Test</title>
+		<style>
+		
+		@import url(style.css);
+		
+		
 
-<head>
-  <style>
-    /* AUTO CSS INJECTION */
+        </style>
+		<script>
 
-    #users>div {
-      background-color: #000;
-      border: 1px solid #a0a0a0;
-    }
+	</script>
+	</head>
+	<body>
+	<div class="main-body">
 
-    #users>div>div {
-      padding: -0.5em 0.5em 0.5em 0.5em;
-    }
-  </style>
 
-  <script type="text/tiscript">
-  $(button#download_selected).on("click", function() {
-    var selected_files = $(body).selectAll("checkbox:checked");
-    var clean_files = [];
-    stdout.println(selected_files);
-    for (var a in selected_files){
-      clean_files.push([a.attributes["data-owner"], a.text]);
-    }
-    stdout.println(clean_files);
-    if (clean_files.length > 0) {
-      view.download_file_list(clean_files);
-      $(#status).html = "Downloads started"
-    } else {
-      $(#status).html = "No files selected"
-    }
-    
-  });
 
-  $(button#refresh_shared_with_me).on("click", function() {
-    $(#status).html = "Refreshing...";
+    <h1>
+      Shared With Me
+    </h1>
+	
 
-    // TODO locks UI. Use native callback.
-    self.timer(30ms, function() {
-      var html_refresh = view.refresh_shared_with_me();
-      $(#users).html = html_refresh;
-      $(#status).html = "Refresh Complete"
-   });
-    
-  });
+	<button>Refresh All</button>
+	<button>Download Selected (18)</button>
+	
+	<br><br>
+	
+	<h3>John Smith</h3>
+	<button style="font-size: 9pt;">Refresh</button> &nbsp;&nbsp;Currently Offline. Could not refresh.
+	<br><br>
+	<button type="checkbox">All Files | 1000 files | 1.68 GB</button>
+	<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="checkbox">C:\Users\foobar | Folder (300 files) | 1.5 GB</button><br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="checkbox">C:\Users\foobar | Folder | 1.5 GB</button><br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="checkbox">C:\Users\foobar | Folder | 1.5 GB</button><br>
+	
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="checkbox">C:\Users\foobar | Folder (300 files) | 1.5 GB</button> <span style="background: #333; font-size: 8pt; padding: 5dip; display: inline-block;">Show More ( 12,000 )</span>  <br>
 
-  $(#users).html = view.get_users();
-</script>
-</head>
+	<br><br>
+	
+	<hr>
 
-<body>
-  <div class="main-body">
-
-    <div #warning-box>
-      - This is alpha software and not fully tested yet<br>
-      - Only download files from people you trust<br>
-    </div>
-    <h1>Shared With Me</h1>
-
-    <button #refresh_shared_with_me>Refresh</button>
-    <button #download_selected>Download Selected</button>
-    <br><br>
-    <div #status>Click Refresh</div>
-    <br>
-    <div #users></div>
-
-  </div>
-</body>
-
+	</div>
+	</body>
 </html>

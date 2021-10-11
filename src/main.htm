@@ -1,204 +1,63 @@
-<!--<html window-frame="extended">-->
 <html>
+	<head>
+		<title>Test</title>
+		<style>
+		
+		@import url(style.css);
 
-<head>
-  <title>Transmitic In Development Alpha</title>
-  <style>
-    /* AUTO CSS INJECTION */
-  </style>
+body { margin:0; }
+div {min-width:min-content;}
+frameset {min-height:min-content;}
 
-  <script type="text/tiscript">
-      
-      // Nav bar
-      event click $(div.nav-button) (evt,button) {
-        stdout.println("click nav-block");
+splitter { display:none; border:none; width: 3px; background:color(border);}
+splitter:hover { background:color(accent); }
 
-        for (var block in $(body).selectAll("div[class=nav-block]")) {
-          block.style["background-color"] = "none";
-        }
+section { background:gold; }
 
-        button.select("div[class=nav-block]").style["background-color"] = "#0078D7";
-      }
-      // End nav bar
-      // Window icon
-      var bytes_string = view.get_icon();
-      var bytes = Bytes.fromString(bytes_string, "utf-8");
-      var image = Image.fromBytes(bytes);
-      view.windowIcon = image;
-
-      // -- Open urls in browser
-      self.on("click", "a[href^=http]", function(evt) {
-        var href = this.attributes["href"];
-        Sciter.launch(href); // will open the url in default browser
-        return true; // consume the event
-      });
-      //
-
-      $(div#load_about).on("click", function() {
-        stdout.println("load about");
-        var page_html = view.get_page_about();
-        $(frame#content).load(page_html, "example://about.htm");
-      });
-
-      $(div#load_downloads).on("click", function() {
-        load_downloads();
-      });
-
-      function load_downloads() {
-        stdout.println("load downloads");
-        var page_html = view.get_page_downloads();
-        $(frame#content).load(page_html, "example://downloads.htm");
-      }
-
-      $(div#load_my_sharing).on("click", function() {
-        stdout.println("load my sharing");
-        var page_html = view.get_page_my_sharing();
-        $(frame#content).load(page_html, "example://my_sharing.htm");
-      });
-
-      $(div#load_users).on("click", function() {
-        load_users();
-      });
-
-      function load_users() {
-        stdout.println("load users");
-        var page_html = view.get_page_users();
-        $(frame#content).load(page_html, "example://users.htm");
-      }
-
-      function load_shared_with_me() {
-        var page_html = view.get_page_shared_with_me();
-        $(frame#content).load(page_html, "example://shared_with_me.htm");
-        $(#users).html = view.get_users();
-      }
-
-      function load_welcome() {
-        var page_html = view.get_page_welcome();
-        $(frame#content).load(page_html, "example://welcome.htm");
-      }
-
-      $(div#load_my_id).on("click", function() {
-        var page_html = view.get_page_my_id();
-        $(frame#content).load(page_html, "example://my_id.htm");
-      });
-
-      $(div#load_shared_with_me).on("click", function() {
-        stdout.println("load shared with me");
-        load_shared_with_me();
-      });
-
-      if (view.get_is_first_start()) {
-        load_welcome();
-      } else {
-        load_downloads();
-      }
-
-
-      
-
-      // -- RIGHT CLICK CONTEXT MENU
-      function getSelectedText() {
-        return $(div.selectable).selection.text;
-      }
-      
-      function getSelectedHTML() {
-        return $(div.selectable).selection.html;
-      }
-      
-      function hasSelection() {
-        return $(div.selectable).selection.type;
-      }
-    
-      $(div.selectable).on("click","li#selected-text", function() { view.msgbox(#information,getSelectedText().htmlEscape()); })
-                       .on("click","li#selected-html", function() { view.msgbox(#information,getSelectedHTML().htmlEscape()); })
-                       .on("keydown", function(evt) { return true; /*supress key handling in selectable */ } );
-    </script>
-  <menu.context #for-htmlarea>
-    <li command="edit:copy" style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span
-        class="accesskey">Ctrl+C</span></li>
-    <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
-    </menu>
-</head>
-
-<body>
-  <menu.context #for-htmlarea>
-    <li command="edit:copy"	style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span class="accesskey">Ctrl+C</span></li>
-    <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
-  </menu>
-  <section style="height: *;">
-    <div class="nav-bar">
-      <div id="load_downloads" class="nav-button">
-        <div class="nav-block" style="background-color: color(main-accent);"> </div>
-        <img class="nav-icon" src="ic_fluent_arrow_download_48_regular.svg"></img>
-        <div class="nav-text">Downloads</div>
-      </div>
-      <div id="load_shared_with_me" class="nav-button">
-        <div class="nav-block"> </div>
-        <img class="nav-icon" src="ic_fluent_globe_32_regular.svg"></img>
-        <div class="nav-text">Shared With Me</div>
-      </div>
-      <div id="load_my_sharing" class="nav-button">
-        <div class="nav-block"> </div>
-        <img class="nav-icon" src="ic_fluent_folder_48_regular.svg"></img>
-        <div class="nav-text">My Shared</div>
-      </div>
-      <div id="load_users" class="nav-button">
-        <div class="nav-block"> </div>
-        <img class="nav-icon" src="ic_fluent_people_32_regular.svg"></img>
-        <div class="nav-text">Users</div>
-      </div>
-      <div id="load_my_id" class="nav-button">
-        <div class="nav-block"> </div>
-        <img class="nav-icon" src="ic_fluent_guest_28_regular.svg"></img>
-        <div class="nav-text">My ID</div>
-      </div>
-      <div id="load_about" class="nav-button">
-        <div class="nav-block"> </div>
-        <img class="nav-icon" src="ic_fluent_info_28_regular.svg"></img>
-        <div class="nav-text">About</div>
-      </div>
-    </div>
-    <div style="width:*; height: *;">
-      <frame#content>
-
-        </frame>
-    </div>
-
-  </section>
-
-  <script type="text/tiscript">
-    var icon_bytes_string = view.get_icon_nav_downloads();
-    var icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
-    var icon_image = Image.fromBytes(icon_bytes);
-    $(div#load_downloads).$(img.nav-icon).value = icon_image;
-
-    icon_bytes_string = view.get_icon_nav_shared_with_me();
-    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
-    icon_image = Image.fromBytes(icon_bytes);
-    $(div#load_shared_with_me).$(img.nav-icon).value = icon_image;
-
-    icon_bytes_string = view.get_icon_nav_my_sharing();
-    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
-    icon_image = Image.fromBytes(icon_bytes);
-    $(div#load_my_sharing).$(img.nav-icon).value = icon_image;
-
-    icon_bytes_string = view.get_icon_nav_users();
-    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
-    icon_image = Image.fromBytes(icon_bytes);
-    $(div#load_users).$(img.nav-icon).value = icon_image;
-
-    icon_bytes_string = view.get_icon_nav_my_id();
-    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
-    icon_image = Image.fromBytes(icon_bytes);
-    $(div#load_my_id).$(img.nav-icon).value = icon_image;
-
-    icon_bytes_string = view.get_icon_nav_about();
-    icon_bytes = Bytes.fromString(icon_bytes_string, "utf-8");
-    icon_image = Image.fromBytes(icon_bytes);
-    $(div#load_about).$(img.nav-icon).value = icon_image;
-  </script>
-
-
-</body>
-
+        </style>
+		<script>
+document.on("click","button#load1", function() {
+  document.$("frame").src = "about.htm";
+});
+document.$("frame").src = "downloads.htm";
+	</script>
+	</head>
+	<body>
+		<frameset cols="200px,*">
+			<div class="nav-bar">
+				<div id="load_downloads" class="nav-button">
+					<div class="nav-block" style="background-color: color(accent);"> </div>
+					<img class="nav-icon" src="ic_fluent_arrow_download_48_regular.svg"/>
+					<div class="nav-text">Downloads</div>
+				</div>
+				<div id="load_shared_with_me" class="nav-button">
+					<div class="nav-block"> </div>
+					<img class="nav-icon" src="ic_fluent_globe_32_regular.svg"/>
+					<div class="nav-text">Shared With Me</div>
+				</div>
+				<div id="load_my_sharing" class="nav-button">
+					<div class="nav-block"> </div>
+					<img class="nav-icon" src="ic_fluent_folder_48_regular.svg"/>
+					<div class="nav-text">My Shared</div>
+				</div>
+				<div id="load_users" class="nav-button">
+					<div class="nav-block"> </div>
+					<img class="nav-icon" src="ic_fluent_people_32_regular.svg"/>
+					<div class="nav-text">Users</div>
+				</div>
+				<div id="load_my_id" class="nav-button">
+					<div class="nav-block"> </div>
+					<img class="nav-icon" src="ic_fluent_guest_28_regular.svg"/>
+					<div class="nav-text">My ID</div>
+				</div>
+				<div id="load_about" class="nav-button">
+					<div class="nav-block"> </div>
+					<img class="nav-icon" src="ic_fluent_info_28_regular.svg"/>
+					<div class="nav-text">About</div>
+				</div>
+			</div>
+			<splitter/>
+			<frame/>
+		</frameset>
+	</body>
 </html>

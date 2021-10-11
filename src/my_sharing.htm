@@ -1,184 +1,87 @@
 <html>
+	<head>
+		<title>Test</title>
+		<style>
+		
+		@import url(style.css);
+		
+		
 
-<head>
-  <style>
-    /* AUTO CSS INJECTION */
+        </style>
+		<script>
 
-    #myfiles>div {
-      padding: 0.5em;
-    }
-  </style>
+	</script>
+	</head>
+	<body>
+	<div class="main-body">
 
-  <script type="text/tiscript">
 
-  function update_msg_box(response) {
-    if (response[0] == 0) {
-        $(#msg_box).text = response[1];
-        $(#msg_box).style["background-color"] = "rgb(85, 255, 79)";
-    } else {
-        $(#msg_box).text = "Error: " + response[1];
-        $(#msg_box).style["background-color"] = "rgb(255, 79, 79)";
-    }
-    $(#msg_box).style["display"] = "block";
-}
-
-  event click $(button.remove-file) (evt,button) {
-    stdout.println("remove file");
-    var file_path = this.@["data-file-path"];
-    stdout.println(file_path);
-
-    var response = view.remove_file(file_path);
-    update_msg_box(response);
-    if (response[0] == 0) {
-        
-    }
-    load_my_shared_files();
-  }
-
-  event change $(select.option-add-user) (evt,button) {
-    stdout.println("add user");
-    stdout.println(this.value);
-    var file_path = this.@["data-file-path"];
-    stdout.println(file_path);
-    view.add_user_to_file(file_path, this.value);
-    load_my_shared_files();
-}
-
-event click $(button.remove-shared-with) (evt,button) {
-    stdout.println("Remove shared with");
-    var display_name = this.@['data-display-name'];
-    var file_path = this.@['data-file-path'];
-
-    view.remove_shared_with(display_name, file_path);
-    load_my_shared_files();
-  }
-  
-  $(button#add_file).on("click", function() {
-    stdout.println("Add file");
-    const filter = "All Files (*.*)|*.*";
-    const defaultExt = "*.*";
-    const initialPath = System.path(#USER_DOCUMENTS);
-    const caption = "Select file to share";
-  
-    var url = view.selectFile(#open-multiple, filter, defaultExt, initialPath, caption );
-    if( url ) {
-      if( typeof url != #array ){
-          url = [url];
-      }
-      stdout.println(url);
-      var outPath = [];
-      for (var i = 0; i < url.length; i++) {
-        outPath.push(URL.toPath(url[i]));
-      }
-      //var outPath = URL.toPath(url);
-      stdout.println(outPath);
-      var response = view.add_files(outPath);
-      update_msg_box(response);
-      if (response[0] == 0) {
-          
-      }
-    }
-    
-    load_my_shared_files();
-
-    return true;
-  });
-
-  $(button#add_folder).on("click", function() {
-    stdout.println("Add folder");
-    const caption = "Select folder to share";
-  
-    var url = view.selectFolder(caption);
-    if( url ) {
-      var outPath = URL.toPath(url);
-      var outlist = [];
-      outlist.push(outPath);
-      stdout.println(outlist);
-      var response = view.add_files(outlist);
-      update_msg_box(response);
-      if (response[0] == 0) {
-          
-      }
-    }
-    
-    load_my_shared_files();
-
-    return true;
-  });
-
-  function load_my_shared_files() {
-    var html_shared_files = view.get_my_shared_files();
-    $(#myfiles).html = html_shared_files;
-  }
-
-  event change $(form.sharing-form) {
-    stdout.println("sharing form");
-    stdout.println(this.value.Sharing);
-
-    var response = view.set_sharing_mode(this.value.Sharing);
-    update_msg_box(response);
-    if (response[0] == 0) {
-        
-    }
-  }
-
-  function self.ready() {
-    let sharing_mode = view.get_sharing_mode();
-    $(form).value = { 'Sharing': sharing_mode };
-  }
-  
-  load_my_shared_files();
-
-  // -- RIGHT CLICK CONTEXT MENU
-  function getSelectedText() {
-    return $(div.selectable).selection.text;
-  }
-  
-  function getSelectedHTML() {
-    return $(div.selectable).selection.html;
-  }
-  
-  function hasSelection() {
-    return $(div.selectable).selection.type;
-  }
-
-  $(div.selectable).on("click","li#selected-text", function() { view.msgbox(#information,getSelectedText().htmlEscape()); })
-                   .on("click","li#selected-html", function() { view.msgbox(#information,getSelectedHTML().htmlEscape()); })
-                   .on("keydown", function(evt) { return true; /*supress key handling in selectable */ } );
-</script>
-</head>
-
-<body>
-  <div class="main-body">
-    <menu.context #for-htmlarea>
-      <li command="edit:copy"	style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span class="accesskey">Ctrl+C</span></li>
-      <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
-    </menu>
 
     <h1>
       My Shared
     </h1>
-    <div #msg_box></div>
-    <div>
+	
+	<h2>Settings</h2>
       <form class="sharing-form">
-        <label>Sharing:</label>
+        <label>My Sharing:</label>
         <div>
           <button|radio name="Sharing" value="Off">Off</button>&nbsp;&nbsp;&nbsp;
-            <button|radio name="Sharing" value="Internet">Internet</button>&nbsp;&nbsp;&nbsp;
-              <button|radio name="Sharing" value="Local Network">Local Network</button>&nbsp;&nbsp;
+          <button|radio name="Sharing" value="Internet">Internet</button>&nbsp;&nbsp;&nbsp;
+          <button|radio name="Sharing" value="Local Network">Local Network</button>&nbsp;&nbsp;
         </div>
       </form>
       <br>
-      <button #add_file>Add Files</button>&nbsp;
-      <button #add_folder>Add Folder</button>
+      Port:&nbsp; <input #port size="8" type="text" value="7878">&nbsp;&nbsp;&nbsp;<button name="set_port" style="font-size: 10pt;">Set Port</button>
+
       <div #status></div>
       <br>
-      <h2>My Files</h2>
+      <h2>My Files to Share</h2>
+	  
+	    <div class="menu-bar">
+			  <button #add_file>Add Files</button>
+			  <button #add_folder>Add Folder</button>
+        </div>
+
+	  
+	  <br><br><br>
+	  
       <div #myfiles>
+		
+		<div class="my-file">
+			<strong>C:\Users\foobar\file.txt</strong>
+			<br><br>
+			<div class="my-file-inner">
+				<label for="cars">Add User: &nbsp;</label>
+
+				<select name="cars" id="cars">
+				  <option value=""></option>
+				  <option value="John Smith">John Smith</option>
+				  <option value="Jane Smith">Jane Smith</option>
+				  <option value="Mary Sue">Mary Sue</option>
+				</select> 
+				
+				<br><br>
+				Shared With:
+				<br><br>
+				
+				<div class="shared-with">
+					1. John Smith <button class="my-shared-remove-shared-with">Remove</button>
+					<br><br>
+					2. Jane SmithSmithSmith <button class="my-shared-remove-shared-with">Remove</button>
+				</div>
+				<br>
+				<button>Remove from Sharing</button>
+			</div>
+		</div>
+		
+		<br>
+		<hr>
+		
       </div>
-    </div>
 
-  </div>
-</body>
 
+
+
+	</div>
+	</body>
 </html>

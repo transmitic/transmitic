@@ -1,151 +1,20 @@
 <html>
+	<head>
+		<title>Test</title>
+		<style>
+		
+		@import url(style.css);
 
-<head>
-  <style>
-    /* AUTO CSS INJECTION */
-  </style>
-  <script type="text/tiscript">
 
-  function update_msg_box(response) {
-    if (response[0] == 0) {
-        $(#msg_box).text = response[1];
-        $(#msg_box).style["background-color"] = "rgb(85, 255, 79)";
-    } else {
-        $(#msg_box).text = "Error: " + response[1];
-        $(#msg_box).style["background-color"] = "rgb(255, 79, 79)";
-    }
-    $(#msg_box).style["display"] = "block";
-}
+        </style>
+		<script>
 
-  event click $(button.cancel-download) (evt,button) {
-    stdout.println("cancel download");
-    var display_name = this.@["data-display-name"];
-    var file_path = this.@["data-file-path"];
-    stdout.println(display_name);
-    stdout.println(file_path);
-
-    var response = view.cancel_download(display_name, file_path);
-    update_msg_box(response);
-    if (response[0] == 0) {
-      update_downloads();
-    }
-}
-
-event click $(button.resume-download) (evt,button) {
-  stdout.println("resume download");
-  var display_name = this.@["data-display-name"];
-  stdout.println(display_name);
-
-  var response = view.resume_download(display_name);
-  update_msg_box(response);
-  if (response[0] == 0) {
-    update_downloads();
-  }
-}
-
-event click $(button.open-a-download) (evt,button) {
-  stdout.println("open a download");
-  var file_path = this.@["data-file-path"];
-  stdout.println(file_path);
-
-  view.open_a_download(file_path);
-
-}
-
-event click $(button.pause-download) (evt,button) {
-  stdout.println("pause download");
-  var display_name = this.@["data-display-name"];
-  stdout.println(display_name);
-
-  var response = view.pause_download(display_name);
-  update_msg_box(response);
-  if (response[0] == 0) {
-    update_downloads();
-  }
-}
-
-$(button#opendownloads).on("click", function() {    
-  stdout.println("open downloads");
-
-  view.open_downloads();
-  });
-
-  $(button#resumealldownloads).on("click", function() {    
-  stdout.println("resume all downloads");
-
-  var response = view.resume_all_downloads();
-  update_msg_box(response);
-  if (response[0] == 0) {
-    update_downloads();
-  }
-});
-
-$(button#pausealldownloads).on("click", function() {    
-  stdout.println("pause all downloads");
-
-  var response = view.pause_all_downloads();
-  update_msg_box(response);
-  if (response[0] == 0) {
-    update_downloads();
-  }
-});
-
-$(button#clearfinished).on("click", function() {    
-  stdout.println("clear finished downloads");
-
-  var response = view.clear_finished_downloads();
-  update_msg_box(response);
-  if (response[0] == 0) {
-    update_downloads();
-  }
-});
-
-$(button#clearinvalid).on("click", function() {    
-stdout.println("clear invalid downloads");
-
-var response = view.clear_invalid_downloads();
-update_msg_box(response);
-if (response[0] == 0) {
-  update_downloads();
-}
-});
-
-$(button#cancelalldownloads).on("click", function() {    
-    stdout.println("cancel all downloads");
-
-    var response = view.cancel_all_downloads();
-    update_msg_box(response);
-    if (response[0] == 0) {
-      update_downloads();    
-    }
-  });
-
-  function update_downloads() {
-    var html_my_downloads = view.get_my_downloads();
-    $(#mydownloads).html = html_my_downloads;
-
-    var html_downloading = view.get_downloading_from_me();
-    $(#downloadingfromme).html = html_downloading;
-
-    return true;
-  }
-  update_downloads();
-  
-  self.timer(3s, update_downloads);
-</script>
-</head>
-
-<body>
-
-  <div class="main-body">
-    <menu.context #for-htmlarea>
-      <li command="edit:copy"	style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span class="accesskey">Ctrl+C</span></li>
-      <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
-    </menu>
-
-    <h1>Downloads</h1>
-    <div #msg_box></div>
-    <section>
+	</script>
+	</head>
+	<body>
+	<div class="main-body">
+		<h1>Downloads</h1>
+		    <section style="border-spacing:50dip;">
       <div class="my-downloads">
         <h2>My Downloads</h2>
         <div class="menu-bar">
@@ -158,25 +27,65 @@ $(button#cancelalldownloads).on("click", function() {
         </div>
         <hr>
         <div #mydownloads>
-          <div class="download">
-            My Friend | 25% | Downloading now...
-            <br><br>
-            C:\shared_file.txt
+          <div class="download download-active">
+			<div class="download-inner">
+				My Friend | 25% | Downloading now...
+				<br><br>
+				C:\shared_file.txt
 
-            <br><br>
-            <button class="cancel-download">Cancel</button>
-            <button class="pause-all">Pause Downloads from My Friend</button>
+				<br><br>
+				<button class="cancel-download">Cancel</button>
+				<button class="pause-all">Pause Downloads from My Friend</button>
+			</div>
           </div>
           <hr>
-          <div class="download">
-            My Friend | 25% | Downloading now...
-            <br><br>
-            C:\shared_file.txt
+			<div class="download download-active">
+			<div class="download-inner">
+				My Friend | 25% | Downloading now...
+				<br><br>
+				C:\shared_file.txt
 
-            <br><br>
-            <button class="cancel-download">Cancel</button>
-            <button class="pause-all">Pause Downloads from My Friend</button>
+				<br><br>
+				<button class="cancel-download">Cancel</button>
+				<button class="pause-all">Pause Downloads from My Friend</button>
+			</div>
           </div>
+          <hr>
+          <div class="download download-invalid">
+			  <div class="download-inner">
+				My Friend | 25% | Invalid or no longer shared with you
+				<br><br>
+				C:\shared_file.txt
+
+				<br><br>
+				<button class="cancel-download">Cancel</button>
+				<button class="pause-all">Pause Downloads from My Friend</button>
+			  </div>
+		  </div>
+          <hr>
+		  <div class="download download-offline">
+			  <div class="download-inner">
+				My Friend | 25% | User currently offline
+				<br><br>
+				C:\shared_file.txt
+
+				<br><br>
+				<button class="cancel-download">Cancel</button>
+				<button class="pause-all">Pause Downloads from My Friend</button>
+			  </div>
+		  </div>
+          <hr>
+		  <div class="download download-finished">
+			  <div class="download-inner">
+				My Friend | 100% | Download finished
+				<br><br>
+				C:\shared_file.txt
+
+				<br><br>
+				<button class="cancel-download">Cancel</button>
+				<button class="pause-all">Pause Downloads from My Friend</button>
+			  </div>
+		  </div>
           <hr>
         </div>
       </div>
@@ -186,24 +95,25 @@ $(button#cancelalldownloads).on("click", function() {
         <hr>
         <div #downloadingfromme>
           <div class="download">
+		  <div class="download-inner">
             My Friend | 25% | Downloading now...
             <br><br>
             C:\shared_file.txt
+			</div>
           </div>
           <hr>
           <div class="download">
+		  <div class="download-inner">
             My Friend | 25% | Downloading now...
             <br><br>
             C:\shared_file.txt
+		</div>
           </div>
           <hr>
         </div>
       </div>
 
     </section>
-
-  </div>
-
-</body>
-
+	</div>
+	</body>
 </html>

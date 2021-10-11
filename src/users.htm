@@ -1,183 +1,113 @@
 <html>
+	<head>
+		<title>Test</title>
+		<style>
+		
+		@import url(style.css);
+		
 
-<head>
-  <style>
-    /* AUTO CSS INJECTION */
-  </style>
-  <script type="text/tiscript">
 
-  function update_msg_box(response) {
-      if (response[0] == 0) {
-          $(#msg_box).text = response[1];
-          $(#msg_box).style["background-color"] = "rgb(85, 255, 79)";
-      } else {
-          $(#msg_box).text = "Error: " + response[1];
-          $(#msg_box).style["background-color"] = "rgb(255, 79, 79)";
-      }
-      $(#msg_box).style["display"] = "block";
-  }
+        </style>
+		<script>
 
-  $(button#add_user).on("click", function() {            
-      stdout.println("add user");
-      
-      var display_name = $(#new_user_nickname).text;
-      var public_id = $(#new_user_public_id).text;
-      var ip_address = $(#new_user_ip).text;
-      var port = $(#new_user_port).text;
+	</script>
+	</head>
+	<body>
+	<div class="main-body">
 
-      var response = view.add_new_user(display_name, public_id, ip_address, port);
-      stdout.println(response[0]);
-      stdout.println(response[1]);
-      update_msg_box(response);
-      if (response[0] == 0) {
-          load_current_users();
-      }
 
-  });
-
-  event click $(button.remove-user) (evt,button) {
-      stdout.println("remove user");
-      var display_name = this.@["data-display-name"];
-      stdout.println(display_name);
-      view.remove_user(display_name);
-      load_current_users();
-      return true; // consume the event 
-  }
-
-  event click $(button.disable-user) (evt,button) {
-      stdout.println("disable user");
-      var display_name = this.@["data-display-name"];
-      stdout.println(display_name);
-      view.disable_user(display_name);
-      this.style["display"] = "none";
-      
-      $(button.enable-user[data-display-name='{display_name}']).style["display"] = "inline-block";
-      $(span.user-status[data-display-name='{display_name}']).html = "Blocked";
-
-      return true; // consume the event 
-  }
-
-  event click $(button.enable-user) (evt,button) {
-      stdout.println("enable user");
-      var display_name = this.@["data-display-name"];
-      stdout.println(display_name);
-      view.enable_user(display_name);
-      this.style["display"] = "none";
-      
-      $(button.disable-user[data-display-name='{display_name}']).style["display"] = "inline-block";
-      $(span.user-status[data-display-name='{display_name}']).html = "Allowed";
-
-      return true; // consume the event 
-  }
-
-  event click $(button.edit-user) (evt,button) {
-      stdout.println("edit user");
-      var display_name = this.@["data-display-name"];
-      stdout.println(display_name);
-      
-      this.style["display"] = "none";
-      $(button.apply-user[data-display-name='{display_name}']).style["display"] = "inline-block";
-
-      $(span.user-public-id[data-display-name='{display_name}']).style["display"] = "none";
-      $(input.user-public-id-box[data-display-name='{display_name}']).style["display"] = "inline-block";
-
-      $(span.user-ip[data-display-name='{display_name}']).style["display"] = "none";
-      $(input.user-ip-box[data-display-name='{display_name}']).style["display"] = "inline-block";
-
-      $(span.user-port[data-display-name='{display_name}']).style["display"] = "none";
-      $(input.user-port-box[data-display-name='{display_name}']).style["display"] = "inline-block";
-
-      return true; // consume the event 
-  }
-
-  event click $(button.apply-user) (evt,button) {
-      stdout.println("apply user");
-      var display_name = this.@["data-display-name"];
-
-      var new_public_id = $(input.user-public-id-box[data-display-name='{display_name}']).text
-      var new_ip = $(input.user-ip-box[data-display-name='{display_name}']).text
-      var new_port = $(input.user-port-box[data-display-name='{display_name}']).text
-
-      var response = view.edit_user(display_name, new_public_id, new_ip, new_port);
-      update_msg_box(response);
-      if (response[0] == 0) {
-          load_current_users();
-      }
-  }
-
-  function load_current_users() {
-      $(#current_users).html = view.get_current_users();
-  }
-  load_current_users();
-  
-  // -- RIGHT CLICK CONTEXT MENU
-  function getSelectedText() {
-    return $(div.selectable).selection.text;
-  }
-  
-  function getSelectedHTML() {
-    return $(div.selectable).selection.html;
-  }
-  
-  function hasSelection() {
-    return $(div.selectable).selection.type;
-  }
-
-  $(div.selectable).on("click","li#selected-text", function() { view.msgbox(#information,getSelectedText().htmlEscape()); })
-                   .on("click","li#selected-html", function() { view.msgbox(#information,getSelectedHTML().htmlEscape()); })
-                   .on("keydown", function(evt) { return true; /*supress key handling in selectable */ } );
-</script>
-</head>
-
-<body>
-
-  <div class="main-body">
-    <menu.context #for-htmlarea>
-      <li command="edit:copy" style="foreground-image:url(sciter:copy.png)"><label>Copy</label><span
-          class="accesskey">Ctrl+C</span></li>
-      <li command="edit:selectall"><label>Select All</label><span class="accesskey">Ctrl+A</span></li>
-      </menu>
-      <div #warning-box>
-        - This is alpha software and not fully tested yet<br>
-        - Only share with people you trust<br>
-        - People you share with will see the full path of your files and folders<br>
-        - Use a firewall to control access to transmitic.exe<br>
-      </div>
 
       <h1>Users</h1>
-      <div #msg_box></div>
       <div>
         <h2 #name>Add New User</h2>
         <table>
-          <tr>
+          <tr class="add-row">
             <td>Nickname: </td>
             <td><input #new_user_nickname type="text"></td>
           </tr>
-          <tr>
+          <tr class="add-row">
             <td>Public ID:</td>
             <td><input #new_user_public_id type="text"></td>
           </tr>
-          <tr>
-            <td>IP Address:</td>
+          <tr class="add-row">
+            <td>IP Address: &nbsp;</td>
             <td><input #new_user_ip type="text"></td>
           </tr>
-          <tr>
+          <tr class="add-row">
             <td>Port:</td>
             <td><input #new_user_port type="text" value="7878"></td>
           </tr>
+		  <tr>
+			<td></td>
+			<td style="text-align:right;"><button #add_user style="margin-top: 10dip;">Add New User</button></td>
+		  </tr>
         </table>
         <br>
-        <button #add_user>Add New User</button>
+        
       </div>
-
+		
+		<br>
       <div>
         <h2 #name>Current Users</h2>
-        <div #current_users></div>
+        <h3>Foo Bar</h3>
+		<table>
+			<tr>
+				<td>Nickname:</td>
+				<td>Foo Bar</td>
+			</tr>
+			<tr>
+				<td>Public ID:</td>
+				<td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
+			</tr>
+			<tr>
+				<td>IP Address: &nbsp;</td>
+				<td>192.168.0.1</td>
+			</tr>
+			<tr>
+				<td>Port:</td>
+				<td>7878</td>
+			</tr>
+			<tr>
+				<td>Status:</td>
+				<td>Allowed</td>
+			</tr>
+		</table>
+		<div style="margin-top: 10dip; margin-bottom: 25dip;">
+		<button>Edit</button> <button>Block</button> <button>Remove</button>
+		</div>
+		
+		<hr>
+		
+        <h3>Foo Bar</h3>
+		<table>
+			<tr>
+				<td>Nickname:</td>
+				<td>Foo Bar</td>
+			</tr>
+			<tr>
+				<td>Public ID:</td>
+				<td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
+			</tr>
+			<tr>
+				<td>IP Address: &nbsp;</td>
+				<td>192.168.0.1</td>
+			</tr>
+			<tr>
+				<td>Port:</td>
+				<td>7878</td>
+			</tr>
+			<tr>
+				<td>Status:</td>
+				<td>Allowed</td>
+			</tr>
+		</table>
+		
+		
+		
       </div>
 
 
 
-  </div>
-</body>
-
+	</div>
+	</body>
 </html>
