@@ -9,9 +9,144 @@
         </style>
 		<script>
 
-	</script>
+			let downloads_in_progress = [
+				{
+					owner: 'My Friend',
+					percent: 90,
+					path: 'C:\\hello\\world1',
+				},
+				{
+					owner: 'My Friend1',
+					percent: 50,
+					path: 'C:\\hello\\world2',
+				}
+			];
+
+			let downloads_invalid = [
+				{
+					owner: 'My FriendN',
+					percent: 10,
+					path: 'C:\\hello\\world3',
+				},
+				{
+					owner: 'My Friend1Q',
+					percent: 5,
+					path: 'C:\\hello\\world4',
+				}
+			];
+
+			let downloads_offline = [
+				{
+					owner: 'My FriendO',
+					percent: 2,
+					path: 'C:\\hello\\world6',
+				},
+				{
+					owner: 'My Friend1Y',
+					percent: 54,
+					path: 'C:\\hello\\world8',
+				}
+			];
+
+			let downloads_finished = [
+				{
+					owner: 'My FriendOFFF',
+					path: 'C:\\hello\\world77',
+				},
+				{
+					owner: 'My Friend1YYYYY',
+					path: 'C:\\hello\\world8999',
+				}
+			];
+
+			let all_downloads = {
+				in_progress: downloads_in_progress,
+				invalid: downloads_invalid,
+				offline: downloads_offline,
+				finished: downloads_finished,
+			};
+
+
+			function MyDownloads() {
+				return <div>
+					{ all_downloads.in_progress.map((d) => <SingleDownloadInProgress owner={d.owner} percent={d.percent} path={d.path} />) } 
+					{ all_downloads.invalid.map((d) => <SingleDownloadInvalid owner={d.owner} percent={d.percent} path={d.path} />) } 
+					{ all_downloads.offline.map((d) => <SingleDownloadOffline owner={d.owner} percent={d.percent} path={d.path} />) } 
+					{ all_downloads.finished.map((d) => <SingleDownloadFinished owner={d.owner} percent={d.percent} path={d.path} />) } 
+					</div>;
+			}
+
+			function SingleDownloadInProgress(props) {
+				return <div><div class="download download-active">
+					<div class="download-inner">
+						{props.owner} | {props.percent}% | Downloading now...
+						<br /><br />
+						{props.path}
+
+						<br /><br />
+						<button class="cancel-download">Cancel</button>
+						<button class="pause-all">Pause Downloads from My Friend</button>
+					</div>
+				</div>
+				<hr />
+				</div>;
+			}
+
+			function SingleDownloadInvalid(props) {
+				return <div><div class="download download-invalid">
+					<div class="download-inner">
+						{props.owner} | {props.percent}% | Invalid or no longer shared with you
+						<br /><br />
+						{props.path}
+
+						<br /><br />
+						<button class="cancel-download">Cancel</button>
+						<button class="pause-all">Pause Downloads from My Friend</button>
+					</div>
+				</div>
+				<hr />
+				</div>;
+			}
+
+			function SingleDownloadOffline(props) {
+				return <div><div class="download download-offline">
+					<div class="download-inner">
+						{props.owner} | {props.percent}% | User currently offline
+						<br /><br />
+						{props.path}
+
+						<br /><br />
+						<button class="cancel-download">Cancel</button>
+						<button class="pause-all">Pause Downloads from My Friend</button>
+					</div>
+				</div>
+				<hr />
+				</div>;
+			}
+
+			function SingleDownloadFinished(props) {
+				return <div><div class="download download-finished">
+					<div class="download-inner">
+						{props.owner} | {props.percent}% | Download Finished
+						<br /><br />
+						{props.path}
+
+						<br /><br />
+						<button class="cancel-download">Open</button>
+					</div>
+				</div>
+				<hr />
+				</div>;
+			}
+			
+			//document.body.content(<MyDownloads />);
+			document.$("div#mydownloads").content(<MyDownloads />);;
+
+
+		</script>
 	</head>
 	<body>
+	
 	<div class="main-body">
 		<h1>Downloads</h1>
 		    <section style="border-spacing:50dip;">
