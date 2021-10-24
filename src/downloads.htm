@@ -60,6 +60,7 @@
 			];
 
 			let all_downloads = {
+				//in_progress: Window.this.xcall('get_downloads_in_progress'),
 				in_progress: downloads_in_progress,
 				invalid: downloads_invalid,
 				offline: downloads_offline,
@@ -76,7 +77,37 @@
 					</div>;
 			}
 
-			function SingleDownloadInProgress(props) {
+			
+			
+			class SingleDownloadInProgress {
+				constructor(props,kids, parent) { 
+					this.props = props;
+				}
+
+				render(props,kids) {
+					return <div><div class="download download-active">
+						<div class="download-inner">
+							{props.owner} | {props.percent}% | Downloading now...
+							<br /><br />
+							{props.path}
+
+							<br /><br />
+							<button class="cancel-download">Cancel</button>
+							<button class="pause-all">Pause Downloads from My Friend</button>
+						</div>
+					</div>
+					<hr />
+					</div>;
+				}
+
+				["on click at button.cancel-download"](evt, button) { 
+					Window.this.xcall('fake_click', this.props.owner);
+				}
+			}
+
+
+
+			function SingleDownloadInProgressOld(props) {
 				return <div><div class="download download-active">
 					<div class="download-inner">
 						{props.owner} | {props.percent}% | Downloading now...
@@ -140,7 +171,8 @@
 			}
 			
 			//document.body.content(<MyDownloads />);
-			document.$("div#mydownloads").content(<MyDownloads />);;
+			document.$("div#mydownloads").content(<MyDownloads />);
+			//document.$("div#mydownloads").content(Window.this.xcall('get_local_ip'));
 
 
 		</script>

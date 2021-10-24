@@ -30,8 +30,29 @@ struct PathJson {
 
 impl Handler {
 
+	fn get_downloads_in_progress(&self) -> Value {
+
+		let mut response = Value::new();
+
+		let mut item1 = Value::new();
+		item1.set_item("owner", "My Mock");
+		item1.set_item("percent", "90");
+		item1.set_item("path", "C:\\users\\other\\hello.txt");
+
+		let mut item2 = Value::new();
+		item2.set_item("owner", "My Mock2");
+		item2.set_item("percent", "5");
+		item2.set_item("path", "C:\\users\\other\\hello3.txt");
+
+		response.push(item1);
+		response.push(item2);
+
+		return response;
+	}
+
 	fn get_msg_box_response(&self, code: i32, msg: &String) -> Value {
 		let mut response = Value::new();
+
 		response.push(Value::from(code));
 		response.push(Value::from(msg));
 		response
@@ -42,6 +63,11 @@ impl Handler {
 		s = s[1..s.len()-1].to_string();
 		s = s.trim().to_string();
 		s
+	}
+
+	fn fake_click(&self, file_path: Value) {
+		let mut file_path = self.clean_sciter_string(file_path);
+		println!("{}", file_path);
 	}
 
 	fn open_a_download(&self, file_path: Value) {
@@ -137,7 +163,9 @@ impl Handler {
 impl sciter::EventHandler for Handler {
 	dispatch_script_call! {
 		fn open_a_download(Value);
+		fn fake_click(Value);
 		fn get_local_ip();
+		fn get_downloads_in_progress();
 		fn get_name();
 		fn get_page_about();
 		fn get_page_downloads();
