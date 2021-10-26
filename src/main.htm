@@ -12,51 +12,112 @@ frameset {min-height:min-content;}
 splitter { display:none; border:none; width: 3px; background:color(border);}
 splitter:hover { background:color(accent); }
 
-section { background:gold; }
 
         </style>
 		<script>
 			document.attributes["theme"] = "dark";
-			
+
 document.on("click","button#load1", function() {
   document.$("frame").src = "about.htm";
 });
-document.$("frame").src = "downloads.htm";
+
+	function loadPage() {
+		console.print("hello");
+	}
+
+	let navLinks = [
+		{
+			"name": "DownloadsNEW",
+			"icon": "ic_fluent_arrow_download_48_regular.svg",
+			"html": "downloads.htm"
+		},
+		{
+			"name": "Shared With Me",
+			"icon": "ic_fluent_globe_32_regular.svg",
+			"html": "shared_with_me.htm"
+		},
+		{
+			"name": "My Shared",
+			"icon": "ic_fluent_folder_48_regular.svg",
+			"html": "my_sharing.htm"
+		},
+		{
+			"name": "Users",
+			"icon": "ic_fluent_people_32_regular.svg",
+			"html": "users.htm"
+		},
+		{
+			"name": "My ID",
+			"icon": "ic_fluent_guest_28_regular.svg",
+			"html": "my_id.htm"
+		},
+		{
+			"name": "About",
+			"icon": "ic_fluent_info_28_regular.svg",
+			"html": "about.htm"
+		}
+	];
+
+
+	class NavBar extends Element {
+
+		counter; // Simple counter/index for each navlink
+		activeIndex;  // Index of active navlink
+
+		this(props) {
+            this.counter = 0;
+            this.activeIndex = 0;
+        }
+
+		render() {
+			this.counter = 0;
+			return <div>
+				{ navLinks.map((d) => <NavLink name={d.name} icon={d.icon} html={d.html} navIndex={this.counter++} activeIndex={this.activeIndex} />) } 
+			</div>;
+		}
+	}
+
+	class NavLink extends Element {
+
+		navIndex;
+		activeIndex;
+		htmlPage;
+
+        this(props) { 
+            this.navIndex = props.navIndex;
+            this.activeIndex = props.activeIndex;
+			this.htmlPage = props.html;
+
+            if (this.navIndex == this.activeIndex) {
+                this.navBlockStlye = "background-color: color(accent);";
+            }
+            else {
+                this.navBlockStlye = "";
+            }
+        }
+
+		render(props) {
+			return <div class="nav-button">
+				<div class="nav-block" style={this.navBlockStlye}> </div>
+				<img class="nav-icon" src={props.icon}/>
+				<div class="nav-text">{props.name}</div>
+			</div>;
+		}
+
+		["on click at div.nav-button"]() { 
+			document.$("frame").src = this.htmlPage;
+			this.parentElement.componentUpdate({ activeIndex: this.navIndex });
+		}
+	}
+
+	document.$("frame").src = navLinks[0].html;
+	document.$("div.nav-bar").content(<NavBar />);
+
 	</script>
 	</head>
 	<body>
 		<frameset cols="200px,*">
 			<div class="nav-bar">
-				<div id="load_downloads" class="nav-button">
-					<div class="nav-block" style="background-color: color(accent);"> </div>
-					<img class="nav-icon" src="ic_fluent_arrow_download_48_regular.svg"/>
-					<div class="nav-text">Downloads</div>
-				</div>
-				<div id="load_shared_with_me" class="nav-button">
-					<div class="nav-block"> </div>
-					<img class="nav-icon" src="ic_fluent_globe_32_regular.svg"/>
-					<div class="nav-text">Shared With Me</div>
-				</div>
-				<div id="load_my_sharing" class="nav-button">
-					<div class="nav-block"> </div>
-					<img class="nav-icon" src="ic_fluent_folder_48_regular.svg"/>
-					<div class="nav-text">My Shared</div>
-				</div>
-				<div id="load_users" class="nav-button">
-					<div class="nav-block"> </div>
-					<img class="nav-icon" src="ic_fluent_people_32_regular.svg"/>
-					<div class="nav-text">Users</div>
-				</div>
-				<div id="load_my_id" class="nav-button">
-					<div class="nav-block"> </div>
-					<img class="nav-icon" src="ic_fluent_guest_28_regular.svg"/>
-					<div class="nav-text">My ID</div>
-				</div>
-				<div id="load_about" class="nav-button">
-					<div class="nav-block"> </div>
-					<img class="nav-icon" src="ic_fluent_info_28_regular.svg"/>
-					<div class="nav-text">About</div>
-				</div>
 			</div>
 			<splitter/>
 			<frame/>

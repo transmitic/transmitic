@@ -82,10 +82,11 @@
 			class SingleDownloadInProgress {
 				constructor(props,kids, parent) { 
 					this.props = props;
+					this.download_class = "download-active";
 				}
 
 				render(props,kids) {
-					return <div><div class="download download-active">
+					return <div><div class={"download " + this.download_class}>
 						<div class="download-inner">
 							{props.owner} | {props.percent}% | Downloading now...
 							<br /><br />
