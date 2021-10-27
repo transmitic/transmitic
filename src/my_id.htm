@@ -9,6 +9,11 @@
         </style>
 		<script>
 
+                    
+        document.$("button#copy").onclick = function() {
+            Clipboard.write({text: "hello"});
+        }
+
 	</script>
 	</head>
 	<body>
