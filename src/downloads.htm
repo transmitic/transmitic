@@ -79,8 +79,8 @@
 
 			
 			
-			class SingleDownloadInProgress {
-				constructor(props,kids, parent) { 
+			class SingleDownloadInProgress extends Element {
+				this(props,kids, parent) { 
 					this.props = props;
 					this.download_class = "download-active";
 				}
@@ -93,6 +93,7 @@
 							{props.path}
 
 							<br /><br />
+							<button class="open-download">Open</button>
 							<button class="cancel-download">Cancel</button>
 							<button class="pause-all">Pause Downloads from My Friend</button>
 						</div>
@@ -174,8 +175,26 @@
 			//document.body.content(<MyDownloads />);
 			document.$("div#mydownloads").content(<MyDownloads />);
 			//document.$("div#mydownloads").content(Window.this.xcall('get_local_ip'));
+		
+			class MenuBar extends Element {
 
+				this(props) {
+					
+				}
 
+				render() {
+					return <div class="menu-bar">
+						<button id="opendownloads">Open Downloads</button>
+						<button id="clearfinished">Clear Finished</button>
+						<button id="clearinvalid">Clear Invalid</button>
+						<button id="cancelalldownloads">Cancel All</button>
+						<button id="pausealldownloads">Pause All</button>
+						<button id="resumealldownloads">Resume All</button>
+					</div>;
+				}
+
+			}
+			document.$(".menu-bar-holder").content(<MenuBar />);
 		</script>
 	</head>
 	<body>
@@ -185,13 +204,8 @@
 		    <section style="border-spacing:50dip;">
       <div class="my-downloads">
         <h2>My Downloads</h2>
-        <div class="menu-bar">
-          <button #opendownloads>Open Downloads</button>
-          <button #cancelalldownloads>Cancel All</button>
-          <button #pausealldownloads>Pause All</button>
-          <button #resumealldownloads>Resume All</button>
-          <button #clearfinished>Clear Finished</button>
-          <button #clearinvalid>Clear Invalid</button>
+        <div class="menu-bar-holder">
+
         </div>
         <hr>
         <div #mydownloads>

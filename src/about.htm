@@ -5,12 +5,17 @@
 		
 		@import url(style.css);
 		
-		
-
         </style>
-		<script>
+		<script type="module">
 
-	</script>
+            import * as Environment from "@env";
+
+            document.on("^click", "[href]", function(evt, hyperlink) {
+                Environment.launch(hyperlink.attributes["href"]);
+                evt.preventDefault();  
+            });
+
+	    </script>
 	</head>
 	<body>
 	<div class="main-body">

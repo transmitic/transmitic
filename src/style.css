@@ -18,6 +18,7 @@ html:theme(dark) {
   
   var(side-panel-back): #1f1f1f;
   var(nav-button-hover): #353535;
+  var(highlight-t): #66ff6b;
 }
 
 //html:theme(light) 
@@ -641,13 +642,21 @@ progress { display:inline-block; style-set:std-progress; }
 
 /********************* TRANSMITIC CUSTOM *********************/
 
+a {
+  color: color(accent);
+}
+
+a:hover {
+  color: color(highlight-t);
+}
+
 h1 {
   font-weight: 380;
 }
 
 section {
   flow: horizontal;
-    border-spacing:8dip;
+  border-spacing:8dip;
 }
 
 section > div {size:*;}
@@ -660,7 +669,7 @@ section > div {size:*;}
 
 .highlight {
   color: #000;
-  background-color: #66ff6b;
+  background-color: color(highlight-t);
   padding: 0.3em 0.5em 0.3em 0.5em;
   display: inline-block;
 }
@@ -740,6 +749,11 @@ section > div {size:*;}
 .download-finished {
 	border-left: 2px solid #6696ff;	
 }
+
+.open-download{
+  margin-right: 5dip;
+  font-size:9pt;
+  }
 
 .cancel-download{
 margin-right: 5dip;

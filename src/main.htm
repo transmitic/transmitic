@@ -27,7 +27,7 @@ document.on("click","button#load1", function() {
 
 	let navLinks = [
 		{
-			"name": "DownloadsNEW",
+			"name": "Downloads",
 			"icon": "ic_fluent_arrow_download_48_regular.svg",
 			"html": "downloads.htm"
 		},
@@ -61,7 +61,7 @@ document.on("click","button#load1", function() {
 
 	class NavBar extends Element {
 
-		counter; // Simple counter/index for each navlink
+		counter;  // Simple counter/index for each navlink
 		activeIndex;  // Index of active navlink
 
 		this(props) {
@@ -72,7 +72,7 @@ document.on("click","button#load1", function() {
 		render() {
 			this.counter = 0;
 			return <div>
-				{ navLinks.map((d) => <NavLink name={d.name} icon={d.icon} html={d.html} navIndex={this.counter++} activeIndex={this.activeIndex} />) } 
+				{ navLinks.map((d) => <NavLink name={d.name} icon={d.icon} htmlPage={d.html} navIndex={this.counter++} activeIndex={this.activeIndex} />) } 
 			</div>;
 		}
 	}
@@ -86,7 +86,7 @@ document.on("click","button#load1", function() {
         this(props) { 
             this.navIndex = props.navIndex;
             this.activeIndex = props.activeIndex;
-			this.htmlPage = props.html;
+			this.htmlPage = props.htmlPage;
 
             if (this.navIndex == this.activeIndex) {
                 this.navBlockStlye = "background-color: color(accent);";
