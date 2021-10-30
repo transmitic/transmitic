@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>Test</title>
+    <title>About</title>
     <style>
         @import url(style.css);
     </style>
@@ -15,14 +15,19 @@
             evt.preventDefault();
         });
 
+        document.ready = function () {
+            //document.$("h1#name").content(Window.this.xcall('get_app_display_name'));
+            //document.$("h3#version").content(Window.this.xcall('get_app_display_version'));
+        }
+
     </script>
 </head>
 
 <body>
     <div class="main-body" selectable>
 
-        <h1 #name>Transmitic beta</h1>
-        <h3 #version>v0.10.0</h3>
+        <h1 id="name">Transmitic Beta XX</h1>
+        <h3 id="version">v0.10.0 XX</h3>
         <a href="https://transmitic.io">
             <h3>https://transmitic.io</h3>
         </a>
