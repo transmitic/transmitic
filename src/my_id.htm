@@ -1,42 +1,69 @@
 <html>
-	<head>
-		<title>Test</title>
-		<style>
-		
-		@import url(style.css);
 
+<head>
+    <title>My ID</title>
+    <style>
+        @import url(style.css);
+    </style>
+    <script src="global_transmitic.js"></script>
+    <script>
 
-        </style>
-		<script>
+        let publicID = "";
 
-                    
-        document.$("button#copy").onclick = function() {
-            Clipboard.write({text: "hello"});
+        document.$("button#copy-id").onclick = function () {
+            Clipboard.write({ text: publicID });
+            document.$("span#copy-success").content("&nbsp;(copied)");
         }
 
-	</script>
-	</head>
-	<body>
-	<div class="main-body">
-		<h1>My ID</h1>
-      <h2>My Public ID</h2>
-      Share your Public ID with anyone you want to share with.
-      <br>
-      <p>
-        Your Public ID is: <span #publicid class="highlight">3ePPYSBLFsJOX874GJ5W0hXSjmbYGzh0=</span>&nbsp;<button #copy style="font-size:9pt;">Copy</button><span
-          #copysuccess></span>
-      </p>
+        function setPublicID() {
+            //let publicID = Window.this.xcall('get_public_id');
+            publicID = new Date().toLocaleTimeString();
+            document.$("span#public-id").content(publicID);
+            return publicID;
+        }
 
+        document.$("button#create-new-id").onclick = function () {
+            //let publicID = setPublicID();
+            //let response = Window.this.xcall('create_new_id');
+            let response = [0, "none"];
+            if (response[0] == 0) {
+                setPublicID();
+                setMsgBoxSuccess("Your new Public ID is <strong>" + publicID + "</strong>");
+            }
+            else {
+                setMsgBoxError("Failed to create new Public ID.");
+            }
+        }
 
+        document.ready = function () {
+            setPublicID();
+        }
 
-      <h2>Create New ID</h2>
-      Creating a new ID will require everyone you share with to change the ID they have for you before you can share again.
-      <br>
-      <i>Your current ID will no longer work.</i>
-      <br><br>
-      <button #create_new_id>Create New ID</button>
+    </script>
+</head>
 
+<body>
+    <div class="main-body" selectable>
+        <div id="msg-box">Hello</div>
 
-	</div>
-	</body>
+        <h1>My ID</h1>
+        <h2>My Public ID</h2>
+        Share your Public ID with anyone you want to share with.
+        <br>
+        <p>
+            Your Public ID is: <span id="public-id" class="highlight"></span>&nbsp;<button #copy-id
+                style="font-size:9pt;">Copy</button><span #copy-success></span>
+        </p>
+
+        <h2>Create New ID</h2>
+        You will not be able to share with anyone until they update to your new ID.
+        <br>
+        <i>Your current ID will no longer work.</i>
+        <br><br>
+        <button id="create-new-id">Create New ID</button>
+        <!--TODO modal are you sure?-->
+
+    </div>
+</body>
+
 </html>

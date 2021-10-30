@@ -3,7 +3,7 @@ html:theme(dark) {
   var(accent): morph(window-accent-color,lightness:40%);  
   var(accent-text): highlighttext;  
 
-  var(panel-back): #000; //#383838;
+  var(panel-back): #000;
   var(popup-panel-back): #555; 
   var(panel-text): #eee;
   var(back): #000;
@@ -16,9 +16,17 @@ html:theme(dark) {
   var(disabled-back): #444;
   var(hover-option-cover): rgba(255,255,255,0.1);
   
+
+  var(red-t): #ff4545;  /* Update global_transmitic.js */
+  var(error-t): #ff6666;  /* Update global_transmitic.js */
+  
+  var(green-t): #66ff6b;  /* Update global_transmitic.js */
+  var(success-t):  #66ff6b;  /* Update global_transmitic.js */
+  var(highlight-t): #66ff6b;
+
   var(side-panel-back): #1f1f1f;
   var(nav-button-hover): #353535;
-  var(highlight-t): #66ff6b;
+
 }
 
 //html:theme(light) 
@@ -642,6 +650,8 @@ progress { display:inline-block; style-set:std-progress; }
 
 /********************* TRANSMITIC CUSTOM *********************/
 
+
+/**** GLOBAL ****/
 a {
   color: color(accent);
 }
@@ -666,7 +676,6 @@ section > div {size:*;}
   padding-left: 15dip;
 }
 
-
 .highlight {
   color: #000;
   background-color: color(highlight-t);
@@ -674,6 +683,15 @@ section > div {size:*;}
   display: inline-block;
 }
 
+#msg-box {
+    padding: 1em 1em 1em 1em;
+    width: 100%;
+    background-color: #fff;
+    color: #000;
+    margin-bottom: 1em;
+    padding-right: -30dip;
+    display: none;
+}
 
 .nav-button{
   height: 50dip;

@@ -1,64 +1,66 @@
 <html>
-	<head>
-		<title>Test</title>
-		<style>
-		
-		@import url(style.css);
-		
-        </style>
-		<script type="module">
 
-            import * as Environment from "@env";
+<head>
+    <title>Test</title>
+    <style>
+        @import url(style.css);
+    </style>
+    <script src="global_transmitic.js"></script>
+    <script type="module">
 
-            document.on("^click", "[href]", function(evt, hyperlink) {
-                Environment.launch(hyperlink.attributes["href"]);
-                evt.preventDefault();  
-            });
+        import * as Environment from "@env";
 
-	    </script>
-	</head>
-	<body>
-	<div class="main-body" selectable>
+        document.on("^click", "[href]", function (evt, hyperlink) {
+            Environment.launch(hyperlink.attributes["href"]);
+            evt.preventDefault();
+        });
 
-    <h1 #name>Transmitic beta</h1>
-    <h3 #version>v0.10.0</h3>
-    <a href="https://transmitic.io">
-        <h3>https://transmitic.io</h3>
-    </a>
+    </script>
+</head>
 
-    <h1>Dependencies</h1>
+<body>
+    <div class="main-body" selectable>
 
-    <h4>Rust Programming Language</h4>
-    <a href="https://www.rust-lang.org/">https://www.rust-lang.org/</a>
-    <br><br>
+        <h1 #name>Transmitic beta</h1>
+        <h3 #version>v0.10.0</h3>
+        <a href="https://transmitic.io">
+            <h3>https://transmitic.io</h3>
+        </a>
 
-    <h4>Sciter</h4>
-    This Application (or Component) uses Sciter Engine (http://sciter.com/), copyright Terra Informatica
-    Software, Inc.
-    <br>
-    <a href="https://sciter.com/">https://sciter.com/</a>
-    <br><br>
+        <h1>Dependencies</h1>
 
-    <h4>Serde</h4>
-    <a href="https://serde.rs/">https://serde.rs/</a>
-    <br><br>
+        <h4>Rust Programming Language</h4>
+        <a href="https://www.rust-lang.org/">https://www.rust-lang.org/</a>
+        <br><br>
 
-    <h4>ring</h4>
-    <a href="https://briansmith.org/rustdoc/ring/">https://briansmith.org/rustdoc/ring/</a>
-    <br>
-    This product includes software developed by the OpenSSL Projectfor use in the OpenSSL Toolkit
-    (http://www.openssl.org/)
-    <br>
-    This product includes cryptographic software written by Eric Young (eay@cryptsoft.com)
-    <br><br>
+        <h4>Sciter</h4>
+        This Application (or Component) uses Sciter Engine (http://sciter.com/), copyright Terra Informatica
+        Software, Inc.
+        <br>
+        <a href="https://sciter.com/">https://sciter.com/</a>
+        <br><br>
 
-    <h4>aes-gcm</h4>
-    <a href="https://docs.rs/aes-gcm/">https://docs.rs/aes-gcm/</a>
-    <br><br>
+        <h4>Serde</h4>
+        <a href="https://serde.rs/">https://serde.rs/</a>
+        <br><br>
 
-    <h4>x25519-dalek</h4>
-    <a href="https://docs.rs/x25519-dalek/">https://docs.rs/x25519-dalek//</a>
+        <h4>ring</h4>
+        <a href="https://briansmith.org/rustdoc/ring/">https://briansmith.org/rustdoc/ring/</a>
+        <br>
+        This product includes software developed by the OpenSSL Projectfor use in the OpenSSL Toolkit
+        (http://www.openssl.org/)
+        <br>
+        This product includes cryptographic software written by Eric Young (eay@cryptsoft.com)
+        <br><br>
 
-</div>
+        <h4>aes-gcm</h4>
+        <a href="https://docs.rs/aes-gcm/">https://docs.rs/aes-gcm/</a>
+        <br><br>
+
+        <h4>x25519-dalek</h4>
+        <a href="https://docs.rs/x25519-dalek/">https://docs.rs/x25519-dalek//</a>
+
+    </div>
 </body>
+
 </html>
