@@ -1,113 +1,140 @@
 <html>
-	<head>
-		<title>Test</title>
-		<style>
-		
-		@import url(style.css);
-		
 
+<head>
+    <title>Users</title>
+    <style>
+        @import url(style.css);
+    </style>
+    <script src="global_transmitic.js"></script>
+    <script>
 
-        </style>
-		<script>
+        const DEFAULT_PORT = "7878";
 
-	</script>
-	</head>
-	<body>
-	<div class="main-body">
+        function resetNewuserInputs() {
+            document.$("input#new-user-nickname").value = "";
+            document.$("input#new-user-public-id").value = "";
+            document.$("input#new-user-ip").value = "";
+            document.$("input#new-user-port").value = DEFAULT_PORT;
+        }
 
+        document.$("button#add-user").onclick = function() {
+            let new_nickname = document.$("input#new-user-nickname").value;
+            let new_public_id = document.$("input#new-user-public-id").value;
+            let new_ip = document.$("input#new-user-ip").value;
+            let new_port = document.$("input#new-user-port").value;
+            //let response = Window.this.xcall('add_new_user', new_nickname, new_public_id, new_ip, new_port);
+            let response = [0, ""];
+            if (response[0] == 0) {
+                setMsgBoxSuccess("User <strong>" + new_nickname + "</strong> added. You can now share with them.");
+                resetNewuserInputs();
+            }
+            else {
+                setMsgBoxError("Failed to create new Public ID.");
+            }
+        }
 
+        resetNewuserInputs();
 
-      <h1>Users</h1>
-      <div>
-        <h2 #name>Add New User</h2>
-        <table>
-          <tr class="add-row">
-            <td>Nickname: </td>
-            <td><input #new_user_nickname type="text"></td>
-          </tr>
-          <tr class="add-row">
-            <td>Public ID:</td>
-            <td><input #new_user_public_id type="text"></td>
-          </tr>
-          <tr class="add-row">
-            <td>IP Address: &nbsp;</td>
-            <td><input #new_user_ip type="text"></td>
-          </tr>
-          <tr class="add-row">
-            <td>Port:</td>
-            <td><input #new_user_port type="text" value="7878"></td>
-          </tr>
-		  <tr>
-			<td></td>
-			<td style="text-align:right;"><button #add_user style="margin-top: 10dip;">Add New User</button></td>
-		  </tr>
-        </table>
+    </script>
+</head>
+
+<body>
+    <div class="main-body" selectable>
+        <div id="msg-box"></div>
+
+        <h1>Users</h1>
+        <div>
+            <h2>Add New User</h2>
+            <table>
+                <tr class="add-row">
+                    <td>Nickname: </td>
+                    <td><input id="new-user-nickname" type="text"></td>
+                </tr>
+                <tr class="add-row">
+                    <td>Public ID:</td>
+                    <td><input id="new-user-public-id" type="text"></td>
+                </tr>
+                <tr class="add-row">
+                    <td>IP Address: &nbsp;</td>
+                    <td><input id="new-user-ip" type="text"></td>
+                </tr>
+                <tr class="add-row">
+                    <td>Port:</td>
+                    <td><input id="new-user-port" type="text"></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td style="text-align:right;"><button id="add-user" style="margin-top: 10dip;">Add New User</button>
+                    </td>
+                </tr>
+            </table>
+            <br>
+
+        </div>
+
         <br>
-        
-      </div>
-		
-		<br>
-      <div>
-        <h2 #name>Current Users</h2>
-        <h3>Foo Bar</h3>
-		<table>
-			<tr>
-				<td>Nickname:</td>
-				<td>Foo Bar</td>
-			</tr>
-			<tr>
-				<td>Public ID:</td>
-				<td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
-			</tr>
-			<tr>
-				<td>IP Address: &nbsp;</td>
-				<td>192.168.0.1</td>
-			</tr>
-			<tr>
-				<td>Port:</td>
-				<td>7878</td>
-			</tr>
-			<tr>
-				<td>Status:</td>
-				<td>Allowed</td>
-			</tr>
-		</table>
-		<div style="margin-top: 10dip; margin-bottom: 25dip;">
-		<button>Edit</button> <button>Block</button> <button>Remove</button>
-		</div>
-		
-		<hr>
-		
-        <h3>Foo Bar</h3>
-		<table>
-			<tr>
-				<td>Nickname:</td>
-				<td>Foo Bar</td>
-			</tr>
-			<tr>
-				<td>Public ID:</td>
-				<td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
-			</tr>
-			<tr>
-				<td>IP Address: &nbsp;</td>
-				<td>192.168.0.1</td>
-			</tr>
-			<tr>
-				<td>Port:</td>
-				<td>7878</td>
-			</tr>
-			<tr>
-				<td>Status:</td>
-				<td>Allowed</td>
-			</tr>
-		</table>
-		
-		
-		
-      </div>
+        <div>
+            <h2>Current Users</h2>
+            <h3>Foo Bar</h3>
+            <table>
+                <tr>
+                    <td>Nickname:</td>
+                    <td>Foo Bar</td>
+                </tr>
+                <tr>
+                    <td>Public ID:</td>
+                    <td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
+                </tr>
+                <tr>
+                    <td>IP Address: &nbsp;</td>
+                    <td>192.168.0.1</td>
+                </tr>
+                <tr>
+                    <td>Port:</td>
+                    <td>7878</td>
+                </tr>
+                <tr>
+                    <td>Status:</td>
+                    <td>Allowed</td>
+                </tr>
+            </table>
+            <div style="margin-top: 10dip; margin-bottom: 25dip;">
+                <button>Edit</button> <button>Block</button> <button>Remove</button>
+            </div>
+
+            <hr>
+
+            <h3>Foo Bar</h3>
+            <table>
+                <tr>
+                    <td>Nickname:</td>
+                    <td>Foo Bar</td>
+                </tr>
+                <tr>
+                    <td>Public ID:</td>
+                    <td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
+                </tr>
+                <tr>
+                    <td>IP Address: &nbsp;</td>
+                    <td>192.168.0.1</td>
+                </tr>
+                <tr>
+                    <td>Port:</td>
+                    <td>7878</td>
+                </tr>
+                <tr>
+                    <td>Status:</td>
+                    <td>Allowed</td>
+                </tr>
+            </table>
 
 
 
-	</div>
-	</body>
+        </div>
+
+
+
+    </div>
+</body>
+
 </html>
