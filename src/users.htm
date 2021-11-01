@@ -17,7 +17,7 @@
             document.$("input#new-user-port").value = DEFAULT_PORT;
         }
 
-        document.$("button#add-user").onclick = function() {
+        document.$("button#add-user").onclick = function () {
             let new_nickname = document.$("input#new-user-nickname").value;
             let new_public_id = document.$("input#new-user-public-id").value;
             let new_ip = document.$("input#new-user-ip").value;
@@ -29,11 +29,153 @@
                 resetNewuserInputs();
             }
             else {
-                setMsgBoxError("Failed to create new Public ID.");
+                setMsgBoxError("Failed to add new user." + response[1]);
+            }
+        }
+
+        class SingleUser extends Element {
+
+            props;
+
+            isAllowed;
+            isEditing;
+
+            elementNickname;
+            elementPublicID;
+            elementIP;
+            elementPort;
+
+            actionButton;
+            editButton;
+
+            this(props) {
+                this.isAllowed = true;
+                this.isEditing = false;
+                this.props = props;
+            }
+
+            render(props) {
+                if (this.isAllowed) {
+                    this.actionButton = <button class="user-action">Block</button>;
+                }
+                else {
+                    this.actionButton = <button class="user-action">Allow</button>;
+                }
+
+                if (this.isEditing) {
+                    this.editButton = <button class="save-user">Save</button>
+
+                    this.elementNickname = <input class="edit-user-nickname" type="text">{this.props.nickname}</input>
+                    this.elementPublicID = <input class="edit-user-public-id" type="text">{this.props.public_id}</input>
+                    this.elementIP = <input class="edit-user-ip" type="text">{this.props.ip}</input>
+                    this.elementPort = <input class="edit-user-port" type="text">{this.props.port}</input>
+                }
+                else {
+                    this.editButton = <button class="edit-user">Edit</button>
+
+                    this.elementNickname = <span>{this.props.nickname}</span>
+                    this.elementPublicID = <span>{this.props.public_id}</span>
+                    this.elementIP = <span>{this.props.ip}</span>
+                    this.elementPort = <span>{this.props.port}</span>
+                }
+
+                return <div>
+                    <h3>{this.props.nickname}</h3>
+                    <table>
+                        <tr>
+                            <td>Nickname:</td>
+                            <td>{this.elementNickname}</td>
+                        </tr>
+                        <tr>
+                            <td>Public ID:</td>
+                            <td>{this.elementPublicID}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-right: 1em;">IP Address:</td>
+                            <td>{this.elementIP}</td>
+                        </tr>
+                        <tr>
+                            <td>Port:</td>
+                            <td>{this.elementPort}</td>
+                        </tr>
+                        <tr>
+                            <td>Status:</td>
+                            <td>{this.props.status}</td>
+                        </tr>
+                    </table>
+                    <div class="users-bar">
+                        <button class="remove-user">Remove</button> {this.editButton} {this.actionButton}
+                    </div>
+
+                    <hr />
+                </div>
+            }
+
+            ["on click at button.remove-user"]() {
+                //let response = Window.this.xcall('remove_user', new_nickname, new_public_id, new_ip, new_port);
+                let response = [0, ""]
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("User removed. You will no longer share with each other.");
+                    this.parentElement.componentUpdate();
+                }
+                else {
+                    setMsgBoxError("Failed to remove user.");
+                }
+            }
+
+            ["on click at button.user-action"]() {
+                this.componentUpdate({ isAllowed: !this.isAllowed });
+            }
+
+            ["on click at button.edit-user"]() {
+                this.componentUpdate({ isEditing: !this.isEditing });
+            }
+
+            ["on click at button.save-user"]() {
+                //let response = Window.this.xcall('update_user', new_nickname, new_public_id, new_ip, new_port);
+                let response = [0, ""]
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("User updated");
+                    this.parentElement.componentUpdate();
+                }
+                else {
+                    setMsgBoxError("Failed to update user.");
+                }
+            }
+
+        }
+
+        class CurrentUsers extends Element {
+            this(props) {
+
+            }
+
+            render(props) {
+                let users = [
+                    {
+                        nickname: "Foo Bar 01",
+                        public_id: "DISFHOUSDFhui=",
+                        ip: "192.168.1.1",
+                        port: "7878",
+                        status: "Allowed",
+                    },
+                    {
+                        nickname: "John Smith 02",
+                        public_id: "dfgdfgdggdfg=",
+                        ip: "192.168.222.1",
+                        port: "8080",
+                        status: "Allowed",
+                    },
+                ]
+
+                return <div>
+                    {users.map((d) => <SingleUser nickname={d.nickname} public_id={d.public_id} ip={d.ip} port={d.port} status={d.status} />)}
+                </div>;
             }
         }
 
         resetNewuserInputs();
+        document.$("div#current-users").content(<CurrentUsers />);
 
     </script>
 </head>
@@ -75,61 +217,60 @@
         <br>
         <div>
             <h2>Current Users</h2>
-            <h3>Foo Bar</h3>
-            <table>
-                <tr>
-                    <td>Nickname:</td>
-                    <td>Foo Bar</td>
-                </tr>
-                <tr>
-                    <td>Public ID:</td>
-                    <td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
-                </tr>
-                <tr>
-                    <td>IP Address: &nbsp;</td>
-                    <td>192.168.0.1</td>
-                </tr>
-                <tr>
-                    <td>Port:</td>
-                    <td>7878</td>
-                </tr>
-                <tr>
-                    <td>Status:</td>
-                    <td>Allowed</td>
-                </tr>
-            </table>
-            <div style="margin-top: 10dip; margin-bottom: 25dip;">
-                <button>Edit</button> <button>Block</button> <button>Remove</button>
+            <div id="current-users">
+                <h3>Foo Bar</h3>
+                <table>
+                    <tr>
+                        <td>Nickname:</td>
+                        <td>Foo Bar</td>
+                    </tr>
+                    <tr>
+                        <td>Public ID:</td>
+                        <td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
+                    </tr>
+                    <tr>
+                        <td>IP Address: &nbsp;</td>
+                        <td>192.168.0.1</td>
+                    </tr>
+                    <tr>
+                        <td>Port:</td>
+                        <td>7878</td>
+                    </tr>
+                    <tr>
+                        <td>Status:</td>
+                        <td>Allowed</td>
+                    </tr>
+                </table>
+                <div style="margin-top: 10dip; margin-bottom: 25dip;">
+                    <button>Edit</button> <button>Block</button> <button>Remove</button>
+                </div>
+
+                <hr>
+
+                <h3>Foo Bar</h3>
+                <table>
+                    <tr>
+                        <td>Nickname:</td>
+                        <td>Foo Bar</td>
+                    </tr>
+                    <tr>
+                        <td>Public ID:</td>
+                        <td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
+                    </tr>
+                    <tr>
+                        <td>IP Address: &nbsp;</td>
+                        <td>192.168.0.1</td>
+                    </tr>
+                    <tr>
+                        <td>Port:</td>
+                        <td>7878</td>
+                    </tr>
+                    <tr>
+                        <td>Status:</td>
+                        <td>Allowed</td>
+                    </tr>
+                </table>
             </div>
-
-            <hr>
-
-            <h3>Foo Bar</h3>
-            <table>
-                <tr>
-                    <td>Nickname:</td>
-                    <td>Foo Bar</td>
-                </tr>
-                <tr>
-                    <td>Public ID:</td>
-                    <td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
-                </tr>
-                <tr>
-                    <td>IP Address: &nbsp;</td>
-                    <td>192.168.0.1</td>
-                </tr>
-                <tr>
-                    <td>Port:</td>
-                    <td>7878</td>
-                </tr>
-                <tr>
-                    <td>Status:</td>
-                    <td>Allowed</td>
-                </tr>
-            </table>
-
-
-
         </div>
 
 

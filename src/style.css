@@ -800,3 +800,14 @@ font-size:9pt;
 .shared-with {
 	padding-left: 30dip;
 }
+
+/**** USERS ****/
+
+.users-bar {
+    margin-top: 10dip; 
+    margin-bottom: 25dip;
+}
+
+.users-bar > button {
+    margin-right: 0.3em;
+}
