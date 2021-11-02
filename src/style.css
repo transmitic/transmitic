@@ -811,3 +811,9 @@ font-size:9pt;
 .users-bar > button {
     margin-right: 0.3em;
 }
+
+/**** MY SHARED ****/
+
+.remove-shared-with {
+    font-size: 9pt;
+}

@@ -1,87 +1,194 @@
 <html>
-	<head>
-		<title>Test</title>
-		<style>
-		
-		@import url(style.css);
-		
-		
 
-        </style>
-		<script>
+<head>
+    <title>My Shared</title>
+    <style>
+        @import url(style.css);
+    </style>
+    <script src="global_transmitic.js"></script>
+    <script>
 
-	</script>
-	</head>
-	<body>
-	<div class="main-body">
+        class AFile extends Element {
+            
+            filePath;
 
+            this(props) {
+                this.filePath = props.filePath;
+            }
 
+            render(props) {
+                return  <div class="my-file">
+                    <strong>{props.filePath}</strong>
+                    <br /><br />
+                    <div class="my-file-inner">
+                        <label for="cars">Add User:</label>
 
-    <h1>
-      My Shared
-    </h1>
-	
-	<h2>Settings</h2>
-      <form class="sharing-form">
-        <label>My Sharing:</label>
-        <div>
-          <button|radio name="Sharing" value="Off">Off</button>&nbsp;&nbsp;&nbsp;
-          <button|radio name="Sharing" value="Internet">Internet</button>&nbsp;&nbsp;&nbsp;
-          <button|radio name="Sharing" value="Local Network">Local Network</button>&nbsp;&nbsp;
+                        <select name="cars" id="cars">
+                            <option value=""></option>
+                            {props.addUsers.map((d) => <option value={d}>{d}</option>)}
+                        </select>
+
+                        <br /><br />
+                        Shared With:
+                        <br /><br />
+
+                        <div class="shared-with">
+                            {props.sharedWith.map((d, index) => <div style="padding-bottom: 1em;">{index+1}. {d} <button style="margin-left: 1em;" class="remove-shared-with" user={d}>Remove</button></div>)}
+                        </div>
+                        <br />
+                        <button class="remove-sharing">Remove from Sharing</button>
+                    </div>
+                <br />
+                <hr />
+                <br />
+                </div>
+            }
+
+            ["on click at button.remove-shared-with"](evt, btn) {
+                let user = btn.getAttribute("user");
+                //let response = Window.this.xcall('remove_user_from_sharing', user);
+                let response = [0, ""]
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("User removed. You will no longer share this file with <strong>" + user + "</strong>");
+                    this.parentElement.componentUpdate();
+                }
+                else {
+                    setMsgBoxError("Failed to remove user.");
+                }
+            }
+
+            ["on click at button.remove-sharing"]() {
+                //let response = Window.this.xcall('remove_sharing', this.filePath);
+                let response = [0, ""]
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("File removed. You will no longer be sharing <strong>" + this.filePath + "</strong>");
+                    this.parentElement.componentUpdate();
+                }
+                else {
+                    setMsgBoxError("Failed to remove file from sharing.");
+                }
+            }
+        }
+
+        class MyFiles extends Element {
+            
+            this(props) {
+
+            }
+
+            render(props) {
+                console.error("RENDER MYFILES PARENT");
+                let my_files = [
+                    {
+                        file_path: "C:\\hello\\world",
+                        shared_with: ["John Smith", "Foo Bar"],
+                        add_users: ["Other Person"],
+                    },
+                    {
+                        file_path: "C:\\bye\\all",
+                        shared_with: [],
+                        add_users: ["John Smith", "Foo Bar", "Other Person"],
+                    },
+                ];
+
+                return <div>
+				    { my_files.map((d) => <AFile filePath={d.file_path} sharedWith={d.shared_with} addUsers={d.add_users} />) } 
+			    </div>;
+            }
+        }
+
+        // Set port
+        document.$("button#set-port").onclick = function() {
+            let portValue = document.$("input#port").value;
+            //let response = Window.this.xcall('set_port', portValue);
+            let response = [0, "err msg."];
+            if (response[0] == 0) {
+                setMsgBoxSuccess("Port is now set to <strong>" + portValue + "</strong>");
+            }
+            else {
+                setMsgBoxError("Failed to set port. " + response[1]);
+            }
+        }
+
+        // Set sharing state
+        document.$("form.sharing-form").on("click", function() { 
+            var sharing_state = this.value.Sharing; 
+            console.error(sharing_state);
+            //let response = Window.this.xcall('set_my_sharing_state', sharing_state);
+            response = [0, "Failed to change sharing state"];
+            if (response[0] == 0) {
+                setMsgBoxSuccess("Sharing is now set to <strong>" + sharing_state + "</strong>");
+            }
+            else {
+                setMsgBoxError("Failed to set sharing state. " + response[1]);
+            }
+        });
+
+        // Get sharing state
+        //let response = Window.this.xcall('get_my_sharing_state');
+        let response = [0, "Off"];
+        if (response[0] == 0) {
+            document.$("button[name=Sharing][value="+ response[1] + "]").state.checked = true;
+        }
+        else {
+            setMsgBoxError("Failed to get sharing state. " + response[1]);
+        }
+
+        // Get port
+        //let response = Window.this.xcall('get_port');
+        response = [0, "8080"];
+        if (response[0] == 0) {
+            document.$("input#port").value = response[1];
+        }
+        else {
+            setMsgBoxError("Failed to get port. " + response[1]);
+        }
+
+        document.$("div#my-files").content(<MyFiles />);
+
+    </script>
+</head>
+
+<body>
+    <div class="main-body" selectable>
+        <div id="msg-box"></div>
+
+        <h1>
+            My Shared
+        </h1>
+
+        <h2>Settings</h2>
+        <form class="sharing-form">
+            <label>My Sharing:</label>
+            <div>
+                <button id="off-radio" type="radio" name="Sharing" value="Off">Off</button>&nbsp;&nbsp;&nbsp;
+                <button id="internet-radio" type="radio" name="Sharing" value="Internet">Internet</button>&nbsp;&nbsp;&nbsp;
+                <button type="radio" name="Sharing" value="Local Network">Local Network</button>&nbsp;&nbsp;
+            </div>
+        </form>
+        <br>
+        Port:&nbsp; <input id="port" size="8" type="text"></input>&nbsp;&nbsp;&nbsp;<button id="set-port" name="set-port"
+            style="font-size: 10pt;">Set Port</button>
+
+        <br><br>
+        <h2>My Files to Share</h2>
+
+        <div class="menu-bar">
+            <button #add_file>Add Files</button>
+            <button #add_folder>Add Folder</button>
         </div>
-      </form>
-      <br>
-      Port:&nbsp; <input #port size="8" type="text" value="7878">&nbsp;&nbsp;&nbsp;<button name="set_port" style="font-size: 10pt;">Set Port</button>
 
-      <div #status></div>
-      <br>
-      <h2>My Files to Share</h2>
-	  
-	    <div class="menu-bar">
-			  <button #add_file>Add Files</button>
-			  <button #add_folder>Add Folder</button>
+
+        <br><br><br>
+
+        <div id="my-files">
+
         </div>
 
-	  
-	  <br><br><br>
-	  
-      <div #myfiles>
-		
-		<div class="my-file">
-			<strong>C:\Users\foobar\file.txt</strong>
-			<br><br>
-			<div class="my-file-inner">
-				<label for="cars">Add User: &nbsp;</label>
-
-				<select name="cars" id="cars">
-				  <option value=""></option>
-				  <option value="John Smith">John Smith</option>
-				  <option value="Jane Smith">Jane Smith</option>
-				  <option value="Mary Sue">Mary Sue</option>
-				</select> 
-				
-				<br><br>
-				Shared With:
-				<br><br>
-				
-				<div class="shared-with">
-					1. John Smith <button class="my-shared-remove-shared-with">Remove</button>
-					<br><br>
-					2. Jane SmithSmithSmith <button class="my-shared-remove-shared-with">Remove</button>
-				</div>
-				<br>
-				<button>Remove from Sharing</button>
-			</div>
-		</div>
-		
-		<br>
-		<hr>
-		
-      </div>
 
 
 
+    </div>
+</body>
 
-	</div>
-	</body>
 </html>
