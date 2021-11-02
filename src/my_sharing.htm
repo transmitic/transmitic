@@ -21,9 +21,9 @@
                     <strong>{props.filePath}</strong>
                     <br /><br />
                     <div class="my-file-inner">
-                        <label for="cars">Add User:</label>
+                        <label style="margin-right: 1em; display: inline-block;" for="add-user">Add User:</label>
 
-                        <select name="cars" id="cars">
+                        <select name="add-user" id="add-user">
                             <option value=""></option>
                             {props.addUsers.map((d) => <option value={d}>{d}</option>)}
                         </select>
@@ -44,12 +44,25 @@
                 </div>
             }
 
+            ["on change at select#add-user"](evt, btn) {
+                let selected_user = btn.value;
+                //let response = Window.this.xcall('add_user_to_shared', selected_user, this.filePath);
+                let response = [0, ""]
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("User added. Now sharing file <strong>" + this.filePath + "</strong> with <strong>" + selected_user + "</strong>");
+                    this.parentElement.componentUpdate();
+                }
+                else {
+                    setMsgBoxError("Failed to share with user.");
+                }
+            }
+
             ["on click at button.remove-shared-with"](evt, btn) {
                 let user = btn.getAttribute("user");
                 //let response = Window.this.xcall('remove_user_from_sharing', user);
                 let response = [0, ""]
                 if (response[0] == 0) {
-                    setMsgBoxSuccess("User removed. You will no longer share this file with <strong>" + user + "</strong>");
+                    setMsgBoxSuccess("User removed. You will no longer share file <strong>" + this.filePath + "</strong> with <strong>" + user + "</strong>");
                     this.parentElement.componentUpdate();
                 }
                 else {
@@ -92,8 +105,48 @@
                 ];
 
                 return <div>
+                        <div class="menu-bar">
+                            <button id="add-file">Add Files</button>
+                            <button id="add-folder">Add Folder</button>
+                        </div>
+                        <br /><br />
 				    { my_files.map((d) => <AFile filePath={d.file_path} sharedWith={d.shared_with} addUsers={d.add_users} />) } 
 			    </div>;
+            }
+
+            ["on click at button#add-file"]() {
+                let files = Window.this.selectFile({
+                    filter: "All Files (*.*)|*.*",
+                    mode: "open-multiple",
+                });
+                console.log(files);
+                if (files) {
+                    //let response = Window.this.xcall('add_files', files);
+                    let response = [0, ""];
+                    if (response[0] == 0) {
+                        setMsgBoxSuccess("File(s) added to share.");
+                        this.componentUpdate();
+                    }
+                    else {
+                        setMsgBoxError("Failed to add files. " + response[1]);
+                    }
+                }
+            }
+
+            ["on click at button#add-folder"]() {
+                let files = Window.this.selectFolder();
+                console.log(files);
+                if (files) {
+                    //let response = Window.this.xcall('add_folder', files);
+                    let response = [0, ""];
+                    if (response[0] == 0) {
+                        setMsgBoxSuccess("Folder added to share.");
+                        this.componentUpdate();
+                    }
+                    else {
+                        setMsgBoxError("Failed to add folder. " + response[1]);
+                    }
+                }
             }
         }
 
@@ -160,7 +213,7 @@
         <h2>Settings</h2>
         <form class="sharing-form">
             <label>My Sharing:</label>
-            <div>
+            <div style="margin-top: 0.5em;">
                 <button id="off-radio" type="radio" name="Sharing" value="Off">Off</button>&nbsp;&nbsp;&nbsp;
                 <button id="internet-radio" type="radio" name="Sharing" value="Internet">Internet</button>&nbsp;&nbsp;&nbsp;
                 <button type="radio" name="Sharing" value="Local Network">Local Network</button>&nbsp;&nbsp;
@@ -172,14 +225,6 @@
 
         <br><br>
         <h2>My Files to Share</h2>
-
-        <div class="menu-bar">
-            <button #add_file>Add Files</button>
-            <button #add_folder>Add Folder</button>
-        </div>
-
-
-        <br><br><br>
 
         <div id="my-files">
 
