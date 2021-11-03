@@ -50,7 +50,7 @@
                     let childrenLength = d.children.length;
                     if (childrenLength > 2) {
                         divID = Math.random().toString();
-                        divID = divID.substring(3, divID.length);
+                        divID = divID.substring(2, divID.length);
                         showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                     }
                 }
@@ -114,7 +114,6 @@
             }
 
             ["on click at button#refresh-all"]() {
-                console.log("refresh all pushed");
                 this.componentUpdate({refreshState: "refreshing"});
                 //let response = Window.this.xcall('refresh_shared_with_me');
                 let response = [
