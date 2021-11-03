@@ -94,7 +94,7 @@
                     contentElements = <div><br />Please wait. Refreshing...</div>;
                 }
                 else if (this.refreshState === "finished") {
-                    contentElements = <div>{ this.fileData.map((d) => <SharedData owner={d.owner} files={d.files} />) } </div>;
+                    contentElements = <div>{ this.fileData.map((d) => <div><SharedData owner={d.owner} files={d.files} /> <hr style="margin-top: 1em;"/></div>) } </div>;
                 }
                 else {
                     contentElements = <div><br />Error: Unknown refreshState '{this.refreshState}'</div>;
