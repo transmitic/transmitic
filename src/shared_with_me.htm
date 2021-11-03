@@ -8,10 +8,14 @@
     <script src="global_transmitic.js"></script>
     <script>
 
+        // TODO cache data to not require refresh and state time of collection
+        // TODO Replace with proper components to remove random divID mapping
         class SharedData extends Element {
 
-            this(props) {
+            owner
 
+            this(props) {
+                this.owner = props.owner;
             }
 
             render(props) {
@@ -21,40 +25,52 @@
                 </div>
             }
 
-            createFileList(files, padding, divID) {
+            createFileList(files, divID) {
                 if (!files) {
                     return "";
                 }
                 
-                let style = "padding-left:" + padding + "em";
+                let style = "padding-left: 1.5em";
                 let parentStyle = "display: none;";
                 if (divID == 0){
                     parentStyle = "";
                 }
                 return <div id={divID} style={parentStyle}>
                     
-                    { files.map((d) =>  <div style={style}>{this.createFile(d, padding)}</div> )}
-
+                    { files.map((d) =>  <div style={style}>{this.createFile(d)}</div> )}
                 </div>
             }
 
-            createFile(d, padding) {
+            createFile(d) {
                 let showMore  = "";
                 let divID = 0;
+                let info = "File";
                 if (d.children) {
+                    info = "Folder (" + d.count + " total files)";
                     let childrenLength = d.children.length;
                     if (childrenLength > 2) {
                         divID = Math.random().toString();
                         divID = divID.substring(3, divID.length);
-                        showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID}>Show more ({childrenLength})</button>;
+                        showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                     }
                 }
-                return <div>{d.path} | {d.count} {d.type} | {d.size} {showMore} <br/> {this.createFileList(d.children, ++padding, divID)}</div>
+                return <div><button data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size} </button> {showMore} <br/> {this.createFileList(d.children, divID)}</div>
             }
 
             ["on click at button.show-more"](evt, btn) {
                 let divID = btn.getAttribute("div-id");
-                document.$("div#" + divID).style.display = "inline-block";
+
+                let children = btn.getAttribute("data-children")
+                if (btn.getAttribute("data-state") == "show") {
+                    document.$("div#" + divID).style.display = "inline-block";
+                    btn.setAttribute("data-state", "collapse");
+                    btn.content("Collapse (" + children + ")");
+                } else {
+                    document.$("div#" + divID).style.display = "none";
+                    btn.setAttribute("data-state", "show");
+                    btn.content("Show more (" + children + ")");
+                }
+                
             }
 
         }
@@ -78,18 +94,23 @@
                     contentElements = <div><br />Please wait. Refreshing...</div>;
                 }
                 else if (this.refreshState === "finished") {
-                    contentElements = <div>{ this.fileData.map((d) => <SharedData owner={d.owner} files={d.files} />) }</div>;
+                    contentElements = <div>{ this.fileData.map((d) => <SharedData owner={d.owner} files={d.files} />) } </div>;
                 }
                 else {
                     contentElements = <div><br />Error: Unknown refreshState '{this.refreshState}'</div>;
                 }
                 let finalData = <div>
                     <button id="refresh-all">Refresh All</button>
-                    <button id="download-selected">Download Selected</button>
+                    <button style="margin-left: 1em;" id="download-selected">Download Selected</button>
                     {contentElements}
                 </div>
-                //finalData.appendChild(contentElements);
                 return finalData;
+            }
+
+            ["on click at button#download-selected"]() {
+                console.log("DOWNLOAD SELECTED");
+                let checkedBoxes = document.querySelectorAll("button[type=checkbox]:checked")
+                console.log(checkedBoxes);
             }
 
             ["on click at button#refresh-all"]() {
@@ -101,14 +122,14 @@
                         owner: "John Smith",
                         files: [
                             {
-                                path: "All Files/",
+                                path: "Everything",
                                 count: "1000",
                                 size: "1 GB",
                                 type: "folder",
                                 children: [
                                     {
                                         path: "C:\\path\\hello",
-                                        count: "1000",
+                                        count: "20",
                                         size: "1 GB",
                                         type: "folder",
                                         children: [
@@ -132,7 +153,7 @@
                                             },                                  
                                             {
                                                 path: "C:\\path\\hello",
-                                                count: "1000",
+                                                count: "3",
                                                 size: "1 GB",
                                                 type: "folder",
                                                 children: [
@@ -168,51 +189,77 @@
                             }
                         ]
                     },
-                    // {
-                    //     owner: "Foo Bar",
-                    //     files: [
-                    //         {
-                    //             path: "All Files/",
-                    //             count: "1000",
-                    //             size: "1 GB",
-                    //             type: "folder",
-                    //             children: [
-                    //                 {
-                    //                     path: "C:\\path\\hello",
-                    //                     count: "1000",
-                    //                     size: "1 GB",
-                    //                     type: "folder",
-                    //                     children: [
-                    //                         {
-                    //                             path: "C:\\path\\hello\\1.txt",
-                    //                             count: "",
-                    //                             size: "1 MB",
-                    //                             type: "file",
-                    //                         },
-                    //                         {
-                    //                             path: "C:\\path\\hello\\2.txt",
-                    //                             count: "",
-                    //                             size: "1 MB",
-                    //                             type: "file",
-                    //                         },
-                    //                         {
-                    //                             path: "C:\\path\\hello\\3.txt",
-                    //                             count: "",
-                    //                             size: "1 MB",
-                    //                             type: "file",
-                    //                         },
-                    //                     ]
-                    //                 },
-                    //                 {
-                    //                     path: "C:\\path\\bye.txt",
-                    //                     count: "",
-                    //                     size: "1 MB",
-                    //                     type: "file",
-                    //                 },
-                    //             ]
-                    //         }
-                    //     ]
-                    // }
+                    {
+                        owner: "Foo Bar",
+                        files: [
+                            {
+                                path: "Everything",
+                                count: "1000",
+                                size: "1 GB",
+                                type: "folder",
+                                children: [
+                                    {
+                                        path: "C:\\path\\hello",
+                                        count: "20",
+                                        size: "1 GB",
+                                        type: "folder",
+                                        children: [
+                                            {
+                                                path: "C:\\path\\hello\\1.txt",
+                                                count: "",
+                                                size: "1 MB",
+                                                type: "file",
+                                            },
+                                            {
+                                                path: "C:\\path\\hello\\2.txt",
+                                                count: "",
+                                                size: "1 MB",
+                                                type: "file",
+                                            },
+                                            {
+                                                path: "C:\\path\\hello\\3.txt",
+                                                count: "",
+                                                size: "1 MB",
+                                                type: "file",
+                                            },                                  
+                                            {
+                                                path: "C:\\path\\hello",
+                                                count: "3",
+                                                size: "1 GB",
+                                                type: "folder",
+                                                children: [
+                                                    {
+                                                        path: "C:\\path\\hello\\1.txt",
+                                                        count: "",
+                                                        size: "1 MB",
+                                                        type: "file",
+                                                    },
+                                                    {
+                                                        path: "C:\\path\\hello\\2.txt",
+                                                        count: "",
+                                                        size: "1 MB",
+                                                        type: "file",
+                                                    },
+                                                    {
+                                                        path: "C:\\path\\hello\\3.txt",
+                                                        count: "",
+                                                        size: "1 MB",
+                                                        type: "file",
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        path: "C:\\path\\bye.txt",
+                                        count: "",
+                                        size: "1 MB",
+                                        type: "file",
+                                    },
+                                ]
+                            }
+                        ]
+                    },
                 ];
                 this.componentUpdate({fileData: response, refreshState: "finished"});
             }
@@ -231,35 +278,7 @@
             Shared With Me
         </h1>
 
-        <div id="shared-with-me">
-
-        </div>
-
-        <button>Refresh All</button>
-        <button>Download Selected (18)</button>
-
-        <br><br>
-
-        <h3>John Smith</h3>
-        <button style="font-size: 9pt;">Refresh</button> &nbsp;&nbsp;Currently Offline. Could not refresh.
-        <br><br>
-        <button type="checkbox">All Files | 1000 files | 1.68 GB</button>
-        <br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="checkbox">C:\Users\foobar | Folder (300 files) | 1.5
-            GB</button><br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button
-            type="checkbox">C:\Users\foobar | Folder | 1.5 GB</button><br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button
-            type="checkbox">C:\Users\foobar | Folder | 1.5 GB</button><br>
-
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="checkbox">C:\Users\foobar | Folder (300 files) | 1.5
-            GB</button> <span style="background: #333; font-size: 8pt; padding: 5dip; display: inline-block;">Show More
-            ( 12,000 )</span> <br>
-
-        <br><br>
-
-        <hr>
-
+        <div id="shared-with-me"></div>
     </div>
 </body>
 </html>
