@@ -90,7 +90,6 @@
             }
 
             render(props) {
-                console.error("RENDER MYFILES PARENT");
                 let my_files = [
                     {
                         file_path: "C:\\hello\\world",
@@ -119,7 +118,6 @@
                     filter: "All Files (*.*)|*.*",
                     mode: "open-multiple",
                 });
-                console.log(files);
                 if (files) {
                     //let response = Window.this.xcall('add_files', files);
                     let response = [0, ""];
@@ -135,7 +133,6 @@
 
             ["on click at button#add-folder"]() {
                 let files = Window.this.selectFolder();
-                console.log(files);
                 if (files) {
                     //let response = Window.this.xcall('add_folder', files);
                     let response = [0, ""];
@@ -166,7 +163,6 @@
         // Set sharing state
         document.$("form.sharing-form").on("click", function() { 
             var sharing_state = this.value.Sharing; 
-            console.error(sharing_state);
             //let response = Window.this.xcall('set_my_sharing_state', sharing_state);
             response = [0, "Failed to change sharing state"];
             if (response[0] == 0) {

@@ -753,7 +753,7 @@ section > div {size:*;}
 }
 
 .download-active {
-	border-left: 2px solid #66ff6b;	
+	border-left: 2px solid #6696ff;	
 }
 
 .download-invalid {
@@ -765,7 +765,7 @@ section > div {size:*;}
 }
 
 .download-finished {
-	border-left: 2px solid #6696ff;	
+	border-left: 2px solid #66ff6b;	
 }
 
 .open-download{
