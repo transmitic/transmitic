@@ -1,301 +1,284 @@
 <html>
-	<head>
-		<title>Test</title>
-		<style>
-		
-		@import url(style.css);
 
+<head>
+    <title>Downloads</title>
+    <style>
+        @import url(style.css);
+    </style>
+    <script src="global_transmitic.js"></script>
+    <script>
 
-        </style>
-		<script>
+        let downloads_in_progress = [
+            {
+                owner: 'My Friend',
+                percent: 90,
+                path: 'C:\\hello\\world1',
+            },
+            {
+                owner: 'My Friend1',
+                percent: 50,
+                path: 'C:\\hello\\world2',
+            }
+        ];
 
-			let downloads_in_progress = [
-				{
-					owner: 'My Friend',
-					percent: 90,
-					path: 'C:\\hello\\world1',
-				},
-				{
-					owner: 'My Friend1',
-					percent: 50,
-					path: 'C:\\hello\\world2',
-				}
-			];
+        let downloads_invalid = [
+            {
+                owner: 'My FriendN',
+                percent: 10,
+                path: 'C:\\hello\\world3',
+            },
+            {
+                owner: 'My Friend1Q',
+                percent: 5,
+                path: 'C:\\hello\\world4',
+            }
+        ];
 
-			let downloads_invalid = [
-				{
-					owner: 'My FriendN',
-					percent: 10,
-					path: 'C:\\hello\\world3',
-				},
-				{
-					owner: 'My Friend1Q',
-					percent: 5,
-					path: 'C:\\hello\\world4',
-				}
-			];
+        let downloads_offline = [
+            {
+                owner: 'My FriendO',
+                percent: 2,
+                path: 'C:\\hello\\world6',
+            },
+            {
+                owner: 'My Friend1Y',
+                percent: 54,
+                path: 'C:\\hello\\world8',
+            }
+        ];
 
-			let downloads_offline = [
-				{
-					owner: 'My FriendO',
-					percent: 2,
-					path: 'C:\\hello\\world6',
-				},
-				{
-					owner: 'My Friend1Y',
-					percent: 54,
-					path: 'C:\\hello\\world8',
-				}
-			];
+        let downloads_finished = [
+            {
+                owner: 'My FriendOFFF',
+                path: 'C:\\hello\\world77',
+            },
+            {
+                owner: 'My Friend1YYYYY',
+                path: 'C:\\hello\\world8999',
+            }
+        ];
 
-			let downloads_finished = [
-				{
-					owner: 'My FriendOFFF',
-					path: 'C:\\hello\\world77',
-				},
-				{
-					owner: 'My Friend1YYYYY',
-					path: 'C:\\hello\\world8999',
-				}
-			];
-
-			let all_downloads = {
-				//in_progress: Window.this.xcall('get_downloads_in_progress'),
-				in_progress: downloads_in_progress,
-				invalid: downloads_invalid,
-				offline: downloads_offline,
-				finished: downloads_finished,
-			};
-
-
-			function MyDownloads() {
-				return <div>
-					{ all_downloads.in_progress.map((d) => <SingleDownloadInProgress owner={d.owner} percent={d.percent} path={d.path} />) } 
-					{ all_downloads.invalid.map((d) => <SingleDownloadInvalid owner={d.owner} percent={d.percent} path={d.path} />) } 
-					{ all_downloads.offline.map((d) => <SingleDownloadOffline owner={d.owner} percent={d.percent} path={d.path} />) } 
-					{ all_downloads.finished.map((d) => <SingleDownloadFinished owner={d.owner} percent={d.percent} path={d.path} />) } 
-					</div>;
-			}
-
-			
-			
-			class SingleDownloadInProgress extends Element {
-				this(props,kids, parent) { 
-					this.props = props;
-					this.download_class = "download-active";
-				}
-
-				render(props,kids) {
-					return <div><div class={"download " + this.download_class}>
-						<div class="download-inner">
-							{props.owner} | {props.percent}% | Downloading now...
-							<br /><br />
-							{props.path}
-
-							<br /><br />
-							<button class="open-download">Open</button>
-							<button class="cancel-download">Cancel</button>
-							<button class="pause-all">Pause Downloads from My Friend</button>
-						</div>
-					</div>
-					<hr />
-					</div>;
-				}
-
-				["on click at button.cancel-download"](evt, button) { 
-					Window.this.xcall('fake_click', this.props.owner);
-				}
-			}
+        let all_downloads = {
+            //in_progress: Window.this.xcall('get_downloads_in_progress'),
+            in_progress: downloads_in_progress,
+            invalid: downloads_invalid,
+            offline: downloads_offline,
+            finished: downloads_finished,
+        };
 
 
 
-			function SingleDownloadInProgressOld(props) {
-				return <div><div class="download download-active">
-					<div class="download-inner">
-						{props.owner} | {props.percent}% | Downloading now...
-						<br /><br />
-						{props.path}
 
-						<br /><br />
-						<button class="cancel-download">Cancel</button>
-						<button class="pause-all">Pause Downloads from My Friend</button>
-					</div>
-				</div>
-				<hr />
-				</div>;
-			}
 
-			function SingleDownloadInvalid(props) {
-				return <div><div class="download download-invalid">
-					<div class="download-inner">
-						{props.owner} | {props.percent}% | Invalid or no longer shared with you
-						<br /><br />
-						{props.path}
+        class SingleDownload extends Element {
 
-						<br /><br />
-						<button class="cancel-download">Cancel</button>
-						<button class="pause-all">Pause Downloads from My Friend</button>
-					</div>
-				</div>
-				<hr />
-				</div>;
-			}
+            this(props) {
 
-			function SingleDownloadOffline(props) {
-				return <div><div class="download download-offline">
-					<div class="download-inner">
-						{props.owner} | {props.percent}% | User currently offline
-						<br /><br />
-						{props.path}
+            }
 
-						<br /><br />
-						<button class="cancel-download">Cancel</button>
-						<button class="pause-all">Pause Downloads from My Friend</button>
-					</div>
-				</div>
-				<hr />
-				</div>;
-			}
+            render(props) {
+                let description;
+                let downloadClass;
+                let openDownload = "";
+                let cancelDownload = "";
+                let pauseDownload = "";
+                if (props.downloadState == "inProgress") {
+                    downloadClass = "download-active";
+                    description = props.owner + " | " + props.percent + "% | Downloading now...";
+                    openDownload = <button class="open-download">Open</button>;
+                    cancelDownload = <button class="cancel-download">Cancel</button>;
+                    pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
+                }
+                else if (props.downloadState == "invalid") {
+                    downloadClass = "download-invalid";
+                    description = props.owner + " | " + props.percent + "% | Invalid or no longer shared with you";
+                    cancelDownload = <button class="cancel-download">Cancel</button>;
+                    pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
+                }
+                else if (props.downloadState == "offline") {
+                    downloadClass = "download-offline";
+                    description = props.owner + " | " + props.percent + "% | User currently offline";
+                    cancelDownload = <button class="cancel-download">Cancel</button>;
+                    pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
+                }
+                else if (props.downloadState == "finished") {
+                    downloadClass = "download-finished";
+                    description = props.owner + " |  100% | Download Finished";
+                    cancelDownload = <button class="cancel-download">Cancel</button>;
+                    pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
+                }
 
-			function SingleDownloadFinished(props) {
-				return <div><div class="download download-finished">
-					<div class="download-inner">
-						{props.owner} | {props.percent}% | Download Finished
-						<br /><br />
-						{props.path}
+                return <div><div class={"download " + downloadClass}>
+                    <div class="download-inner">
+                        {description}
+                        <br /><br />
+                        {props.path}
 
-						<br /><br />
-						<button class="cancel-download">Open</button>
-					</div>
-				</div>
-				<hr />
-				</div>;
-			}
-			
-			//document.body.content(<MyDownloads />);
-			document.$("div#mydownloads").content(<MyDownloads />);
-			//document.$("div#mydownloads").content(Window.this.xcall('get_local_ip'));
-		
-			class MenuBar extends Element {
+                        <br /><br />
+                        {openDownload}
+                        {cancelDownload}
+                        {pauseDownload}
+                    </div>
+                </div>
+                    <hr />
+                </div>;
+            }
 
-				this(props) {
-					
-				}
+        }
 
-				render() {
-					return <div class="menu-bar">
-						<button id="opendownloads">Open Downloads</button>
-						<button id="clearfinished">Clear Finished</button>
-						<button id="clearinvalid">Clear Invalid</button>
-						<button id="cancelalldownloads">Cancel All</button>
-						<button id="pausealldownloads">Pause All</button>
-						<button id="resumealldownloads">Resume All</button>
-					</div>;
-				}
+        class MyDownloads extends Element {
 
-			}
-			document.$(".menu-bar-holder").content(<MenuBar />);
-		</script>
-	</head>
-	<body>
-	
-	<div class="main-body">
-		<h1>Downloads</h1>
-		    <section style="border-spacing:50dip;">
-      <div class="my-downloads">
-        <h2>My Downloads</h2>
-        <div class="menu-bar-holder">
+            this(props) {
 
-        </div>
-        <hr>
-        <div #mydownloads>
-          <div class="download download-active">
-			<div class="download-inner">
-				My Friend | 25% | Downloading now...
-				<br><br>
-				C:\shared_file.txt
+            }
 
-				<br><br>
-				<button class="cancel-download">Cancel</button>
-				<button class="pause-all">Pause Downloads from My Friend</button>
-			</div>
-          </div>
-          <hr>
-			<div class="download download-active">
-			<div class="download-inner">
-				My Friend | 25% | Downloading now...
-				<br><br>
-				C:\shared_file.txt
+            render(props) {
+                return <div>
+                    {all_downloads.in_progress.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="inProgress" />)}
+                    {all_downloads.invalid.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="invalid" />)}
+                    {all_downloads.offline.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="offline" />)}
+                    {all_downloads.finished.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="finished" />)}
+                </div>;
+            }
+        }
 
-				<br><br>
-				<button class="cancel-download">Cancel</button>
-				<button class="pause-all">Pause Downloads from My Friend</button>
-			</div>
-          </div>
-          <hr>
-          <div class="download download-invalid">
-			  <div class="download-inner">
-				My Friend | 25% | Invalid or no longer shared with you
-				<br><br>
-				C:\shared_file.txt
+        class SingleDownloadFromMe extends Element {
 
-				<br><br>
-				<button class="cancel-download">Cancel</button>
-				<button class="pause-all">Pause Downloads from My Friend</button>
-			  </div>
-		  </div>
-          <hr>
-		  <div class="download download-offline">
-			  <div class="download-inner">
-				My Friend | 25% | User currently offline
-				<br><br>
-				C:\shared_file.txt
+            this(props) {
 
-				<br><br>
-				<button class="cancel-download">Cancel</button>
-				<button class="pause-all">Pause Downloads from My Friend</button>
-			  </div>
-		  </div>
-          <hr>
-		  <div class="download download-finished">
-			  <div class="download-inner">
-				My Friend | 100% | Download finished
-				<br><br>
-				C:\shared_file.txt
+            }
 
-				<br><br>
-				<button class="cancel-download">Cancel</button>
-				<button class="pause-all">Pause Downloads from My Friend</button>
-			  </div>
-		  </div>
-          <hr>
-        </div>
-      </div>
+            render(props) {
+                return <div><div class="download">
+                    <div class="download-inner">
+                        {props.name} | {props.percent}% | Downloading now...
+                        <br /><br />
+                        {props.path}
+                    </div>
+                </div>
+                    <hr />
+                </div>
+            }
+        }
 
-      <div class="from-me">
-        <h2>Users Downloading From Me</h2>
-        <hr>
-        <div #downloadingfromme>
-          <div class="download">
-		  <div class="download-inner">
-            My Friend | 25% | Downloading now...
-            <br><br>
-            C:\shared_file.txt
-			</div>
-          </div>
-          <hr>
-          <div class="download">
-		  <div class="download-inner">
-            My Friend | 25% | Downloading now...
-            <br><br>
-            C:\shared_file.txt
-		</div>
-          </div>
-          <hr>
-        </div>
-      </div>
+        class DownloadsFromMe extends Element {
 
-    </section>
-	</div>
-	</body>
+            this(props) {
+
+            }
+
+            render(props) {
+                let downloadsFromMe = [
+                    {
+                        name: "My Friend",
+                        percent: "25",
+                        path: "C:\\shared_file.txt",
+                    },
+                    {
+                        name: "My Friend 2 ",
+                        percent: "56",
+                        path: "C:\\shared_file2.txt",
+                    },
+                ]
+
+                return <div>
+                    {downloadsFromMe.map((d) => <SingleDownloadFromMe name={d.name} percent={d.percent} path={d.path} />)}
+                </div>
+            }
+
+        }
+
+        document.$("div#my-downloads").content(<MyDownloads />);
+        document.$("div#downloading-from-me").content(<DownloadsFromMe />);
+
+        class MenuBar extends Element {
+
+            this(props) {
+
+            }
+
+            render() {
+                return <div class="menu-bar">
+                    <button id="open-downloads">Open Downloads</button> |
+                    <button id="clear-finished">Clear Finished</button> |
+                    <button id="cancel-invalid">Cancel Invalid</button> |
+                    <button id="cancel-all-downloads">Cancel All</button> |
+                    <button id="pause-all-downloads">Pause All</button> |
+                    <button id="resume-all-downloads">Resume All</button>
+                </div>;
+            }
+
+            ["on click at button#open-downloads"]() {
+                //let response = Window.this.xcall('downloads_open');
+            }
+
+            ["on click at button#clear-finished"]() {
+                //let response = Window.this.xcall('downloads_clear_finished');
+            }
+
+            ["on click at button#cancel-invalid"]() {
+                //let response = Window.this.xcall('downloads_cancel_invalid');
+            }
+
+            ["on click at button#cancel-all-downloads"]() {
+                //let response = Window.this.xcall('downloads_cancel_all');
+            }
+
+            ["on click at button#pause-all-downloads"]() {
+                //let response = Window.this.xcall('downloads_pause_all');
+            }
+
+            ["on click at button#resume-all-downloads"]() {
+                //let response = Window.this.xcall('downloads_resume_all');
+            }
+
+        }
+
+        class MenuBarFromMe extends Element {
+
+            this(props) {
+
+            }
+
+            render() {
+                return <div class="menu-bar">
+                    <button id="clear-finished-from-me">Clear Finished</button>
+                </div>;
+            }
+
+            ["on click at button#clear-finished-from-me"]() {
+                //let response = Window.this.xcall('downloads_clear_finished_from_me');
+            }
+
+        }
+
+        document.$(".menu-bar-holder").content(<MenuBar />);
+        document.$(".my-downloads-menu-bar-holder").content(<MenuBarFromMe />);
+
+    </script>
+</head>
+
+<body>
+
+    <div class="main-body">
+        <h1>Downloads</h1>
+        <section style="border-spacing:50dip;">
+            <div class="my-downloads">
+                <h2>My Downloads</h2>
+                <div class="menu-bar-holder"></div>
+                <hr>
+                <div id="my-downloads"></div>
+            </div>
+
+            <div class="from-me">
+                <h2>Users Downloading From Me</h2>
+                <div class="my-downloads-menu-bar-holder"></div>
+                <hr>
+                <div id="downloading-from-me"></div>
+            </div>
+
+        </section>
+    </div>
+</body>
+
 </html>
