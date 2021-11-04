@@ -18,7 +18,7 @@
 
             render(props) {
                 return  <div class="my-file">
-                    <strong>{props.filePath}</strong>
+                    <span selectable><strong>{props.filePath}</strong></span>
                     <br /><br />
                     <div class="my-file-inner">
                         <label style="margin-right: 1em; display: inline-block;" for="add-user">Add User:</label>
@@ -32,7 +32,7 @@
                         Shared With:
                         <br /><br />
 
-                        <div class="shared-with">
+                        <div class="shared-with" selectable>
                             {props.sharedWith.map((d, index) => <div style="padding-bottom: 1em;">{index+1}. {d} <button style="margin-left: 1em;" class="remove-shared-with" user={d}>Remove</button></div>)}
                         </div>
                         <br />
@@ -203,7 +203,7 @@
 </head>
 
 <body>
-    <div class="main-body" selectable>
+    <div class="main-body">
         <div id="msg-box"></div>
 
         <h1>

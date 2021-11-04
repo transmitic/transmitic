@@ -100,7 +100,7 @@
                 else {
                     contentElements = <div><br />Error: Unknown refreshState '{this.refreshState}'</div>;
                 }
-                let finalData = <div>
+                let finalData = <div selectable>
                     <button id="refresh-all">Refresh All</button>
                     <button style="margin-left: 1em;" id="download-selected">Download Selected</button>
                     {contentElements}
@@ -272,7 +272,7 @@
 </head>
 
 <body>
-    <div class="main-body" selectable>
+    <div class="main-body">
 
         <h1>
             Shared With Me

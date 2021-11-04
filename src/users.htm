@@ -80,8 +80,8 @@
                 }
 
                 return <div>
-                    <h3>{this.props.nickname}</h3>
-                    <table>
+                    <span selectable><h3>{this.props.nickname}</h3></span>
+                    <table selectable>
                         <tr>
                             <td>Nickname:</td>
                             <td>{this.elementNickname}</td>
@@ -181,7 +181,7 @@
 </head>
 
 <body>
-    <div class="main-body" selectable>
+    <div class="main-body">
         <div id="msg-box"></div>
 
         <h1>Users</h1>

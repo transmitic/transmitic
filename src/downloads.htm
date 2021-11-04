@@ -110,11 +110,12 @@
 
                 return <div><div class={"download " + downloadClass}>
                     <div class="download-inner">
-                        {description}
-                        <br /><br />
-                        {props.path}
-
-                        <br /><br />
+                        <div selectable>
+                            {description}
+                            <br /><br />
+                            {props.path}
+                        </div>
+                        <br />
                         {openDownload}
                         {cancelDownload}
                         {pauseDownload}
@@ -150,7 +151,7 @@
 
             render(props) {
                 return <div><div class="download">
-                    <div class="download-inner">
+                    <div class="download-inner" selectable>
                         {props.name} | {props.percent}% | Downloading now...
                         <br /><br />
                         {props.path}
