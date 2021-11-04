@@ -1,131 +1,149 @@
-<html>
-	<head>
-		<title>Test</title>
-		<style>
-		
-		@import url(style.css);
+<html window-frame="extended" window-blurbehind="dark" theme="dark">
 
-body { margin:0; }
-div {min-width:min-content;}
-frameset {min-height:min-content;}
+<head>
+    <title>Transmitic Beta</title>
+    <style src="extended-window-crome.css" ></style>
+    <style>
+        @import url(style.css);
 
-splitter { display:none; border:none; width: 3px; background:color(border);}
-splitter:hover { background:color(accent); }
-
-
-        </style>
-		<script>
-			document.attributes["theme"] = "dark";
-
-document.on("click","button#load1", function() {
-  document.$("frame").src = "about.htm";
-});
-
-	function loadPage() {
-		console.print("hello");
-	}
-
-	let navLinks = [
-		{
-			"name": "Downloads",
-			"icon": "ic_fluent_arrow_download_48_regular.svg",
-			"html": "downloads.htm"
-		},
-		{
-			"name": "Shared With Me",
-			"icon": "ic_fluent_globe_32_regular.svg",
-			"html": "shared_with_me.htm"
-		},
-		{
-			"name": "My Shared",
-			"icon": "ic_fluent_folder_48_regular.svg",
-			"html": "my_sharing.htm"
-		},
-		{
-			"name": "Users",
-			"icon": "ic_fluent_people_32_regular.svg",
-			"html": "users.htm"
-		},
-		{
-			"name": "My ID",
-			"icon": "ic_fluent_guest_28_regular.svg",
-			"html": "my_id.htm"
-		},
-		{
-			"name": "About",
-			"icon": "ic_fluent_info_28_regular.svg",
-			"html": "about.htm"
-		},
-		{
-			"name": "Help",
-			"icon": "ic_fluent_question_circle_28_regular.svg",
-			"html": "welcome.htm"
-		}
-	];
-
-
-	class NavBar extends Element {
-
-		counter;  // Simple counter/index for each navlink
-		activeIndex;  // Index of active navlink
-
-		this(props) {
-            this.counter = 0;
-            this.activeIndex = 0;
+        body {
+            margin: 0;
         }
 
-		render() {
-			this.counter = 0;
-			return <div>
-				{ navLinks.map((d) => <NavLink name={d.name} icon={d.icon} htmlPage={d.html} navIndex={this.counter++} activeIndex={this.activeIndex} />) } 
-			</div>;
-		}
-	}
+        div {
+            min-width: min-content;
+        }
 
-	class NavLink extends Element {
+        frameset {
+            min-height: min-content;
+        }
 
-		navIndex;
-		activeIndex;
-		htmlPage;
+        splitter {
+            display: none;
+            border: none;
+            width: 3px;
+            background: color(border);
+        }
 
-        this(props) { 
-            this.navIndex = props.navIndex;
-            this.activeIndex = props.activeIndex;
-			this.htmlPage = props.htmlPage;
+        splitter:hover {
+            background: color(accent);
+        }
+    </style>
+    <script src="global_transmitic.js"></script>
+    <script>
+        document.attributes["theme"] = "dark";
 
-            if (this.navIndex == this.activeIndex) {
-                this.navBlockStlye = "background-color: color(accent);";
+        let navLinks = [
+            {
+                "name": "Downloads",
+                "icon": "ic_fluent_arrow_download_48_regular.svg",
+                "html": "downloads.htm"
+            },
+            {
+                "name": "Shared With Me",
+                "icon": "ic_fluent_globe_32_regular.svg",
+                "html": "shared_with_me.htm"
+            },
+            {
+                "name": "My Shared",
+                "icon": "ic_fluent_folder_48_regular.svg",
+                "html": "my_sharing.htm"
+            },
+            {
+                "name": "Users",
+                "icon": "ic_fluent_people_32_regular.svg",
+                "html": "users.htm"
+            },
+            {
+                "name": "My ID",
+                "icon": "ic_fluent_guest_28_regular.svg",
+                "html": "my_id.htm"
+            },
+            {
+                "name": "About",
+                "icon": "ic_fluent_info_28_regular.svg",
+                "html": "about.htm"
+            },
+            {
+                "name": "Help",
+                "icon": "ic_fluent_question_circle_28_regular.svg",
+                "html": "welcome.htm"
             }
-            else {
-                this.navBlockStlye = "";
+        ];
+
+
+        class NavBar extends Element {
+
+            counter;  // Simple counter/index for each navlink
+            activeIndex;  // Index of active navlink
+
+            this(props) {
+                this.counter = 0;
+                this.activeIndex = 0;
+            }
+
+            render() {
+                this.counter = 0;
+                return <div>
+                    {navLinks.map((d) => <NavLink name={d.name} icon={d.icon} htmlPage={d.html} navIndex={this.counter++} activeIndex={this.activeIndex} />)}
+                </div>;
             }
         }
 
-		render(props) {
-			return <div class="nav-button">
-				<div class="nav-block" style={this.navBlockStlye}> </div>
-				<img class="nav-icon" src={props.icon}/>
-				<div class="nav-text">{props.name}</div>
-			</div>;
-		}
+        class NavLink extends Element {
 
-		["on click at div.nav-button"]() { 
-			document.$("frame").src = this.htmlPage;
-			this.parentElement.componentUpdate({ activeIndex: this.navIndex });
-		}
-	}
+            navIndex;
+            activeIndex;
+            htmlPage;
 
-	document.$("frame").src = navLinks[0].html;
-	document.$("div.nav-bar").content(<NavBar />);
+            this(props) {
+                this.navIndex = props.navIndex;
+                this.activeIndex = props.activeIndex;
+                this.htmlPage = props.htmlPage;
 
-	</script>
-	</head>
-	<body>
-		<frameset cols="200px,*">
-			<div class="nav-bar">
-			</div>
-			<splitter/>
-			<frame/>
-		</frameset>
-	</body>
+                if (this.navIndex == this.activeIndex) {
+                    this.navBlockStlye = "background-color: color(accent);";
+                }
+                else {
+                    this.navBlockStlye = "";
+                }
+            }
+
+            render(props) {
+                return <div class="nav-button">
+                    <div class="nav-block" style={this.navBlockStlye}> </div>
+                    <img class="nav-icon" src={props.icon} />
+                    <div class="nav-text">{props.name}</div>
+                </div>;
+            }
+
+            ["on click at div.nav-button"]() {
+                document.$("frame").src = this.htmlPage;
+                this.parentElement.componentUpdate({ activeIndex: this.navIndex });
+            }
+        }
+
+        document.$("frame").src = navLinks[0].html;
+        document.$("div.nav-bar").content(<NavBar />);
+
+    </script>
+</head>
+<window-header>
+    <window-icon role="window-icon" />
+    <window-caption role=window-caption>Transmitic Beta</window-caption>
+    <window-buttons>
+      <window-button role="window-minimize"></window-button>
+      <window-button role="window-maximize"></window-button>
+      <window-button role="window-close"></window-button>
+    </window-buttons>
+  </window-header>
+<body>
+    <frameset cols="200px,*">
+        <div class="nav-bar">
+        </div>
+        <splitter />
+        <frame />
+    </frameset>
+</body>
+
 </html>
