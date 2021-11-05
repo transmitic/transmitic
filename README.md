@@ -1,7 +1,7 @@
-# Transmitic: In Development Alpha
+# Transmitic Beta
 
 Transmitic is an encrypted, peer to peer, file transfer program with download pause and resume.  
-Transmitic is in early development.
+Transmitic is still in development.
 
 Discord: [https://discord.gg/tRT3J6T](https://discord.gg/tRT3J6T)  
 Reddit: [https://www.reddit.com/r/transmitic/](https://www.reddit.com/r/transmitic/)  
@@ -21,22 +21,14 @@ Website: [https://transmitic.io/](https://transmitic.io/)
 
 **Bittorrent**  
 Transmitic does not support bittorrent, or bittorent like functionality. Transmitic cannot download the same file from multiple peers to download it faster.  
-Users connect to one another directly via IP.  
+A file can only be downloaded from one user.
 
 **File Syncing**  
 Transmitic does _not_ have any file syncing capability and should never be used for this purpose.
 
 ## Development Status
 
-Transmitic is an alpha that is in early development.  
-At this time, expect:  
-
-- Incomplete error handling on edge cases
-- Config file usage for advanced configuration
-- No attention to performance
-- No code quality
-- No code reviews
-- No tests
+Transmitic in beta and still in development  
 
 This project is slowly being hacked on during nights and weekends.  
 It will eventually reach a stable and tested point.
@@ -61,16 +53,12 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 
 ## Goals (Short Term and Long Term)
 
-- Major refactor
-- Additional error handling around edge cases
-- Port to SciterJS
-- GUI for advanced settings
-- GUI refinement
-- Tests
-- Transmitic Discovery
-  - Server to discover users without requiring IPs to be known by users (optional to users)
+- Linux support
+- macOS support
+- Add users with a "friend request"
 - UPnP
-- Add Users with a "friend request"
+- Transmitic Discovery
+  - Server to discover users without requiring IPs to be known by users (optional feature)
 - Auto updates
 - Transmitic Mini
   - CLI only version with minimal dependencies
@@ -95,10 +83,6 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 ### Current
 
 ![Transmitic](./screenshot.png)
-
-### Mockups
-
-[https://github.com/transmitic/transmitic/wiki/UI-Mockup](https://github.com/transmitic/transmitic/wiki/UI-Mockup)
 
 ## License
 
