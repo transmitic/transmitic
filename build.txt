@@ -1,7 +1,7 @@
-cargo 1.55.0 (32da73ab1 2021-08-23)
+cargo 1.56.0 (4ed5d137b 2021-10-04)
 
 rustup 1.24.3 (ce5817a94 2021-05-31)
 info: This is the version for the rustup toolchain manager, not the rustc compiler.
-info: The currently active `rustc` version is `rustc 1.55.0 (c8dfcfe04 2021-09-06)`
+info: The currently active `rustc` version is `rustc 1.56.1 (59eed8a2a 2021-11-01)
 
-sciter-js-sdk: fc15f5a1e24bfe52a5de5b7c5cba8e64327854fa
+sciter-js-sdk: faeba319c38bac2e833cbf0fe5a6be60cf87a24e
