@@ -95,6 +95,10 @@ impl Handler {
 		Value::from("192.168.X.X")
 	}
 
+    fn get_port(&self) -> Value {
+        Value::from("PORTHERE")
+    }
+
     fn get_public_id(&self) -> Value {
         Value::from("PUBLICHERE")
     }
@@ -111,6 +115,7 @@ impl sciter::EventHandler for Handler {
         
         fn get_downloads_in_progress();
 		fn get_local_ip();
+        fn get_port();
         fn get_public_id();
 
         fn open_a_download(Value);

@@ -15,6 +15,12 @@
             return publicID;
         }
 
+        function setPort() {
+            let port = Window.this.xcall('get_port');
+            document.$("span#internal-port").content(port);
+            document.$("span#external-port").content(port);
+        }
+
         let publicID = "";
 
         document.$("button#copy-id").onclick = function () {
@@ -24,6 +30,7 @@
 
         document.ready = function () {
             setPublicID();
+            setPort();
         }
 
     </script>
@@ -73,15 +80,22 @@
         <br>
         Look for one of these sections <span class="highlight">NAT Forwarding</span> / <span class="highlight">Port
             Forwarding</span> / <span class="highlight">Virtual Servers</span>.
-        <br>
+        <br><br>
         Add a new entry (Your router's terminology may differ slightly).
-        <br><br>
-        Interal Port: <span id="internal-port" class="highlight">X</span>
-        <br><br>
-        External Port: <span id="external-port" class="highlight">X</span>
-        <br><br>
-        Protocol: <span class="highlight">TCP</span>
-        <br><br>
+        <table cellspacing="2">
+            <tr>
+                <td>Internal Port: </td>
+                <td><span id="internal-port" class="highlight">X</span></td>
+            </tr>
+            <tr>
+                <td>External Port:</td>
+                <td><span id="external-port" class="highlight">X</span></td>
+            </tr>
+            <tr>
+                <td>Protocol: </td>
+                <td><span class="highlight">TCP</span></td>
+            </tr>
+        </table>
         Internal IP Address: Local IP address for your computer
         <br><br>
 
