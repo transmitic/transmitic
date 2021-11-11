@@ -9,8 +9,8 @@
     <script>
 
         function setPublicID() {
-            //let publicID = Window.this.xcall('get_public_id');
-            publicID = new Date().toLocaleTimeString();
+            publicID = Window.this.xcall('get_public_id');
+            //publicID = new Date().toLocaleTimeString();
             document.$("span#public-id").content(publicID);
             return publicID;
         }

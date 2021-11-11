@@ -16,8 +16,12 @@
         });
 
         document.ready = function () {
-            //document.$("h1#name").content(Window.this.xcall('get_app_display_name'));
-            //document.$("h3#version").content(Window.this.xcall('get_app_display_version'));
+            document.$("h1#name").content(Window.this.xcall('get_app_display_name'));
+            document.$("h3#version").content(Window.this.xcall('get_app_display_version'));
+            
+            let appUrl = Window.this.xcall('get_app_url');
+            document.$("h3#url").content(appUrl);
+            document.$("a#urlh").setAttribute("href", appUrl);
         }
 
     </script>
@@ -26,10 +30,10 @@
 <body>
     <div class="main-body" selectable>
 
-        <h1 id="name">Transmitic Beta XX</h1>
-        <h3 id="version">v0.10.0 XX</h3>
-        <a href="https://transmitic.io">
-            <h3>https://transmitic.io</h3>
+        <h1 id="name"></h1>
+        <h3 id="version"></h3>
+        <a id="urlh" href="">
+            <h3 id="url"></h3>
         </a>
 
         <h1>Dependencies</h1>
