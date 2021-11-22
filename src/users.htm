@@ -22,14 +22,14 @@
             let new_public_id = document.$("input#new-user-public-id").value;
             let new_ip = document.$("input#new-user-ip").value;
             let new_port = document.$("input#new-user-port").value;
-            //let response = Window.this.xcall('add_new_user', new_nickname, new_public_id, new_ip, new_port);
-            let response = [0, ""];
+            let response = Window.this.xcall('add_new_user', new_nickname, new_public_id, new_ip, new_port);
+            //let response = [0, ""];
             if (response[0] == 0) {
                 setMsgBoxSuccess("User <strong>" + new_nickname + "</strong> added. You can now share with them.");
                 resetNewuserInputs();
             }
             else {
-                setMsgBoxError("Failed to add new user." + response[1]);
+                setMsgBoxError("Failed to add new user. " + response[1]);
             }
         }
 
@@ -52,6 +52,7 @@
                 this.isAllowed = true;
                 this.isEditing = false;
                 this.props = props;
+
             }
 
             render(props) {
@@ -65,10 +66,10 @@
                 if (this.isEditing) {
                     this.editButton = <button class="save-user">Save</button>
 
-                    this.elementNickname = <input class="edit-user-nickname" type="text">{this.props.nickname}</input>
-                    this.elementPublicID = <input class="edit-user-public-id" type="text">{this.props.public_id}</input>
-                    this.elementIP = <input class="edit-user-ip" type="text">{this.props.ip}</input>
-                    this.elementPort = <input class="edit-user-port" type="text">{this.props.port}</input>
+                    this.elementNickname = <input class="edit-user-nickname" data-nickname={this.props.nickname} type="text">{this.props.nickname}</input>
+                    this.elementPublicID = <input class="edit-user-public-id" data-nickname={this.props.nickname} type="text">{this.props.public_id}</input>
+                    this.elementIP = <input class="edit-user-ip" data-nickname={this.props.nickname} type="text">{this.props.ip}</input>
+                    this.elementPort = <input class="edit-user-port" data-nickname={this.props.nickname} type="text">{this.props.port}</input>
                 }
                 else {
                     this.editButton = <button class="edit-user">Edit</button>
@@ -112,19 +113,25 @@
             }
 
             ["on click at button.remove-user"]() {
-                //let response = Window.this.xcall('remove_user', new_nickname, new_public_id, new_ip, new_port);
-                let response = [0, ""]
+                let response = Window.this.xcall('remove_user', this.props.nickname);
+                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("User removed. You will no longer share with each other.");
                     this.parentElement.componentUpdate();
                 }
                 else {
-                    setMsgBoxError("Failed to remove user.");
+                    setMsgBoxError("Failed to remove user. " + response[1]);
                 }
             }
 
             ["on click at button.user-action"]() {
-                this.componentUpdate({ isAllowed: !this.isAllowed });
+                let response = Window.this.xcall('set_user_is_allowed_state', this.props.nickname, !this.isAllowed);
+                if (response[0] == 0) {
+                    this.componentUpdate({ isAllowed: !this.isAllowed });
+                }
+                else {
+                    
+                }
             }
 
             ["on click at button.edit-user"]() {
@@ -132,14 +139,20 @@
             }
 
             ["on click at button.save-user"]() {
-                //let response = Window.this.xcall('update_user', new_nickname, new_public_id, new_ip, new_port);
-                let response = [0, ""]
+                console.error(this.elementNickname);
+                let new_nickname = document.$("input.edit-user-nickname[data-nickname='" + this.props.nickname + "']").value;
+                let new_public_id = document.$("input.edit-user-public-id[data-nickname='" + this.props.nickname + "']").value;
+                let new_ip = document.$("input.edit-user-ip[data-nickname='" + this.props.nickname + "']").value;
+                let new_port = document.$("input.edit-user-port[data-nickname='" + this.props.nickname + "']").value;
+
+                let response = Window.this.xcall('update_user', new_nickname, new_public_id, new_ip, new_port);
+                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("User updated");
                     this.parentElement.componentUpdate();
                 }
                 else {
-                    setMsgBoxError("Failed to update user.");
+                    setMsgBoxError("Failed to update user. " + response[1]);
                 }
             }
 

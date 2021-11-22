@@ -71,7 +71,7 @@
             }
 
             ["on click at button.remove-sharing"]() {
-                //let response = Window.this.xcall('remove_sharing', this.filePath);
+                //let response = Window.this.xcall('remove_file_from_sharing', this.filePath);
                 let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("File removed. You will no longer be sharing <strong>" + this.filePath + "</strong>");

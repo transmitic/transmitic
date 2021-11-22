@@ -16,17 +16,17 @@
         }
 
         function setPublicID() {
-            //let publicID = Window.this.xcall('get_public_id');
-            publicID = new Date().toLocaleTimeString();
+            publicID = Window.this.xcall('get_public_id');
+            //publicID = new Date().toLocaleTimeString();
             document.$("span#public-id").content(publicID);
             return publicID;
         }
 
         document.$("button#create-new-id").onclick = function () {
-            //let publicID = setPublicID();
-            //let response = Window.this.xcall('create_new_id');
-            let response = [0, "none"];
+            let response = Window.this.xcall('create_new_id');
+            //let response = [0, "none"];
             if (response[0] == 0) {
+                setPublicID();
                 setMsgBoxSuccess("Your new Public ID is <strong>" + publicID + "</strong>");
             }
             else {
