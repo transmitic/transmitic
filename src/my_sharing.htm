@@ -150,8 +150,8 @@
         // Set port
         document.$("button#set-port").onclick = function() {
             let portValue = document.$("input#port").value;
-            //let response = Window.this.xcall('set_port', portValue);
-            let response = [0, "err msg."];
+            let response = Window.this.xcall('set_port', portValue);
+            //let response = [0, "err msg."];
             if (response[0] == 0) {
                 setMsgBoxSuccess("Port is now set to <strong>" + portValue + "</strong>");
             }

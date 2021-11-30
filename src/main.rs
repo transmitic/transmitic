@@ -1,4 +1,5 @@
 use std::env;
+use std::error::Error;
 use std::f64::consts::FRAC_1_PI;
 use std::path::Path;
 use std::process::Command;
@@ -48,8 +49,12 @@ impl Handler {
         let file_path = self.clean_sciter_string(file_path);
     }
 
-    fn create_new_id(&self) -> Value {
-        let response = self.get_msg_box_response(1, &"Failed to create new ID".to_string());
+    fn create_new_id(&mut self) -> Value {
+        let response: Value;
+        match self.transmitic_core.create_new_id() {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
         Value::from(response)
     }
 
@@ -136,12 +141,14 @@ impl Handler {
 
     fn get_my_sharing_state(&self) {}
 
-    fn get_port(&self) -> Value {
-        Value::from("PORTHERE")
+    fn get_sharing_port(&self) -> Value {
+        let sharing_port = self.transmitic_core.get_sharing_port();
+        Value::from(sharing_port)
     }
 
-    fn get_public_id(&self) -> Value {
-        Value::from("PUBLICHERE")
+    fn get_public_id_string(&self) -> Value {
+        let public_id_string = self.transmitic_core.get_public_id_string();
+        Value::from(public_id_string)
     }
 
     fn refresh_shared_with_me(&self) {}
@@ -163,8 +170,16 @@ impl Handler {
         let state = self.clean_sciter_string(state);
     }
 
-    fn set_port(&self, port: Value) {
+    fn set_port(&mut self, port: Value) -> Value {
         let port = self.clean_sciter_string(port);
+
+        let response: Value;
+        match self.transmitic_core.set_port(port) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+        
+        Value::from(response)
     }
 
     fn set_user_is_allowed_state(&self, nickname: Value, is_allowed: Value) {
@@ -220,8 +235,8 @@ impl sciter::EventHandler for Handler {
         fn get_downloads_in_progress();
         fn get_local_ip();
         fn get_my_sharing_state();
-        fn get_port();
-        fn get_public_id();
+        fn get_sharing_port();
+        fn get_public_id_string();
 
         fn open_a_download(Value);
 

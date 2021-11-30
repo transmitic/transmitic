@@ -9,14 +9,14 @@
     <script>
 
         function setPublicID() {
-            publicID = Window.this.xcall('get_public_id');
+            publicID = Window.this.xcall('get_public_id_string');
             //publicID = new Date().toLocaleTimeString();
             document.$("span#public-id").content(publicID);
             return publicID;
         }
 
         function setPort() {
-            let port = Window.this.xcall('get_port');
+            let port = Window.this.xcall('get_sharing_port');
             document.$("span#internal-port").content(port);
             document.$("span#external-port").content(port);
         }
