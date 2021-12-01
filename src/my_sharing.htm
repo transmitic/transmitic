@@ -163,8 +163,8 @@
         // Set sharing state
         document.$("form.sharing-form").on("click", function() { 
             var sharing_state = this.value.Sharing; 
-            //let response = Window.this.xcall('set_my_sharing_state', sharing_state);
-            response = [0, "Failed to change sharing state"];
+            let response = Window.this.xcall('set_my_sharing_state', sharing_state);
+            //response = [0, "Failed to change sharing state"];
             if (response[0] == 0) {
                 setMsgBoxSuccess("Sharing is now set to <strong>" + sharing_state + "</strong>");
             }
@@ -174,8 +174,8 @@
         });
 
         // Get sharing state
-        //let response = Window.this.xcall('get_my_sharing_state');
-        let response = [0, "Off"];
+        let response = Window.this.xcall('get_my_sharing_state');
+        //let response = [0, "Off"];
         if (response[0] == 0) {
             document.$("button[name=Sharing][value="+ response[1] + "]").state.checked = true;
         }
@@ -184,8 +184,8 @@
         }
 
         // Get port
-        //let response = Window.this.xcall('get_port');
-        response = [0, "8080"];
+        response = Window.this.xcall('get_sharing_port');
+        //response = [0, "8080"];
         if (response[0] == 0) {
             document.$("input#port").value = response[1];
         }

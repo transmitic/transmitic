@@ -34,14 +34,16 @@ impl Handler {
 
     fn add_folder(&self, folder: Value) {}
 
-    fn add_new_user(&self, nickname: Value, public_id: Value, ip: Value, port: Value) {
-        let nickname = self.clean_sciter_string(nickname);
-        let public_id = self.clean_sciter_string(public_id);
-        let ip = self.clean_sciter_string(ip);
-        let port = self.clean_sciter_string(port);
+    fn add_new_user(&mut self, new_nickname: Value, new_public_id: Value, new_ip: Value, new_port: Value) {
+        let new_nickname = self.clean_sciter_string(new_nickname);
+        let new_public_id = self.clean_sciter_string(new_public_id);
+        let new_ip = self.clean_sciter_string(new_ip);
+        let new_port = self.clean_sciter_string(new_port);
 
-        println!("{}", nickname);
-        println!("{}", port);
+        println!("{}", new_nickname);
+        println!("{}", new_port);
+
+        self.transmitic_core.add_new_user(new_nickname, new_public_id, new_ip, new_port);
     }
 
     fn add_user_to_shared(&self, nickname: Value, file_path: Value) {
@@ -139,11 +141,14 @@ impl Handler {
         Value::from("192.168.X.X")
     }
 
-    fn get_my_sharing_state(&self) {}
+    fn get_my_sharing_state(&self) -> Value{
+        let sharing_state = self.transmitic_core.get_my_sharing_state();
+        return Value::from(self.get_msg_box_response(0, &sharing_state));
+    }
 
     fn get_sharing_port(&self) -> Value {
         let sharing_port = self.transmitic_core.get_sharing_port();
-        Value::from(sharing_port)
+        return Value::from(self.get_msg_box_response(0, &sharing_port));
     }
 
     fn get_public_id_string(&self) -> Value {
@@ -166,8 +171,16 @@ impl Handler {
         let nickname = self.clean_sciter_string(nickname);
     }
 
-    fn set_my_sharing_state(&self, state: Value) {
+    fn set_my_sharing_state(&mut self, state: Value) -> Value {
         let state = self.clean_sciter_string(state);
+        let response: Value;
+        match self.transmitic_core.set_my_sharing_state(state) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+
+        return Value::from(response);
+
     }
 
     fn set_port(&mut self, port: Value) -> Value {
