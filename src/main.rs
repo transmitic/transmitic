@@ -34,7 +34,7 @@ impl Handler {
 
     fn add_folder(&self, folder: Value) {}
 
-    fn add_new_user(&mut self, new_nickname: Value, new_public_id: Value, new_ip: Value, new_port: Value) {
+    fn add_new_user(&mut self, new_nickname: Value, new_public_id: Value, new_ip: Value, new_port: Value) -> Value {
         let new_nickname = self.clean_sciter_string(new_nickname);
         let new_public_id = self.clean_sciter_string(new_public_id);
         let new_ip = self.clean_sciter_string(new_ip);
@@ -43,7 +43,12 @@ impl Handler {
         println!("{}", new_nickname);
         println!("{}", new_port);
 
-        self.transmitic_core.add_new_user(new_nickname, new_public_id, new_ip, new_port);
+        let response: Value;
+        match self.transmitic_core.add_new_user(new_nickname, new_public_id, new_ip, new_port) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+        Value::from(response)
     }
 
     fn add_user_to_shared(&self, nickname: Value, file_path: Value) {
@@ -144,6 +149,29 @@ impl Handler {
     fn get_my_sharing_state(&self) -> Value{
         let sharing_state = self.transmitic_core.get_my_sharing_state();
         return Value::from(self.get_msg_box_response(0, &sharing_state));
+    }
+
+    fn get_shared_users(&self) -> Value {
+        let shared_users = self.transmitic_core.get_shared_users();
+        let mut user_list = Value::new();
+
+        for user in shared_users {
+            let mut new_user_dict = Value::new();
+            new_user_dict.set_item("nickname", user.nickname);
+            new_user_dict.set_item("public_id", user.public_id);
+            new_user_dict.set_item("ip", user.ip);
+            new_user_dict.set_item("port", user.port);
+            if user.allowed {
+                new_user_dict.set_item("status", "Allowed");
+            } else {
+                new_user_dict.set_item("status", "Blocked");
+            }
+            println!("{:?}", new_user_dict);
+            
+            user_list.push(new_user_dict);
+            
+        }
+        Value::from(user_list)
     }
 
     fn get_sharing_port(&self) -> Value {
@@ -248,6 +276,7 @@ impl sciter::EventHandler for Handler {
         fn get_downloads_in_progress();
         fn get_local_ip();
         fn get_my_sharing_state();
+        fn get_shared_users();
         fn get_sharing_port();
         fn get_public_id_string();
 

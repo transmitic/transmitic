@@ -7,8 +7,11 @@
     </style>
     <script src="global_transmitic.js"></script>
     <script>
-
         const DEFAULT_PORT = "7878";
+
+        function loadCurrentUsers() {
+            document.$("div#current-users").content(<CurrentUsers />);
+        }
 
         function resetNewuserInputs() {
             document.$("input#new-user-nickname").value = "";
@@ -27,6 +30,7 @@
             if (response[0] == 0) {
                 setMsgBoxSuccess("User <strong>" + new_nickname + "</strong> added. You can now share with them.");
                 resetNewuserInputs();
+                loadCurrentUsers();
             }
             else {
                 setMsgBoxError("Failed to add new user. " + response[1]);
@@ -164,7 +168,7 @@
             }
 
             render(props) {
-                let users = [
+                let sample_users = [
                     {
                         nickname: "Foo Bar 01",
                         public_id: "DISFHOUSDFhui=",
@@ -179,7 +183,12 @@
                         port: "8080",
                         status: "Allowed",
                     },
-                ]
+                ];
+
+                let users = Window.this.xcall('get_shared_users');
+                if (!users) { // No users
+                    return <div></div>;
+                }
 
                 return <div>
                     {users.map((d) => <SingleUser nickname={d.nickname} public_id={d.public_id} ip={d.ip} port={d.port} status={d.status} />)}
@@ -188,7 +197,8 @@
         }
 
         resetNewuserInputs();
-        document.$("div#current-users").content(<CurrentUsers />);
+        loadCurrentUsers();
+        
 
     </script>
 </head>
