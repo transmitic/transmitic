@@ -157,6 +157,10 @@ impl Handler {
 
         for user in shared_users {
             let mut new_user_dict = Value::new();
+            // TODO use serde to get the string? 
+            //  But the struct may evenutally contain data that the UI doesn't need?
+            //  But that would just be ignored, that wouldn't be a problem
+
             new_user_dict.set_item("nickname", user.nickname);
             new_user_dict.set_item("public_id", user.public_id);
             new_user_dict.set_item("ip", user.ip);
@@ -166,7 +170,6 @@ impl Handler {
             } else {
                 new_user_dict.set_item("status", "Blocked");
             }
-            println!("{:?}", new_user_dict);
             
             user_list.push(new_user_dict);
             
