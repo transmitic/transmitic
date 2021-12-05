@@ -48,7 +48,7 @@ impl Handler {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        Value::from(response)
+        return response;
     }
 
     fn add_user_to_shared(&self, nickname: Value, file_path: Value) {
@@ -62,7 +62,7 @@ impl Handler {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        Value::from(response)
+        return response;
     }
 
     fn download_selected(&self, files: Value) {}
@@ -115,11 +115,6 @@ impl Handler {
         s
     }
 
-    fn fake_click(&self, file_path: Value) {
-        let mut file_path = self.clean_sciter_string(file_path);
-        println!("{}", file_path);
-    }
-
     fn open_a_download(&self, file_path: Value) {
         let mut file_path = self.clean_sciter_string(file_path);
         file_path = file_path.replace("\\\\", "\\");
@@ -148,7 +143,7 @@ impl Handler {
 
     fn get_my_sharing_state(&self) -> Value{
         let sharing_state = self.transmitic_core.get_my_sharing_state();
-        return Value::from(self.get_msg_box_response(0, &sharing_state));
+        return self.get_msg_box_response(0, &sharing_state);
     }
 
     fn get_shared_users(&self) -> Value {
@@ -174,12 +169,13 @@ impl Handler {
             user_list.push(new_user_dict);
             
         }
-        Value::from(user_list)
+
+       return user_list;
     }
 
     fn get_sharing_port(&self) -> Value {
         let sharing_port = self.transmitic_core.get_sharing_port();
-        return Value::from(self.get_msg_box_response(0, &sharing_port));
+        return self.get_msg_box_response(0, &sharing_port);
     }
 
     fn get_public_id_string(&self) -> Value {
@@ -193,9 +189,15 @@ impl Handler {
         let file_path = self.clean_sciter_string(file_path);
     }
 
-    fn remove_user(&self, nickname: Value) {
+    fn remove_user(&mut self, nickname: Value) -> Value {
         let nickname = self.clean_sciter_string(nickname);
-        println!("{}", nickname);
+        let response;
+        match self.transmitic_core.remove_user(nickname) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+
+        return response;
     }
 
     fn remove_user_from_sharing(&self, nickname: Value) {
@@ -210,7 +212,7 @@ impl Handler {
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
 
-        return Value::from(response);
+        return response;
 
     }
 
@@ -223,12 +225,23 @@ impl Handler {
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
         
-        Value::from(response)
+        return response;
     }
 
-    fn set_user_is_allowed_state(&self, nickname: Value, is_allowed: Value) {
+    fn set_user_is_allowed_state(&mut self, nickname: Value, is_allowed: Value) -> Value {
         let nickname = self.clean_sciter_string(nickname);
-        let is_allowed = is_allowed.to_bool().unwrap();
+        let is_allowed = match is_allowed.to_bool() {
+            Some(is_allowed) => is_allowed,
+            None => return self.get_msg_box_response(1, &"is_allowed is not a bool".to_string()),
+        };
+
+        let response: Value;
+        match self.transmitic_core.set_user_is_allowed_state(nickname, is_allowed) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+        
+        return response;
     }
 
     fn update_user(
@@ -266,7 +279,6 @@ impl sciter::EventHandler for Handler {
         fn downloads_pause_all();
         fn downloads_resume_all();
 
-        fn fake_click(Value);
         fn refresh_shared_with_me();
         fn remove_file_from_sharing(Value);
         fn remove_user(Value);
