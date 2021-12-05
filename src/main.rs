@@ -175,7 +175,8 @@ impl Handler {
 
     fn get_sharing_port(&self) -> Value {
         let sharing_port = self.transmitic_core.get_sharing_port();
-        return self.get_msg_box_response(0, &sharing_port);
+        //return self.get_msg_box_response(0, &sharing_port);
+        return Value::from(sharing_port);
     }
 
     fn get_public_id_string(&self) -> Value {
@@ -245,21 +246,24 @@ impl Handler {
     }
 
     fn update_user(
-        &self,
-        new_nickname: Value,
+        &mut self,
+        nickname: Value,
         new_public_id: Value,
         new_ip: Value,
         new_port: Value,
-    ) {
-        let new_nickname = self.clean_sciter_string(new_nickname);
+    ) -> Value {
+        let nickname = self.clean_sciter_string(nickname);
         let new_public_id = self.clean_sciter_string(new_public_id);
         let new_ip = self.clean_sciter_string(new_ip);
         let new_port = self.clean_sciter_string(new_port);
 
-        println!("{}", new_nickname);
-        println!("{}", new_public_id);
-        println!("{}", new_ip);
-        println!("{}", new_port);
+        let response: Value;
+        match self.transmitic_core.update_user(nickname, new_public_id, new_ip, new_port) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+        
+        return response;
     }
 }
 

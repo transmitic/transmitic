@@ -185,13 +185,14 @@
 
         // Get port
         response = Window.this.xcall('get_sharing_port');
+        document.$("input#port").value = response;
         //response = [0, "8080"];
-        if (response[0] == 0) {
-            document.$("input#port").value = response[1];
-        }
-        else {
-            setMsgBoxError("Failed to get port. " + response[1]);
-        }
+        // if (response[0] == 0) {
+        //     document.$("input#port").value = response[1];
+        // }
+        // else {
+        //     setMsgBoxError("Failed to get port. " + response[1]);
+        // }
 
         document.$("div#my-files").content(<MyFiles />);
 

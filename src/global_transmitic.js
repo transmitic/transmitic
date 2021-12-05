@@ -10,6 +10,7 @@ function setMsgBoxSuccess(msg) {
     document.$("div#msg-box").style["background-color"] = SUCCESS;
 }
 
+// TODO auto scroll up to error box
 function setMsgBoxError(msg) {
     document.$("div#msg-box").content("Error: " + msg);
     document.$("div#msg-box").style.display = "block";

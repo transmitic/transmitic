@@ -69,8 +69,12 @@
 
                 if (this.isEditing) {
                     this.editButton = <button class="save-user">Save</button>
+                    
+                    // TODO Add a copy button to click for each field
 
-                    this.elementNickname = <input class="edit-user-nickname" data-nickname={this.props.nickname} type="text">{this.props.nickname}</input>
+                    // Right now changing a nickname is not supported
+                    //this.elementNickname = <input class="edit-user-nickname" data-nickname={this.props.nickname} type="text">{this.props.nickname}</input>
+                    this.elementNickname = <span>{this.props.nickname}</span>
                     this.elementPublicID = <input class="edit-user-public-id" data-nickname={this.props.nickname} type="text">{this.props.public_id}</input>
                     this.elementIP = <input class="edit-user-ip" data-nickname={this.props.nickname} type="text">{this.props.ip}</input>
                     this.elementPort = <input class="edit-user-port" data-nickname={this.props.nickname} type="text">{this.props.port}</input>
@@ -143,16 +147,17 @@
             }
 
             ["on click at button.save-user"]() {
-                console.error(this.elementNickname);
-                let new_nickname = document.$("input.edit-user-nickname[data-nickname='" + this.props.nickname + "']").value;
+                // Right now changing the nickname is not supported
+                //let new_nickname = document.$("input.edit-user-nickname[data-nickname='" + this.props.nickname + "']").value;
+                let nickname = this.props.nickname;
                 let new_public_id = document.$("input.edit-user-public-id[data-nickname='" + this.props.nickname + "']").value;
                 let new_ip = document.$("input.edit-user-ip[data-nickname='" + this.props.nickname + "']").value;
                 let new_port = document.$("input.edit-user-port[data-nickname='" + this.props.nickname + "']").value;
 
-                let response = Window.this.xcall('update_user', new_nickname, new_public_id, new_ip, new_port);
+                let response = Window.this.xcall('update_user', nickname, new_public_id, new_ip, new_port);
                 //let response = [0, ""]
                 if (response[0] == 0) {
-                    setMsgBoxSuccess("User updated");
+                    setMsgBoxSuccess("<strong>" + nickname + "</strong> has been updated.");
                     this.parentElement.componentUpdate();
                 }
                 else {
