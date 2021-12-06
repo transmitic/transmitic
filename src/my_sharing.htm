@@ -90,7 +90,7 @@
             }
 
             render(props) {
-                let my_files = [
+                let my_filesx = [
                     {
                         file_path: "C:\\hello\\world",
                         shared_with: ["John Smith", "Foo Bar"],
@@ -102,6 +102,8 @@
                         add_users: ["John Smith", "Foo Bar", "Other Person"],
                     },
                 ];
+
+                let my_files = Window.this.xcall('get_my_sharing_files');
 
                 return <div>
                         <div class="menu-bar">

@@ -4,6 +4,7 @@ const RED = "#ff4545";
 const SUCCESS = GREEN;
 const ERROR = RED;
 
+// TODO auto scroll to success?
 function setMsgBoxSuccess(msg) {
     document.$("div#msg-box").content(msg);
     document.$("div#msg-box").style.display = "block";

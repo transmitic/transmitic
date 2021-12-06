@@ -29,8 +29,12 @@ struct PathJson {
     path: String,
 }
 
+// TODO escape all strings
+
 impl Handler {
-    fn add_files(&self, files: Value) {}
+    fn add_files(&self, files: Value) {
+
+    }
 
     fn add_folder(&self, folder: Value) {}
 
@@ -139,6 +143,39 @@ impl Handler {
     fn get_local_ip(&self) -> Value {
         // TODO
         Value::from("192.168.X.X")
+    }
+
+    fn get_my_sharing_files(&self) -> Value {
+        let my_sharing_files = self.transmitic_core.get_my_sharing_files();
+        let mut shared_users = Vec::new();
+        for user  in self.transmitic_core.get_shared_users() {
+            shared_users.push(user.nickname);
+        }
+
+        // DO Use struct and serde to clean this up
+        let mut my_files = Value::new();
+        for file in my_sharing_files {
+            let mut new_file = Value::new();
+            new_file.set_item("file_path", file.path);
+
+            let mut shared_with = Value::array(0);
+            for s in file.shared_with.iter() {
+                shared_with.push(s);
+            }
+            new_file.set_item("shared_with", shared_with);
+
+            let mut add_users = Value::array(0);
+            for user in shared_users.iter() {
+                if !file.shared_with.contains(user) {
+                    add_users.push(user.clone());
+                }
+            }
+            new_file.set_item("add_users", add_users);
+
+            my_files.push(new_file);
+        }
+
+        return my_files;
     }
 
     fn get_my_sharing_state(&self) -> Value{
@@ -262,7 +299,7 @@ impl Handler {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        
+
         return response;
     }
 }
@@ -294,6 +331,7 @@ impl sciter::EventHandler for Handler {
 
         fn get_downloads_in_progress();
         fn get_local_ip();
+        fn get_my_sharing_files();
         fn get_my_sharing_state();
         fn get_shared_users();
         fn get_sharing_port();
