@@ -29,23 +29,35 @@ struct PathJson {
     path: String,
 }
 
-// TODO escape all strings
+// TODO escape all strings for HTML GUI !!!
 
 impl Handler {
-    fn add_files(&self, files: Value) {
+    fn add_files(&mut self, files: Value) -> Value {
+        let mut clean_strings: Vec<String> = Vec::new();
+        if files.is_string() {
+            let clean_file = self.clean_sciter_string(files);
+            clean_strings.push(clean_file);
+        }
+        else {
+            for file in files.into_iter() {
+                let clean_file = self.clean_sciter_string(file);
+                clean_strings.push(clean_file);
+            }
+        }
 
+        let response: Value;
+        match self.transmitic_core.add_files(clean_strings) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+        return response;
     }
-
-    fn add_folder(&self, folder: Value) {}
 
     fn add_new_user(&mut self, new_nickname: Value, new_public_id: Value, new_ip: Value, new_port: Value) -> Value {
         let new_nickname = self.clean_sciter_string(new_nickname);
         let new_public_id = self.clean_sciter_string(new_public_id);
         let new_ip = self.clean_sciter_string(new_ip);
         let new_port = self.clean_sciter_string(new_port);
-
-        println!("{}", new_nickname);
-        println!("{}", new_port);
 
         let response: Value;
         match self.transmitic_core.add_new_user(new_nickname, new_public_id, new_ip, new_port) {
@@ -153,7 +165,7 @@ impl Handler {
         }
 
         // DO Use struct and serde to clean this up
-        let mut my_files = Value::new();
+        let mut my_files = Value::array(0);
         for file in my_sharing_files {
             let mut new_file = Value::new();
             new_file.set_item("file_path", file.path);
@@ -223,8 +235,17 @@ impl Handler {
 
     fn refresh_shared_with_me(&self) {}
 
-    fn remove_file_from_sharing(&self, file_path: Value) {
-        let file_path = self.clean_sciter_string(file_path);
+    fn remove_file_from_sharing(&mut self, file_path: Value) -> Value {
+        let mut file_path = self.clean_sciter_string(file_path);
+        file_path = file_path.replace("\\\\", "\\");
+        
+        let response;
+        match self.transmitic_core.remove_file_from_sharing(file_path) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+
+        return response;
     }
 
     fn remove_user(&mut self, nickname: Value) -> Value {
@@ -307,7 +328,6 @@ impl Handler {
 impl sciter::EventHandler for Handler {
     dispatch_script_call! {
         fn add_files(Value);
-        fn add_folder(Value);
         fn add_new_user(Value, Value, Value, Value);
         fn add_user_to_shared(Value, Value);
         fn create_new_id();

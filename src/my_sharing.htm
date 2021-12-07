@@ -71,8 +71,8 @@
             }
 
             ["on click at button.remove-sharing"]() {
-                //let response = Window.this.xcall('remove_file_from_sharing', this.filePath);
-                let response = [0, ""]
+                let response = Window.this.xcall('remove_file_from_sharing', this.filePath);
+                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("File removed. You will no longer be sharing <strong>" + this.filePath + "</strong>");
                     this.parentElement.componentUpdate();
@@ -104,6 +104,7 @@
                 ];
 
                 let my_files = Window.this.xcall('get_my_sharing_files');
+                console.log(my_files);
 
                 return <div>
                         <div class="menu-bar">
@@ -120,9 +121,13 @@
                     filter: "All Files (*.*)|*.*",
                     mode: "open-multiple",
                 });
+                if (!(files instanceof Array)) {
+                    files = [files];
+                }
                 if (files) {
-                    //let response = Window.this.xcall('add_files', files);
-                    let response = [0, ""];
+                    console.log(files);
+                    let response = Window.this.xcall('add_files', files);
+                    //let response = [0, ""];
                     if (response[0] == 0) {
                         setMsgBoxSuccess("File(s) added to share.");
                         this.componentUpdate();
@@ -136,8 +141,8 @@
             ["on click at button#add-folder"]() {
                 let files = Window.this.selectFolder();
                 if (files) {
-                    //let response = Window.this.xcall('add_folder', files);
-                    let response = [0, ""];
+                    let response = Window.this.xcall('add_files', files);
+                    //let response = [0, ""];
                     if (response[0] == 0) {
                         setMsgBoxSuccess("Folder added to share.");
                         this.componentUpdate();
