@@ -17,6 +17,20 @@
             }
 
             render(props) {
+
+                let sharedWithBlock = <div></div>
+                if (props.sharedWith.length != 0) {
+                    sharedWithBlock = <div>
+                        <div style="padding: 1em 0 1em 0;">
+                        Shared With:
+                        </div>
+
+                        <div class="shared-with" selectable>
+                            {props.sharedWith.map((d, index) => <div style="padding-bottom: 1em;">{index+1}. {d} <button style="margin-left: 1em;" class="remove-shared-with" user={d}>Remove</button></div>)}
+                        </div>
+                        </div>
+                }
+
                 return  <div class="my-file">
                     <span selectable><strong>{props.filePath}</strong></span>
                     <br /><br />
@@ -27,15 +41,8 @@
                             <option value=""></option>
                             {props.addUsers.map((d) => <option value={d}>{d}</option>)}
                         </select>
-
-                        <br /><br />
-                        Shared With:
-                        <br /><br />
-
-                        <div class="shared-with" selectable>
-                            {props.sharedWith.map((d, index) => <div style="padding-bottom: 1em;">{index+1}. {d} <button style="margin-left: 1em;" class="remove-shared-with" user={d}>Remove</button></div>)}
-                        </div>
-                        <br />
+                        {sharedWithBlock}
+                        <br/>
                         <button class="remove-sharing">Remove from Sharing</button>
                     </div>
                 <br />
@@ -59,8 +66,8 @@
 
             ["on click at button.remove-shared-with"](evt, btn) {
                 let user = btn.getAttribute("user");
-                //let response = Window.this.xcall('remove_user_from_sharing', user);
-                let response = [0, ""]
+                let response = Window.this.xcall('remove_user_from_sharing', user, this.filePath);
+                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("User removed. You will no longer share file <strong>" + this.filePath + "</strong> with <strong>" + user + "</strong>");
                     this.parentElement.componentUpdate();

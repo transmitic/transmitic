@@ -267,8 +267,19 @@ impl Handler {
         return response;
     }
 
-    fn remove_user_from_sharing(&self, nickname: Value) {
+    fn remove_user_from_sharing(&mut self, nickname: Value, file_path: Value) -> Value {
         let nickname = self.clean_sciter_string(nickname);
+        let mut file_path = self.clean_sciter_string(file_path);
+
+        file_path = file_path.replace("\\\\", "\\");
+
+        let response: Value;
+        match self.transmitic_core.remove_user_from_sharing(nickname, file_path) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+
+        return response;
     }
 
     fn set_my_sharing_state(&mut self, state: Value) -> Value {
@@ -351,7 +362,7 @@ impl sciter::EventHandler for Handler {
         fn refresh_shared_with_me();
         fn remove_file_from_sharing(Value);
         fn remove_user(Value);
-        fn remove_user_from_sharing(Value);
+        fn remove_user_from_sharing(Value, Value);
 
         fn get_app_display_name();
         fn get_app_display_version();
