@@ -53,7 +53,7 @@
             editButton;
 
             this(props) {
-                this.isAllowed = true;
+                this.isAllowed = props.status == "Allowed";
                 this.isEditing = false;
                 this.props = props;
 
@@ -135,7 +135,8 @@
             ["on click at button.user-action"]() {
                 let response = Window.this.xcall('set_user_is_allowed_state', this.props.nickname, !this.isAllowed);
                 if (response[0] == 0) {
-                    this.componentUpdate({ isAllowed: !this.isAllowed });
+                    //this.componentUpdate({ isAllowed: !this.isAllowed });
+                    this.parentElement.componentUpdate();
                 }
                 else {
                     
@@ -143,6 +144,7 @@
             }
 
             ["on click at button.edit-user"]() {
+                // TODO text doesn't unload unless remove focus
                 this.componentUpdate({ isEditing: !this.isEditing });
             }
 
