@@ -46,14 +46,14 @@
 
             ["on change at select#add-user"](evt, btn) {
                 let selected_user = btn.value;
-                //let response = Window.this.xcall('add_user_to_shared', selected_user, this.filePath);
-                let response = [0, ""]
+                let response = Window.this.xcall('add_user_to_shared', selected_user, this.filePath);
+                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("User added. Now sharing file <strong>" + this.filePath + "</strong> with <strong>" + selected_user + "</strong>");
                     this.parentElement.componentUpdate();
                 }
                 else {
-                    setMsgBoxError("Failed to share with user.");
+                    setMsgBoxError("Failed to share with user. " + response[1]);
                 }
             }
 

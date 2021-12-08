@@ -67,9 +67,17 @@ impl Handler {
         return response;
     }
 
-    fn add_user_to_shared(&self, nickname: Value, file_path: Value) {
+    fn add_user_to_shared(&mut self, nickname: Value, file_path: Value) -> Value {
         let nickname = self.clean_sciter_string(nickname);
-        let file_path = self.clean_sciter_string(file_path);
+        let mut file_path = self.clean_sciter_string(file_path);
+        file_path = file_path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
+
+        let response: Value;
+        match self.transmitic_core.add_user_to_shared(nickname, file_path) {
+            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+        return response;
     }
 
     fn create_new_id(&mut self) -> Value {
