@@ -6,7 +6,7 @@ Transmitic is still in development.
 Discord: [https://discord.gg/tRT3J6T](https://discord.gg/tRT3J6T)  
 Reddit: [https://www.reddit.com/r/transmitic/](https://www.reddit.com/r/transmitic/)  
 Twitter: [https://twitter.com/transmitic](https://twitter.com/transmitic)  
-Website: [https://transmitic.io/](https://transmitic.io/)  
+Website: [https://transmitic.net/](https://transmitic.net/)  
 
 ## Support Transmitic
 

@@ -13,7 +13,7 @@ use transmitic_core::transmitic_core::TransmiticCore;
 
 const VERSION: &str = "0.10.0"; // Note: And cargo.toml
 const NAME: &str = "Transmitic Beta";
-const URL: &str = "https://transmitic.io";
+const URL: &str = "https://transmitic.net";
 
 struct Handler {
     transmitic_core: TransmiticCore,
