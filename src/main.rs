@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 extern crate sciter;
 use sciter::dispatch_script_call;
 use sciter::Value;
+use transmitic_core::incoming_uploader::SharingState;
 use transmitic_core::transmitic_core::TransmiticCore;
 
 const VERSION: &str = "0.10.0"; // Note: And cargo.toml
@@ -198,9 +199,13 @@ impl Handler {
         return my_files;
     }
 
-    fn get_my_sharing_state(&self) -> Value{
-        let sharing_state = self.transmitic_core.get_my_sharing_state();
-        return self.get_msg_box_response(0, &sharing_state);
+    fn get_my_sharing_state(&self) -> Value {
+        let state = match self.transmitic_core.get_my_sharing_state() {
+            SharingState::Off => "Off".to_string(),
+            SharingState::Local => "Local".to_string(),
+            SharingState::Internet =>"Internet".to_string(),
+        };
+        return self.get_msg_box_response(0, &state);
     }
 
     fn get_shared_users(&self) -> Value {
@@ -284,14 +289,23 @@ impl Handler {
 
     fn set_my_sharing_state(&mut self, state: Value) -> Value {
         let state = self.clean_sciter_string(state);
+
         let response: Value;
-        match self.transmitic_core.set_my_sharing_state(state) {
-            Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
-            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        let core_state: SharingState;
+        if state == "Off" {
+            core_state = SharingState::Off;
+        }
+        else if state == "Local" {
+            core_state = SharingState::Local;
+        }
+        else if state == "Internet" {
+            core_state = SharingState::Internet;
+        }
+        else {
+            return self.get_msg_box_response(1, &format!("Sharing state '{}' is not valid", state));
         }
 
-        return response;
-
+        return self.get_msg_box_response(0, &"".to_string());
     }
 
     fn set_port(&mut self, port: Value) -> Value {
