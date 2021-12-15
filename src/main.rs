@@ -295,7 +295,7 @@ impl Handler {
         if state == "Off" {
             core_state = SharingState::Off;
         }
-        else if state == "Local" {
+        else if state == "Local Network" {
             core_state = SharingState::Local;
         }
         else if state == "Internet" {
@@ -305,6 +305,7 @@ impl Handler {
             return self.get_msg_box_response(1, &format!("Sharing state '{}' is not valid", state));
         }
 
+        self.transmitic_core.set_my_sharing_state(core_state);
         return self.get_msg_box_response(0, &"".to_string());
     }
 
