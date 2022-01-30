@@ -10,6 +10,7 @@ extern crate sciter;
 use sciter::dispatch_script_call;
 use sciter::Value;
 use transmitic_core::incoming_uploader::SharingState;
+use transmitic_core::shared_file::SelectedDownload;
 use transmitic_core::transmitic_core::TransmiticCore;
 
 const VERSION: &str = "0.10.0"; // Note: And cargo.toml
@@ -90,19 +91,31 @@ impl Handler {
         return response;
     }
 
-    fn download_selected(&self, files: Value) {
+    fn download_selected(&mut self, files: Value) -> Value {
         println!("download selected");
-        // println!("{:?}", files);
-        // let mut download: Vec<Vec<String>> = Vec::new();
-        // for file in files.values() {
-        //     println!("{:?}", file);
-        //     let mut new_download = Vec::new();
-        //     new_download.push(file.get_item("path").to_string());
-        //     new_download.push(file.get_item("owner").to_string());
-        //     download.push(new_download);
-        // };
+        let files = files.get_item("files");
+
+        println!("{:?}", files);
+        let mut downloads: Vec<SelectedDownload> = Vec::new();
+        for file in files.values() {
+            println!("{:?}", file);
+            let owner = self.clean_sciter_string(file.get_item("owner"));
+            let path = self.clean_sciter_string(file.get_item("path")).replace("\\\\", "\\");
+            let new_download = SelectedDownload {
+                path,
+                owner,
+            };
+            downloads.push(new_download);
+        };
         
-        // println!("{:?}", download);
+        println!("{:?}", downloads);
+
+        let response: Value;
+        match self.transmitic_core.download_selected(downloads) {
+            Ok(_) => response = self.get_msg_box_response(0, &"Files will be downloaded".to_string()),
+            Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        }
+        return response;
     }
 
     fn downloads_open(&self) {}

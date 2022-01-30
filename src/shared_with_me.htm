@@ -112,14 +112,14 @@
                 let checkedBoxes = document.querySelectorAll("button[type=checkbox]:checked");
                 console.log(checkedBoxes);
                 console.log(checkedBoxes[0].getAttribute("data-path"));
-                let selectedFiles = [{"path": "none", "owner": "none"}];
+                let selectedFiles = [];
                 for (const box of checkedBoxes) {
                     let path = box.getAttribute("data-path");
                     let owner = box.getAttribute("data-owner");
                     selectedFiles.push({"path": path, "owner": owner});
                 }
                 console.log(selectedFiles);
-                let response = Window.this.xcall('download_selected', []);
+                let response = Window.this.xcall('download_selected', {"files": selectedFiles});
                 console.log(response);
             }
 
@@ -128,7 +128,7 @@
                 //let response = Window.this.xcall('refresh_shared_with_me');
                 let response = [
                     {
-                        owner: "John Smith",
+                        owner: "main",
                         files: [
                             {
                                 path: "Everything",
@@ -189,7 +189,7 @@
                                         ],
                                     },
                                     {
-                                        path: "C:\\Users\\laptop-user\\stuff\\rust_projects\\transmitic_workspace\\transmitic\\src\\ic_fluent_arrow_download_48_regular.svg",
+                                        path: "C:\\none",
                                         count: "",
                                         size: "1 MB",
                                         type: "file",
