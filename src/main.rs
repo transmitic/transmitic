@@ -272,7 +272,15 @@ impl Handler {
         Value::from(public_id_string)
     }
 
-    fn refresh_shared_with_me(&self) {}
+    fn refresh_shared_with_me(&self) {
+        // let response;
+        // match self.transmitic_core.refresh_shared_with_me() {
+        //     Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
+        //     Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
+        // }
+
+        // return response;
+    }
 
     fn remove_file_from_sharing(&mut self, file_path: Value) -> Value {
         let mut file_path = self.clean_sciter_string(file_path);
