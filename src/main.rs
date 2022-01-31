@@ -4,6 +4,7 @@ use std::f64::consts::FRAC_1_PI;
 use std::path::Path;
 use std::process::Command;
 use std::str;
+use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 extern crate sciter;
@@ -11,6 +12,7 @@ use sciter::dispatch_script_call;
 use sciter::Value;
 use transmitic_core::incoming_uploader::SharingState;
 use transmitic_core::shared_file::SelectedDownload;
+use transmitic_core::shared_file::SharedFile;
 use transmitic_core::transmitic_core::TransmiticCore;
 
 const VERSION: &str = "0.10.0"; // Note: And cargo.toml
@@ -29,6 +31,13 @@ struct FilesJson {
 #[derive(Serialize, Deserialize, Debug)]
 struct PathJson {
     path: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct RefreshDataUI {
+    owner: String,
+    error: String,
+    files: Vec<SharedFile>,
 }
 
 // TODO escape all strings for HTML GUI !!!
@@ -272,14 +281,35 @@ impl Handler {
         Value::from(public_id_string)
     }
 
-    fn refresh_shared_with_me(&self) {
-        // let response;
-        // match self.transmitic_core.refresh_shared_with_me() {
-        //     Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
-        //     Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
-        // }
+    fn refresh_shared_with_me(&mut self) -> Value {
 
-        // return response;
+        let refresh_data = self.transmitic_core.refresh_shared_with_me();
+        let mut ui_data = Vec::new();
+        for data in refresh_data {
+            let ui: RefreshDataUI;
+            match data.data {
+                Ok(file) => {
+                    ui = RefreshDataUI {
+                        owner: data.owner,
+                        error: "".to_string(),
+                        files: vec![file],
+                    };
+                },
+                Err(e) => {
+                    ui = RefreshDataUI {
+                        owner: data.owner,
+                        error: e.to_string(),
+                        files: Vec::new(),
+                    };
+                },
+            }
+            ui_data.push(ui);
+        }
+
+        let json_string = serde_json::to_string(&ui_data).unwrap();
+        println!("{}", json_string);
+        return Value::from_str(&json_string).unwrap();
+
     }
 
     fn remove_file_from_sharing(&mut self, file_path: Value) -> Value {

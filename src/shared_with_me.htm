@@ -48,16 +48,33 @@
                 let showMore  = "";
                 let divID = 0;
                 let info = "File";
-                if (d.children) {
-                    info = "Folder (" + d.count + " total files)";
-                    let childrenLength = d.children.length;
+                if (d.files.length > 0) {
+                    info = "Folder (" + d.files.length + " total files)";
+                    let childrenLength = d.files.length;
                     if (childrenLength > 2) {
                         divID = Math.random().toString();
                         divID = divID.substring(2, divID.length);
                         showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                     }
                 }
-                return <div><button data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size} </button> {showMore} <br/> {this.createFileList(d.children, "", divID)}</div>
+                return <div><button data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {this.getSizeString(d.file_size)} </button> {showMore} <br/> {this.createFileList(d.files, "", divID)}</div>
+            }
+
+            getSizeString(size_bytes) {
+                let s = "";
+                if (size_bytes >= 1073741824) {
+                    s = (size_bytes/1073741824).toFixed(0) + " GB"
+                } else if (size_bytes >= 1048576) {
+                    s = (size_bytes/1048576).toFixed(0) + " MB"
+                } else if (size_bytes >= 1024) {
+                    s = (size_bytes/1024).toFixed(0) + " KB"
+                } else {
+                    if (size_bytes == 0) {
+                        size_bytes = 1;
+                    }
+                    s = size_bytes + " bytes"
+                }
+                return s;
             }
 
             ["on click at button.show-more"](evt, btn) {
@@ -127,64 +144,61 @@
 
             ["on click at button#refresh-all"]() {
                 this.componentUpdate({refreshState: "refreshing"});
-                let response = [
+                let responseold = [
                     {
                         owner: "main",
                         error: "",
                         files: [
                             {
                                 path: "Everything",
-                                count: "1000",
-                                size: "1 GB",
-                                type: "folder",
-                                children: [
+                                is_directory: true,
+                                file_size: 1024,
+                                files: [
                                     {
                                         path: "C:\\path\\hello",
-                                        count: "20",
-                                        size: "1 GB",
-                                        type: "folder",
-                                        children: [
+                                        is_directory: true,
+                                        file_size: 10240,
+                                        files: [
                                             {
                                                 path: "C:\\path\\hello\\1.txt",
-                                                count: "",
-                                                size: "1 MB",
-                                                type: "file",
+                                                is_directory: false,
+                                                file_size: 123465,
+                                                files: []
                                             },
                                             {
                                                 path: "C:\\path\\hello\\2.txt",
-                                                count: "",
-                                                size: "1 MB",
-                                                type: "file",
+                                                is_directory: false,
+                                                file_size: 100,
+                                                files: []
                                             },
                                             {
                                                 path: "C:\\path\\hello\\3.txt",
-                                                count: "",
-                                                size: "1 MB",
-                                                type: "file",
+                                                is_directory: false,
+                                                file_size: 123456987123400,
+                                                files: []
                                             },                                  
                                             {
                                                 path: "C:\\path\\hello",
-                                                count: "3",
-                                                size: "1 GB",
-                                                type: "folder",
-                                                children: [
+                                                is_directory: true,
+                                                file_size: 1024,
+                                                files: [
                                                     {
                                                         path: "C:\\path\\hello\\1.txt",
-                                                        count: "",
-                                                        size: "1 MB",
-                                                        type: "file",
+                                                        is_directory: false,
+                                                        file_size: 10,
+                                                        files: []
                                                     },
                                                     {
                                                         path: "C:\\path\\hello\\2.txt",
-                                                        count: "",
-                                                        size: "1 MB",
-                                                        type: "file",
+                                                        is_directory: false,
+                                                        file_size: 10,
+                                                        files: []
                                                     },
                                                     {
                                                         path: "C:\\path\\hello\\3.txt",
-                                                        count: "",
-                                                        size: "1 MB",
-                                                        type: "file",
+                                                        is_directory: false,
+                                                        file_size: 10,
+                                                        files: []
                                                     },
                                                 ],
                                             },
@@ -192,9 +206,9 @@
                                     },
                                     {
                                         path: "C:\\none",
-                                        count: "",
-                                        size: "1 MB",
-                                        type: "file",
+                                        is_directory: false,
+                                        file_size: 10,
+                                        files: []
                                     },
                                 ]
                             }
@@ -206,7 +220,7 @@
                         files: [],
                     },
                 ];
-                //let response = Window.this.xcall('refresh_shared_with_me');
+                let response = Window.this.xcall('refresh_shared_with_me');
                 this.componentUpdate({fileData: response, refreshState: "finished"});
             }
 
