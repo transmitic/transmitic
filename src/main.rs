@@ -40,6 +40,22 @@ struct RefreshDataUI {
     files: Vec<SharedFile>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct AllDownloadsUI {
+    in_progress: Vec<SingleDownloadUI>,
+    invalid: Vec<SingleDownloadUI>,
+    queued: Vec<SingleDownloadUI>,
+    offline: Vec<SingleDownloadUI>,
+    finished: Vec<SingleDownloadUI>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct SingleDownloadUI {
+    pub owner: String,
+    pub percent: u64,
+    pub path: String,
+}
+
 // TODO escape all strings for HTML GUI !!!
 
 impl Handler {
@@ -140,6 +156,64 @@ impl Handler {
     fn downloads_pause_all(&self) {}
 
     fn downloads_resume_all(&self) {}
+
+    fn get_all_downloads(&self) -> Value {
+        let download_state_lock = self.transmitic_core.get_download_state();
+        let d = download_state_lock.read().unwrap();
+
+        let mut nicknames: Vec<String> = Vec::new();
+        for key in d.keys() {
+            nicknames.push(key.clone());
+        }
+        nicknames.sort();
+
+        let mut in_progress: Vec<SingleDownloadUI> = Vec::new();
+        let mut invalid: Vec<SingleDownloadUI> = Vec::new();
+        let mut queued: Vec<SingleDownloadUI> = Vec::new();
+        let mut completed: Vec<SingleDownloadUI> = Vec::new();
+        let mut offline: Vec<SingleDownloadUI> = Vec::new();
+        for nickname in nicknames {
+            let download_state = d.get(&nickname).unwrap();
+
+            if download_state.is_online {
+                match &download_state.active_download_path {
+                    Some(path) => {
+                        in_progress.push(SingleDownloadUI { owner: nickname.clone(), percent: download_state.active_download_percent, path: path.clone() });
+                    },
+                    None => {},  // Do nothing, there is no in progress download
+                }
+
+                for queued_download in download_state.download_queue.iter() {
+                    queued.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: queued_download.clone() });
+                }
+            }
+            else {
+                for queued_download in download_state.download_queue.iter() {
+                    offline.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: queued_download.clone() });
+                }
+            }
+
+            for invalid_download in download_state.invalid_downloads.iter() {
+                invalid.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: invalid_download.clone() });
+            }
+
+            for finished_download in download_state.completed_downloads.iter() {
+                completed.push(SingleDownloadUI { owner: nickname.clone(), percent: 100, path: finished_download.clone() });
+            }
+        }
+
+        let all_downloads = AllDownloadsUI{
+            in_progress,
+            invalid,
+            queued,
+            offline: offline,
+            finished: completed,
+        };
+
+        let json_string = serde_json::to_string(&all_downloads).unwrap();
+        println!("{}", json_string);
+        return Value::from_str(&json_string).unwrap();
+    }
 
     fn get_downloads_in_progress(&self) -> Value {
         let mut response = Value::new();
@@ -447,6 +521,7 @@ impl sciter::EventHandler for Handler {
         fn get_app_display_version();
         fn get_app_url();
 
+        fn get_all_downloads();
         fn get_downloads_in_progress();
         fn get_local_ip();
         fn get_my_sharing_files();

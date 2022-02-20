@@ -58,14 +58,17 @@
             }
         ];
 
-        let all_downloads = {
-            //in_progress: Window.this.xcall('get_downloads_in_progress'),
-            in_progress: downloads_in_progress,
-            invalid: downloads_invalid,
-            offline: downloads_offline,
-            finished: downloads_finished,
-        };
+        // let all_downloads = {
+        //     //in_progress: Window.this.xcall('get_downloads_in_progress'),
+        //     in_progress: downloads_in_progress,
+        //     invalid: downloads_invalid,
+        //     offline: downloads_offline,
+        //     finished: downloads_finished,
+        //     queued: downloads_queued,
+        // };
 
+        let all_downloads = Window.this.xcall('get_all_downloads');
+        //console.log(all_downloads);
 
 
 
@@ -91,19 +94,25 @@
                 }
                 else if (props.downloadState == "invalid") {
                     downloadClass = "download-invalid";
-                    description = props.owner + " | " + props.percent + "% | Invalid or no longer shared with you";
+                    description = props.owner + " | Invalid or no longer shared with you";
+                    cancelDownload = <button class="cancel-download">Cancel</button>;
+                    pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
+                }
+                else if (props.downloadState == "queued") {
+                    downloadClass = "download-offline";
+                    description = props.owner + " | Queued for Download";
                     cancelDownload = <button class="cancel-download">Cancel</button>;
                     pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 }
                 else if (props.downloadState == "offline") {
                     downloadClass = "download-offline";
-                    description = props.owner + " | " + props.percent + "% | User currently offline";
+                    description = props.owner +  " | User currently offline";
                     cancelDownload = <button class="cancel-download">Cancel</button>;
                     pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 }
                 else if (props.downloadState == "finished") {
                     downloadClass = "download-finished";
-                    description = props.owner + " |  100% | Download Finished";
+                    description = props.owner + " | 100% | Download Finished";
                     cancelDownload = <button class="cancel-download">Cancel</button>;
                     pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 }
@@ -133,10 +142,22 @@
 
             }
 
+            componentDidMount() {
+                this.timer(5000, () => {
+                    //console.log(1);
+                    //all_downloads["in_progress"] = Window.this.xcall('get_downloads_in_progress');
+                    all_downloads = Window.this.xcall('get_all_downloads');
+                    console.log(all_downloads);
+                    this.componentUpdate();
+                    return true; // to keep the timer ticking
+                });
+            }
+
             render(props) {
                 return <div>
                     {all_downloads.in_progress.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="inProgress" />)}
                     {all_downloads.invalid.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="invalid" />)}
+                    {all_downloads.queued.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="queued" />)}
                     {all_downloads.offline.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="offline" />)}
                     {all_downloads.finished.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="finished" />)}
                 </div>;
