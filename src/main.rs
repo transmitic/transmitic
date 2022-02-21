@@ -148,13 +148,20 @@ impl Handler {
         return response;
     }
 
-    fn downloads_open(&self) {}
+    fn downloads_open(&self) {
+        let dir_path = self.transmitic_core.get_downloads_dir().unwrap();
+        Command::new("explorer.exe").arg(dir_path).spawn();
+    }
 
-    fn downloads_clear_finished(&self) {}
+    fn downloads_clear_finished(&mut self) {
+        self.transmitic_core.downloads_clear_finished();
+    }
 
     fn downloads_clear_finished_from_me(&self) {}
 
-    fn downloads_cancel_invalid(&self) {}
+    fn downloads_clear_invalid(&mut self) {
+        self.transmitic_core.downloads_clear_invalid();
+    }
 
     fn downloads_cancel_all(&self) {}
 
@@ -230,25 +237,6 @@ impl Handler {
         let json_string = serde_json::to_string(&all_downloads).unwrap();
         //println!("{}", json_string);
         return Value::from_str(&json_string).unwrap();
-    }
-
-    fn get_downloads_in_progress(&self) -> Value {
-        let mut response = Value::new();
-
-        let mut item1 = Value::new();
-        item1.set_item("owner", "My Mock");
-        item1.set_item("percent", "90");
-        item1.set_item("path", "C:\\users\\other\\hello.txt");
-
-        let mut item2 = Value::new();
-        item2.set_item("owner", "My Mock2");
-        item2.set_item("percent", "5");
-        item2.set_item("path", "C:\\users\\other\\hello3.txt");
-
-        response.push(item1);
-        response.push(item2);
-
-        return response;
     }
 
     fn get_msg_box_response(&self, code: i32, msg: &String) -> Value {
@@ -523,7 +511,7 @@ impl sciter::EventHandler for Handler {
         fn downloads_open();
         fn downloads_clear_finished();
         fn downloads_clear_finished_from_me();
-        fn downloads_cancel_invalid();
+        fn downloads_clear_invalid();
         fn downloads_cancel_all();
         fn downloads_pause_all();
         fn downloads_resume_all();
@@ -539,7 +527,6 @@ impl sciter::EventHandler for Handler {
 
         fn get_all_downloads();
         fn get_all_uploads();
-        fn get_downloads_in_progress();
         fn get_local_ip();
         fn get_my_sharing_files();
         fn get_my_sharing_state();

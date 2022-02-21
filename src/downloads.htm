@@ -143,13 +143,18 @@
 
             }
 
+            updateDownloads(evt) {
+                console.error("REFRESH DLS");
+                all_downloads = Window.this.xcall('get_all_downloads');
+                console.log(all_downloads);
+                this.componentUpdate();
+            }
+
             componentDidMount() {
+                this.onGlobalEvent("render-downloads", this.updateDownloads);
+
                 this.timer(2000, () => {
-                    //console.log(1);
-                    //all_downloads["in_progress"] = Window.this.xcall('get_downloads_in_progress');
-                    all_downloads = Window.this.xcall('get_all_downloads');
-                    console.log(all_downloads);
-                    this.componentUpdate();
+                    this.updateDownloads(null);
                     return true; // to keep the timer ticking
                 });
             }
@@ -190,11 +195,18 @@
 
             }
 
+            updateDownloads(evt) {
+                console.error("REFRESH");
+                all_uploads = Window.this.xcall('get_all_uploads');
+                console.log(all_uploads);
+                this.componentUpdate();
+            }
+
             componentDidMount() {
+                this.onGlobalEvent("render-downloads", this.updateDownloads);
+
                 this.timer(2000, () => {
-                    all_uploads = Window.this.xcall('get_all_uploads');
-                    console.log(all_uploads);
-                    this.componentUpdate();
+                    this.updateDownloads(null);
                     return true; // to keep the timer ticking
                 });
             }
@@ -207,8 +219,10 @@
 
         }
 
-        document.$("div#my-downloads").content(<MyDownloads />);
-        document.$("div#downloading-from-me").content(<DownloadsFromMe />);
+        let myDownloadsElement = <MyDownloads />;
+        let downloadsFromMeElement = <DownloadsFromMe />;
+        document.$("div#my-downloads").content(myDownloadsElement);
+        document.$("div#downloading-from-me").content(downloadsFromMeElement);
 
         class MenuBar extends Element {
 
@@ -220,7 +234,7 @@
                 return <div class="menu-bar">
                     <button id="open-downloads">Open Downloads</button> |
                     <button id="clear-finished">Clear Finished</button> |
-                    <button id="cancel-invalid">Cancel Invalid</button> |
+                    <button id="clear-invalid">Cancel Invalid</button> |
                     <button id="cancel-all-downloads">Cancel All</button> |
                     <button id="pause-all-downloads">Pause All</button> |
                     <button id="resume-all-downloads">Resume All</button>
@@ -228,15 +242,17 @@
             }
 
             ["on click at button#open-downloads"]() {
-                //let response = Window.this.xcall('downloads_open');
+                let response = Window.this.xcall('downloads_open');
             }
 
             ["on click at button#clear-finished"]() {
-                //let response = Window.this.xcall('downloads_clear_finished');
+                Window.this.xcall('downloads_clear_finished');
+                Window.post( new Event("render-downloads") );
             }
 
-            ["on click at button#cancel-invalid"]() {
-                //let response = Window.this.xcall('downloads_cancel_invalid');
+            ["on click at button#clear-invalid"]() {
+                Window.this.xcall('downloads_clear_invalid');
+                Window.post( new Event("render-downloads") );
             }
 
             ["on click at button#cancel-all-downloads"]() {
