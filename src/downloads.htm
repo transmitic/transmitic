@@ -68,6 +68,7 @@
         // };
 
         let all_downloads = Window.this.xcall('get_all_downloads');
+        let all_uploads = Window.this.xcall('get_all_uploads');
         //console.log(all_downloads);
 
 
@@ -143,7 +144,7 @@
             }
 
             componentDidMount() {
-                this.timer(5000, () => {
+                this.timer(2000, () => {
                     //console.log(1);
                     //all_downloads["in_progress"] = Window.this.xcall('get_downloads_in_progress');
                     all_downloads = Window.this.xcall('get_all_downloads');
@@ -189,22 +190,18 @@
 
             }
 
-            render(props) {
-                let downloadsFromMe = [
-                    {
-                        name: "My Friend",
-                        percent: "25",
-                        path: "C:\\shared_file.txt",
-                    },
-                    {
-                        name: "Other Friend ",
-                        percent: "56",
-                        path: "C:\\shared_file2.txt",
-                    },
-                ]
+            componentDidMount() {
+                this.timer(2000, () => {
+                    all_uploads = Window.this.xcall('get_all_uploads');
+                    console.log(all_uploads);
+                    this.componentUpdate();
+                    return true; // to keep the timer ticking
+                });
+            }
 
+            render(props) {
                 return <div>
-                    {downloadsFromMe.map((d) => <SingleDownloadFromMe name={d.name} percent={d.percent} path={d.path} />)}
+                    {all_uploads.map((d) => <SingleDownloadFromMe name={d.nickname} percent={d.percent} path={d.path} />)}
                 </div>
             }
 

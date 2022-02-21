@@ -13,6 +13,7 @@ use sciter::Value;
 use transmitic_core::incoming_uploader::SharingState;
 use transmitic_core::shared_file::SelectedDownload;
 use transmitic_core::shared_file::SharedFile;
+use transmitic_core::transmitic_core::SingleUploadState;
 use transmitic_core::transmitic_core::TransmiticCore;
 
 const VERSION: &str = "0.10.0"; // Note: And cargo.toml
@@ -47,6 +48,10 @@ struct AllDownloadsUI {
     queued: Vec<SingleDownloadUI>,
     offline: Vec<SingleDownloadUI>,
     finished: Vec<SingleDownloadUI>,
+}
+
+struct AllUploadsUI {
+    uploads: Vec<SingleUploadState>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -157,6 +162,18 @@ impl Handler {
 
     fn downloads_resume_all(&self) {}
 
+    fn get_all_uploads(&self) -> Value {
+        let upload_state = self.transmitic_core.get_upload_state();
+        let u = upload_state.read().unwrap();
+
+        let mut uploads: Vec<SingleUploadState> = u.values().cloned().collect();
+        uploads.sort_by(|x,y| x.nickname.cmp(&y.nickname));
+
+        let json_string = serde_json::to_string(&uploads).unwrap();
+        println!("{}", json_string);
+        return Value::from_str(&json_string).unwrap();
+    }
+
     fn get_all_downloads(&self) -> Value {
         let download_state_lock = self.transmitic_core.get_download_state();
         let d = download_state_lock.read().unwrap();
@@ -211,7 +228,7 @@ impl Handler {
         };
 
         let json_string = serde_json::to_string(&all_downloads).unwrap();
-        println!("{}", json_string);
+        //println!("{}", json_string);
         return Value::from_str(&json_string).unwrap();
     }
 
@@ -428,7 +445,6 @@ impl Handler {
     fn set_my_sharing_state(&mut self, state: Value) -> Value {
         let state = self.clean_sciter_string(state);
 
-        let response: Value;
         let core_state: SharingState;
         if state == "Off" {
             core_state = SharingState::Off;
@@ -522,6 +538,7 @@ impl sciter::EventHandler for Handler {
         fn get_app_url();
 
         fn get_all_downloads();
+        fn get_all_uploads();
         fn get_downloads_in_progress();
         fn get_local_ip();
         fn get_my_sharing_files();
