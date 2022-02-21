@@ -163,7 +163,9 @@ impl Handler {
         self.transmitic_core.downloads_clear_invalid();
     }
 
-    fn downloads_cancel_all(&self) {}
+    fn downloads_cancel_all(&mut self) {
+        self.transmitic_core.downloads_cancel_all();
+    }
 
     fn downloads_pause_all(&self) {}
 

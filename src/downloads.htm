@@ -234,7 +234,7 @@
                 return <div class="menu-bar">
                     <button id="open-downloads">Open Downloads</button> |
                     <button id="clear-finished">Clear Finished</button> |
-                    <button id="clear-invalid">Cancel Invalid</button> |
+                    <button id="clear-invalid">Clear Invalid</button> |
                     <button id="cancel-all-downloads">Cancel All</button> |
                     <button id="pause-all-downloads">Pause All</button> |
                     <button id="resume-all-downloads">Resume All</button>
@@ -256,7 +256,7 @@
             }
 
             ["on click at button#cancel-all-downloads"]() {
-                //let response = Window.this.xcall('downloads_cancel_all');
+                let response = Window.this.xcall('downloads_cancel_all');
             }
 
             ["on click at button#pause-all-downloads"]() {
