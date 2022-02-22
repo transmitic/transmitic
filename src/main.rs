@@ -43,6 +43,7 @@ struct RefreshDataUI {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct AllDownloadsUI {
+    is_downloading_paused: bool,
     in_progress: Vec<SingleDownloadUI>,
     invalid: Vec<SingleDownloadUI>,
     queued: Vec<SingleDownloadUI>,
@@ -167,9 +168,13 @@ impl Handler {
         self.transmitic_core.downloads_cancel_all();
     }
 
-    fn downloads_pause_all(&self) {}
+    fn downloads_pause_all(&mut self) {
+        self.transmitic_core.downloads_pause_all();
+    }
 
-    fn downloads_resume_all(&self) {}
+    fn downloads_resume_all(&mut self) {
+        self.transmitic_core.downloads_resume_all();
+    }
 
     fn get_all_uploads(&self) -> Value {
         let upload_state = self.transmitic_core.get_upload_state();
@@ -229,6 +234,7 @@ impl Handler {
         }
 
         let all_downloads = AllDownloadsUI{
+            is_downloading_paused: self.transmitic_core.is_downloading_paused(),
             in_progress,
             invalid,
             queued,
@@ -515,6 +521,7 @@ impl sciter::EventHandler for Handler {
         fn downloads_clear_finished_from_me();
         fn downloads_clear_invalid();
         fn downloads_cancel_all();
+        fn downloads_cancel_single(Value, Value);
         fn downloads_pause_all();
         fn downloads_resume_all();
 
