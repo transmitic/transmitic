@@ -168,6 +168,15 @@ impl Handler {
         self.transmitic_core.downloads_cancel_all();
     }
 
+    fn downloads_cancel_single(&mut self, nickname: Value, file_path: Value) {
+        let nickname = self.clean_sciter_string(nickname);
+        let mut file_path = self.clean_sciter_string(file_path);
+        file_path = file_path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
+
+        self.transmitic_core.downloads_cancel_single(nickname, file_path);
+
+    }
+
     fn downloads_pause_all(&mut self) {
         self.transmitic_core.downloads_pause_all();
     }
