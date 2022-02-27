@@ -60,6 +60,7 @@ struct SingleDownloadUI {
     pub owner: String,
     pub percent: u64,
     pub path: String,
+    pub path_local_disk: String,
 }
 
 // TODO escape all strings for HTML GUI !!!
@@ -154,6 +155,13 @@ impl Handler {
         Command::new("explorer.exe").arg(dir_path).spawn();
     }
 
+    fn downloads_open_single(&self, path_local_disk: Value) {
+        let mut path_local_disk = self.clean_sciter_string(path_local_disk);
+        path_local_disk = path_local_disk.replace("\\\\", "\\");
+        println!("DOWNLOAD PATH: {}", path_local_disk);
+        Command::new("explorer.exe").arg(path_local_disk).spawn();
+    }
+
     fn downloads_clear_finished(&mut self) {
         self.transmitic_core.downloads_clear_finished();
     }
@@ -218,27 +226,30 @@ impl Handler {
             if download_state.is_online {
                 match &download_state.active_download_path {
                     Some(path) => {
-                        in_progress.push(SingleDownloadUI { owner: nickname.clone(), percent: download_state.active_download_percent, path: path.clone() });
+                        let mut path_local_disk = download_state.active_download_local_path.clone().unwrap_or("".to_string());
+                        path_local_disk = path_local_disk.replace("/", "\\");
+                        println!("MAIN local disk: {}", path_local_disk);
+                        in_progress.push(SingleDownloadUI { owner: nickname.clone(), percent: download_state.active_download_percent, path: path.clone(), path_local_disk: path_local_disk, });
                     },
                     None => {},  // Do nothing, there is no in progress download
                 }
 
                 for queued_download in download_state.download_queue.iter() {
-                    queued.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: queued_download.clone() });
+                    queued.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: queued_download.clone(), path_local_disk: "".to_string() });
                 }
             }
             else {
                 for queued_download in download_state.download_queue.iter() {
-                    offline.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: queued_download.clone() });
+                    offline.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: queued_download.clone(), path_local_disk: "".to_string() });
                 }
             }
 
             for invalid_download in download_state.invalid_downloads.iter() {
-                invalid.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: invalid_download.clone() });
+                invalid.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: invalid_download.clone(), path_local_disk: "".to_string() });
             }
 
             for finished_download in download_state.completed_downloads.iter() {
-                completed.push(SingleDownloadUI { owner: nickname.clone(), percent: 100, path: finished_download.clone() });
+                completed.push(SingleDownloadUI { owner: nickname.clone(), percent: 100, path: finished_download.clone(), path_local_disk: "".to_string() });
             }
         }
 
@@ -526,6 +537,7 @@ impl sciter::EventHandler for Handler {
         fn create_new_id();
         fn download_selected(Value);
         fn downloads_open();
+        fn downloads_open_single(Value);
         fn downloads_clear_finished();
         fn downloads_clear_finished_from_me();
         fn downloads_clear_invalid();

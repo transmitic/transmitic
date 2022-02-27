@@ -78,10 +78,16 @@
 
             filePath;
             owner;
+            filePathLocalDisk;
 
             this(props) {
                 this.filePath = props.path;
                 this.owner = props.owner;
+                this.filePathLocalDisk = props.filePathLocalDisk;
+                console.error("THIS FILEPATH");
+                console.error(this.filePath);
+                console.error("THIS filePathLocalDisk");
+                console.error(this.filePathLocalDisk);
             }
 
             render(props) {
@@ -124,6 +130,9 @@
 
                 this.filePath = props.path;
                 this.owner = props.owner;
+                this.filePathLocalDisk = props.filePathLocalDisk;
+                console.error("Render local disk");
+                console.error(this.filePathLocalDisk);
 
                 return <div><div class={"download " + downloadClass}>
                     <div class="download-inner">
@@ -147,6 +156,14 @@
                 console.error(this.owner);
                 Window.this.xcall('downloads_cancel_single', this.owner, this.filePath);
             }
+
+            ["on click at button.open-download"]() {
+                console.error("Open single download");
+                console.error(this.filePath);
+                console.error(this.owner);
+                console.error(this.filePathLocalDisk);
+                Window.this.xcall('downloads_open_single', this.filePathLocalDisk);
+            }  
         }
 
         class PausedDownloadsBar extends Element {
@@ -176,7 +193,7 @@
             updateDownloads(evt) {
                 console.error("REFRESH DLS");
                 all_downloads = Window.this.xcall('get_all_downloads');
-                console.log(all_downloads);
+                console.error(all_downloads);
                 this.componentUpdate();
             }
 
@@ -192,11 +209,11 @@
             render(props) {
                 return <div>
                     <PausedDownloadsBar is_downloading_paused={all_downloads.is_downloading_paused} />
-                    {all_downloads.in_progress.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="inProgress" />)}
-                    {all_downloads.invalid.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="invalid" />)}
-                    {all_downloads.queued.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="queued" />)}
-                    {all_downloads.offline.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="offline" />)}
-                    {all_downloads.finished.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="finished" />)}
+                    {all_downloads.in_progress.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="inProgress" filePathLocalDisk={d.path_local_disk} />)}
+                    {all_downloads.invalid.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="invalid" filePathLocalDisk={d.path_local_disk} />)}
+                    {all_downloads.queued.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="queued" filePathLocalDisk={d.path_local_disk} />)}
+                    {all_downloads.offline.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="offline" filePathLocalDisk={d.path_local_disk} />)}
+                    {all_downloads.finished.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="finished" filePathLocalDisk={d.path_local_disk} />)}
                 </div>;
             }
         }
