@@ -129,17 +129,13 @@
 
             ["on click at button#download-selected"]() {
                 let checkedBoxes = document.querySelectorAll("button[type=checkbox]:checked");
-                console.log(checkedBoxes);
-                console.log(checkedBoxes[0].getAttribute("data-path"));
                 let selectedFiles = [];
                 for (const box of checkedBoxes) {
                     let path = box.getAttribute("data-path");
                     let owner = box.getAttribute("data-owner");
                     selectedFiles.push({"path": path, "owner": owner});
                 }
-                console.log(selectedFiles);
                 let response = Window.this.xcall('download_selected', {"files": selectedFiles});
-                console.log(response);
             }
 
             ["on click at button#refresh-all"]() {

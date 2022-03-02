@@ -124,13 +124,10 @@ impl Handler {
     }
 
     fn download_selected(&mut self, files: Value) -> Value {
-        println!("download selected");
         let files = files.get_item("files");
 
-        println!("{:?}", files);
         let mut downloads: Vec<SelectedDownload> = Vec::new();
         for file in files.values() {
-            println!("{:?}", file);
             let owner = self.clean_sciter_string(file.get_item("owner"));
             let path = self.clean_sciter_string(file.get_item("path")).replace("\\\\", "\\");
             let new_download = SelectedDownload {
@@ -140,7 +137,6 @@ impl Handler {
             downloads.push(new_download);
         };
         
-        println!("{:?}", downloads);
 
         let response: Value;
         match self.transmitic_core.download_selected(downloads) {
@@ -158,8 +154,12 @@ impl Handler {
     fn downloads_open_single(&self, path_local_disk: Value) {
         let mut path_local_disk = self.clean_sciter_string(path_local_disk);
         path_local_disk = path_local_disk.replace("\\\\", "\\");
-        println!("DOWNLOAD PATH: {}", path_local_disk);
-        Command::new("explorer.exe").arg(path_local_disk).spawn();
+        
+        match path_local_disk.strip_suffix("\\") {
+            Some(s) => path_local_disk = s.to_string(),
+            None => {},
+        }
+        Command::new("explorer.exe").arg(path_local_disk).spawn().unwrap();
     }
 
     fn downloads_clear_finished(&mut self) {
@@ -201,7 +201,6 @@ impl Handler {
         uploads.sort_by(|x,y| x.nickname.cmp(&y.nickname));
 
         let json_string = serde_json::to_string(&uploads).unwrap();
-        println!("{}", json_string);
         return Value::from_str(&json_string).unwrap();
     }
 
@@ -228,7 +227,6 @@ impl Handler {
                     Some(path) => {
                         let mut path_local_disk = download_state.active_download_local_path.clone().unwrap_or("".to_string());
                         path_local_disk = path_local_disk.replace("/", "\\");
-                        println!("MAIN local disk: {}", path_local_disk);
                         in_progress.push(SingleDownloadUI { owner: nickname.clone(), percent: download_state.active_download_percent, path: path.clone(), path_local_disk: path_local_disk, });
                     },
                     None => {},  // Do nothing, there is no in progress download
@@ -249,7 +247,9 @@ impl Handler {
             }
 
             for finished_download in download_state.completed_downloads.iter() {
-                completed.push(SingleDownloadUI { owner: nickname.clone(), percent: 100, path: finished_download.clone(), path_local_disk: "".to_string() });
+                let mut path_local_disk = finished_download.path_local_disk.clone();
+                path_local_disk = path_local_disk.replace("/", "\\");
+                completed.push(SingleDownloadUI { owner: nickname.clone(), percent: 100, path: finished_download.path.clone(), path_local_disk: path_local_disk });
             }
         }
 
@@ -263,7 +263,6 @@ impl Handler {
         };
 
         let json_string = serde_json::to_string(&all_downloads).unwrap();
-        //println!("{}", json_string);
         return Value::from_str(&json_string).unwrap();
     }
 
@@ -285,7 +284,6 @@ impl Handler {
     fn open_a_download(&self, file_path: Value) {
         let mut file_path = self.clean_sciter_string(file_path);
         file_path = file_path.replace("\\\\", "\\");
-        println!("Open a download {}", file_path);
         let p = Path::new(&file_path);
         let dir_path = p.parent().unwrap();
         Command::new("explorer.exe").arg(dir_path).spawn();
@@ -414,7 +412,6 @@ impl Handler {
         }
 
         let json_string = serde_json::to_string(&ui_data).unwrap();
-        println!("{}", json_string);
         return Value::from_str(&json_string).unwrap();
 
     }

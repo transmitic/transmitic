@@ -111,7 +111,6 @@
                 ];
 
                 let my_files = Window.this.xcall('get_my_sharing_files');
-                console.log(my_files);
 
                 return <div>
                         <div class="menu-bar">
@@ -132,7 +131,6 @@
                     files = [files];
                 }
                 if (files) {
-                    console.log(files);
                     let response = Window.this.xcall('add_files', files);
                     //let response = [0, ""];
                     if (response[0] == 0) {

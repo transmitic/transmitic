@@ -69,9 +69,6 @@
 
         let all_downloads = Window.this.xcall('get_all_downloads');
         let all_uploads = Window.this.xcall('get_all_uploads');
-        //console.log(all_downloads);
-
-
 
 
         class SingleDownload extends Element {
@@ -84,10 +81,6 @@
                 this.filePath = props.path;
                 this.owner = props.owner;
                 this.filePathLocalDisk = props.filePathLocalDisk;
-                console.error("THIS FILEPATH");
-                console.error(this.filePath);
-                console.error("THIS filePathLocalDisk");
-                console.error(this.filePathLocalDisk);
             }
 
             render(props) {
@@ -124,15 +117,14 @@
                 else if (props.downloadState == "finished") {
                     downloadClass = "download-finished";
                     description = props.owner + " | 100% | Download Finished";
-                    cancelDownload = <button class="cancel-download">Cancel</button>;
+                    openDownload = <button class="open-download">Open</button>;
+                    //cancelDownload = <button class="cancel-download">Cancel</button>;
                     //pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 }
 
                 this.filePath = props.path;
                 this.owner = props.owner;
                 this.filePathLocalDisk = props.filePathLocalDisk;
-                console.error("Render local disk");
-                console.error(this.filePathLocalDisk);
 
                 return <div><div class={"download " + downloadClass}>
                     <div class="download-inner">
@@ -152,16 +144,10 @@
             }
 
             ["on click at button.cancel-download"]() {
-                console.error(this.filePath);
-                console.error(this.owner);
                 Window.this.xcall('downloads_cancel_single', this.owner, this.filePath);
             }
 
             ["on click at button.open-download"]() {
-                console.error("Open single download");
-                console.error(this.filePath);
-                console.error(this.owner);
-                console.error(this.filePathLocalDisk);
                 Window.this.xcall('downloads_open_single', this.filePathLocalDisk);
             }  
         }
@@ -191,9 +177,7 @@
             }
 
             updateDownloads(evt) {
-                console.error("REFRESH DLS");
                 all_downloads = Window.this.xcall('get_all_downloads');
-                console.error(all_downloads);
                 this.componentUpdate();
             }
 
@@ -244,9 +228,7 @@
             }
 
             updateDownloads(evt) {
-                console.error("REFRESH");
                 all_uploads = Window.this.xcall('get_all_uploads');
-                console.log(all_uploads);
                 this.componentUpdate();
             }
 
@@ -331,7 +313,7 @@
 
             render() {
                 return <div class="menu-bar">
-                    <button id="clear-finished-from-me">Clear Finished</button>
+                    <button id="clear-finished-from-me"></button>
                 </div>;
             }
 
