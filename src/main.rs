@@ -1,6 +1,4 @@
 use std::env;
-use std::error::Error;
-use std::f64::consts::FRAC_1_PI;
 use std::path::Path;
 use std::process::Command;
 use std::str;
@@ -63,7 +61,7 @@ struct SingleDownloadUI {
     pub path_local_disk: String,
 }
 
-// TODO escape all strings for HTML GUI !!!
+// TODO! escape all strings for HTML GUI !!!
 
 impl Handler {
     fn add_files(&mut self, files: Value) -> Value {
@@ -299,6 +297,10 @@ impl Handler {
 
     fn get_app_url(&self) -> Value {
         Value::from(URL)
+    }
+
+    fn get_is_first_start(&self) -> Value {
+        Value::from(self.transmitic_core.get_is_first_start())
     }
 
     fn get_local_ip(&self) -> Value {
@@ -554,6 +556,7 @@ impl sciter::EventHandler for Handler {
 
         fn get_all_downloads();
         fn get_all_uploads();
+        fn get_is_first_start();
         fn get_local_ip();
         fn get_my_sharing_files();
         fn get_my_sharing_state();

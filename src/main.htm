@@ -79,7 +79,7 @@
 
             this(props) {
                 this.counter = 0;
-                this.activeIndex = 0;
+                this.activeIndex = props.activeIndex;
             }
 
             render() {
@@ -123,8 +123,15 @@
             }
         }
 
-        document.$("frame").src = navLinks[0].html;
-        document.$("div.nav-bar").content(<NavBar />);
+        let activeIndexStart = 0;
+        if (Window.this.xcall('get_is_first_start')) {
+            let start_index = 6;
+            document.$("frame").src = navLinks[start_index].html;
+            activeIndexStart = start_index;
+        } else {
+            document.$("frame").src = navLinks[0].html;
+        }
+        document.$("div.nav-bar").content(<NavBar activeIndex={activeIndexStart} />);
 
     </script>
 </head>
