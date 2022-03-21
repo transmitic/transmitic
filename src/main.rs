@@ -49,10 +49,6 @@ struct AllDownloadsUI {
     finished: Vec<SingleDownloadUI>,
 }
 
-struct AllUploadsUI {
-    uploads: Vec<SingleUploadState>,
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 struct SingleDownloadUI {
     pub owner: String,
@@ -61,7 +57,7 @@ struct SingleDownloadUI {
     pub path_local_disk: String,
 }
 
-// TODO! escape all strings for HTML GUI !!!
+// TODO! descape path strings when requesting downloads, and openeing downloads? But explorer.exe needs to be safe
 
 impl Handler {
     fn add_files(&mut self, files: Value) -> Value {
@@ -526,10 +522,12 @@ impl Handler {
 
         return response;
     }
+
 }
 
 impl sciter::EventHandler for Handler {
     dispatch_script_call! {
+
         fn add_files(Value);
         fn add_new_user(Value, Value, Value, Value);
         fn add_user_to_shared(Value, Value);
@@ -604,7 +602,7 @@ fn main() {
         }
     }
 
-    let mut handler = Handler { transmitic_core };
+    let handler = Handler { transmitic_core };
 
     frame.event_handler(handler);
     frame.load_file(&sciter_string);

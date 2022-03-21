@@ -57,7 +57,7 @@
                         showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                     }
                 }
-                return <div><button data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {this.getSizeString(d.file_size)} </button> {showMore} <br/> {this.createFileList(d.files, "", divID)}</div>
+                return <div><button data-path={escapeHTML(d.path)} data-owner={this.owner} type="checkbox">{escapeHTML(d.path)} | {info} | {this.getSizeString(d.file_size)} </button> {showMore} <br/> {this.createFileList(d.files, "", divID)}</div>
             }
 
             getSizeString(size_bytes) {

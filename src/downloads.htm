@@ -78,9 +78,11 @@
             filePathLocalDisk;
 
             this(props) {
-                this.filePath = props.path;
+                console.error(props.path);
+                console.error(typeof props.path);
+                this.filePath = escapeHTML(props.path);
                 this.owner = props.owner;
-                this.filePathLocalDisk = props.filePathLocalDisk;
+                this.filePathLocalDisk = escapeHTML(props.filePathLocalDisk);
             }
 
             render(props) {
@@ -122,16 +124,16 @@
                     //pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 }
 
-                this.filePath = props.path;
+                this.filePath = escapeHTML(props.path);
                 this.owner = props.owner;
-                this.filePathLocalDisk = props.filePathLocalDisk;
+                this.filePathLocalDisk = escapeHTML(props.filePathLocalDisk);
 
                 return <div><div class={"download " + downloadClass}>
                     <div class="download-inner">
                         <div selectable>
                             {description}
                             <br /><br />
-                            {props.path}
+                            {this.filePath}
                         </div>
                         <br />
                         {openDownload}
@@ -213,7 +215,7 @@
                     <div class="download-inner" selectable>
                         {props.name} | {props.percent}% | Downloading now...
                         <br /><br />
-                        {props.path}
+                        {props.paththis.filePath}
                     </div>
                 </div>
                     <hr />
