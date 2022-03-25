@@ -19,5 +19,7 @@ function setMsgBoxError(msg) {
 }
 
 function escapeHTML(html) {
-    return html.replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    let newHtml = `${html}`;
+    newHtml.replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    return newHtml;
 }

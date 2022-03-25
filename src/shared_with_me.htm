@@ -57,24 +57,10 @@
                         showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                     }
                 }
-                return <div><button data-path={escapeHTML(d.path)} data-owner={this.owner} type="checkbox">{escapeHTML(d.path)} | {info} | {this.getSizeString(d.file_size)} </button> {showMore} <br/> {this.createFileList(d.files, "", divID)}</div>
-            }
-
-            getSizeString(size_bytes) {
-                let s = "";
-                if (size_bytes >= 1073741824) {
-                    s = (size_bytes/1073741824).toFixed(0) + " GB"
-                } else if (size_bytes >= 1048576) {
-                    s = (size_bytes/1048576).toFixed(0) + " MB"
-                } else if (size_bytes >= 1024) {
-                    s = (size_bytes/1024).toFixed(0) + " KB"
-                } else {
-                    if (size_bytes == 0) {
-                        size_bytes = 1;
-                    }
-                    s = size_bytes + " bytes"
-                }
-                return s;
+                console.error("d.path");
+                console.error(d.path);
+                console.error(d.file_size);
+                return <div><button data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br/> {this.createFileList(d.files, "", divID)}</div>
             }
 
             ["on click at button.show-more"](evt, btn) {
@@ -139,83 +125,9 @@
             }
 
             ["on click at button#refresh-all"]() {
+                console.error("start refresh");
                 this.componentUpdate({refreshState: "refreshing"});
-                let responseold = [
-                    {
-                        owner: "main",
-                        error: "",
-                        files: [
-                            {
-                                path: "Everything",
-                                is_directory: true,
-                                file_size: 1024,
-                                files: [
-                                    {
-                                        path: "C:\\path\\hello",
-                                        is_directory: true,
-                                        file_size: 10240,
-                                        files: [
-                                            {
-                                                path: "C:\\path\\hello\\1.txt",
-                                                is_directory: false,
-                                                file_size: 123465,
-                                                files: []
-                                            },
-                                            {
-                                                path: "C:\\path\\hello\\2.txt",
-                                                is_directory: false,
-                                                file_size: 100,
-                                                files: []
-                                            },
-                                            {
-                                                path: "C:\\path\\hello\\3.txt",
-                                                is_directory: false,
-                                                file_size: 123456987123400,
-                                                files: []
-                                            },                                  
-                                            {
-                                                path: "C:\\path\\hello",
-                                                is_directory: true,
-                                                file_size: 1024,
-                                                files: [
-                                                    {
-                                                        path: "C:\\path\\hello\\1.txt",
-                                                        is_directory: false,
-                                                        file_size: 10,
-                                                        files: []
-                                                    },
-                                                    {
-                                                        path: "C:\\path\\hello\\2.txt",
-                                                        is_directory: false,
-                                                        file_size: 10,
-                                                        files: []
-                                                    },
-                                                    {
-                                                        path: "C:\\path\\hello\\3.txt",
-                                                        is_directory: false,
-                                                        file_size: 10,
-                                                        files: []
-                                                    },
-                                                ],
-                                            },
-                                        ],
-                                    },
-                                    {
-                                        path: "C:\\none",
-                                        is_directory: false,
-                                        file_size: 10,
-                                        files: []
-                                    },
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        owner: "Foo Bar",
-                        error: "Error message",
-                        files: [],
-                    },
-                ];
+
                 let response = Window.this.xcall('refresh_shared_with_me');
                 this.componentUpdate({fileData: response, refreshState: "finished"});
             }

@@ -57,18 +57,18 @@ struct SingleDownloadUI {
     pub path_local_disk: String,
 }
 
-// TODO! descape path strings when requesting downloads, and openeing downloads? But explorer.exe needs to be safe
-
 impl Handler {
     fn add_files(&mut self, files: Value) -> Value {
         let mut clean_strings: Vec<String> = Vec::new();
         if files.is_string() {
-            let clean_file = self.clean_sciter_string(files);
+            let mut clean_file = self.clean_sciter_string(files);
+            //clean_file = unescape_path(&clean_file);
             clean_strings.push(clean_file);
         }
         else {
             for file in files.into_iter() {
-                let clean_file = self.clean_sciter_string(file);
+                let mut clean_file = self.clean_sciter_string(file);
+                //clean_file = unescape_path(&clean_file);
                 clean_strings.push(clean_file);
             }
         }
@@ -98,6 +98,7 @@ impl Handler {
     fn add_user_to_shared(&mut self, nickname: Value, file_path: Value) -> Value {
         let nickname = self.clean_sciter_string(nickname);
         let mut file_path = self.clean_sciter_string(file_path);
+        file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
 
         let response: Value;
@@ -123,7 +124,9 @@ impl Handler {
         let mut downloads: Vec<SelectedDownload> = Vec::new();
         for file in files.values() {
             let owner = self.clean_sciter_string(file.get_item("owner"));
-            let path = self.clean_sciter_string(file.get_item("path")).replace("\\\\", "\\");
+            let mut path = self.clean_sciter_string(file.get_item("path"));
+            path = unescape_path(&path);
+            path = path.replace("\\\\", "\\");
             let new_download = SelectedDownload {
                 path,
                 owner,
@@ -147,6 +150,7 @@ impl Handler {
 
     fn downloads_open_single(&self, path_local_disk: Value) {
         let mut path_local_disk = self.clean_sciter_string(path_local_disk);
+        path_local_disk = unescape_path(&path_local_disk);
         path_local_disk = path_local_disk.replace("\\\\", "\\");
         
         match path_local_disk.strip_suffix("\\") {
@@ -173,6 +177,7 @@ impl Handler {
     fn downloads_cancel_single(&mut self, nickname: Value, file_path: Value) {
         let nickname = self.clean_sciter_string(nickname);
         let mut file_path = self.clean_sciter_string(file_path);
+        file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
 
         self.transmitic_core.downloads_cancel_single(nickname, file_path);
@@ -277,6 +282,7 @@ impl Handler {
 
     fn open_a_download(&self, file_path: Value) {
         let mut file_path = self.clean_sciter_string(file_path);
+        file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\");
         let p = Path::new(&file_path);
         let dir_path = p.parent().unwrap();
@@ -409,13 +415,15 @@ impl Handler {
             ui_data.push(ui);
         }
 
-        let json_string = serde_json::to_string(&ui_data).unwrap();
+        let json_string = serde_json::to_string_pretty(&ui_data).unwrap();
+        println!("{}", json_string);
         return Value::from_str(&json_string).unwrap();
 
     }
 
     fn remove_file_from_sharing(&mut self, file_path: Value) -> Value {
         let mut file_path = self.clean_sciter_string(file_path);
+        file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\");
         
         let response;
@@ -441,7 +449,7 @@ impl Handler {
     fn remove_user_from_sharing(&mut self, nickname: Value, file_path: Value) -> Value {
         let nickname = self.clean_sciter_string(nickname);
         let mut file_path = self.clean_sciter_string(file_path);
-
+        file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\");
 
         let response: Value;
@@ -525,6 +533,15 @@ impl Handler {
 
 }
 
+fn unescape_path(path: &String) -> String {
+    // TODO Need to update UI to say that the path was escaped to being with
+    let mut unescaped_path = path.clone();
+    unescaped_path = unescaped_path.replace("&#039;", "'");
+    unescaped_path = unescaped_path.replace("&amp;", "&");
+
+    return unescaped_path;
+}
+
 impl sciter::EventHandler for Handler {
     dispatch_script_call! {
 
@@ -568,7 +585,6 @@ impl sciter::EventHandler for Handler {
         fn set_port(Value);
         fn set_user_is_allowed_state(Value, Value);
         fn update_user(Value, Value, Value, Value);
-
     }
 }
 
