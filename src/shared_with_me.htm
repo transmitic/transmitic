@@ -94,7 +94,7 @@
             render(props) {
                 let contentElements;
                 if (this.refreshState === "empty") {
-                    contentElements = <div><br />Press Refresh All</div>;
+                    contentElements = <div><br />Press Refresh All. The UI might freeze while refreshing.</div>;
                 }
                 else if (this.refreshState === "refreshing"){
                     contentElements = <div><br />Please wait. Refreshing...</div>;
@@ -127,7 +127,7 @@
             ["on click at button#refresh-all"]() {
                 console.error("start refresh");
                 this.componentUpdate({refreshState: "refreshing"});
-
+                
                 let response = Window.this.xcall('refresh_shared_with_me');
                 this.componentUpdate({fileData: response, refreshState: "finished"});
             }
