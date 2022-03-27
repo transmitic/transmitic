@@ -595,9 +595,19 @@ fn main() {
     println!("cli args");
     println!("{:?}\n", args);
 
-    let mut sciter_path = env::current_dir().unwrap();
-    sciter_path.push("transmitic\\src\\main.htm");
-    let sciter_string = format!("file://{}", sciter_path.to_string_lossy());
+    let sciter_string;
+    if cfg!(debug_assertions) {
+        println!("DEBUG BUILD");
+        let mut sciter_path = env::current_dir().unwrap();
+        sciter_path.push("transmitic\\src\\main.htm");
+        sciter_string = format!("file://{}", sciter_path.to_string_lossy());
+    } else {
+        println!("Release");
+        let sciter_path = env::current_exe().unwrap();
+        let sciter_path = sciter_path.parent().unwrap();
+        let sciter_path = sciter_path.join("main.htm");
+        sciter_string = format!("file://{}", sciter_path.to_string_lossy());
+    }
 
     println!("Current Working Dir: '{:?}'", env::current_dir().unwrap());
     println!("Sciter path: '{}'", sciter_string);
