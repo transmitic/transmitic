@@ -61,14 +61,12 @@ impl Handler {
     fn add_files(&mut self, files: Value) -> Value {
         let mut clean_strings: Vec<String> = Vec::new();
         if files.is_string() {
-            let mut clean_file = self.clean_sciter_string(files);
-            //clean_file = unescape_path(&clean_file);
+            let clean_file = self.clean_sciter_string(files);
             clean_strings.push(clean_file);
         }
         else {
             for file in files.into_iter() {
-                let mut clean_file = self.clean_sciter_string(file);
-                //clean_file = unescape_path(&clean_file);
+                let clean_file = self.clean_sciter_string(file);
                 clean_strings.push(clean_file);
             }
         }
@@ -145,7 +143,7 @@ impl Handler {
 
     fn downloads_open(&self) {
         let dir_path = self.transmitic_core.get_downloads_dir().unwrap();
-        Command::new("explorer.exe").arg(dir_path).spawn();
+        Command::new("explorer.exe").arg(dir_path).spawn().ok();
     }
 
     fn downloads_open_single(&self, path_local_disk: Value) {
@@ -157,7 +155,7 @@ impl Handler {
             Some(s) => path_local_disk = s.to_string(),
             None => {},
         }
-        Command::new("explorer.exe").arg(path_local_disk).spawn().unwrap();
+        Command::new("explorer.exe").arg(path_local_disk).spawn().ok();
     }
 
     fn downloads_clear_finished(&mut self) {
@@ -280,15 +278,6 @@ impl Handler {
         s
     }
 
-    fn open_a_download(&self, file_path: Value) {
-        let mut file_path = self.clean_sciter_string(file_path);
-        file_path = unescape_path(&file_path);
-        file_path = file_path.replace("\\\\", "\\");
-        let p = Path::new(&file_path);
-        let dir_path = p.parent().unwrap();
-        Command::new("explorer.exe").arg(dir_path).spawn();
-    }
-
     fn get_app_display_name(&self) -> Value {
         Value::from(NAME)
     }
@@ -305,11 +294,6 @@ impl Handler {
         Value::from(self.transmitic_core.get_is_first_start())
     }
 
-    fn get_local_ip(&self) -> Value {
-        // TODO
-        Value::from("192.168.X.X")
-    }
-
     fn get_my_sharing_files(&self) -> Value {
         let my_sharing_files = self.transmitic_core.get_my_sharing_files();
         let mut shared_users = Vec::new();
@@ -317,7 +301,7 @@ impl Handler {
             shared_users.push(user.nickname);
         }
 
-        // DO Use struct and serde to clean this up
+        // TODO Use struct and serde to clean this up
         let mut my_files = Value::array(0);
         for file in my_sharing_files {
             let mut new_file = Value::new();
@@ -381,7 +365,6 @@ impl Handler {
 
     fn get_sharing_port(&self) -> Value {
         let sharing_port = self.transmitic_core.get_sharing_port();
-        //return self.get_msg_box_response(0, &sharing_port);
         return Value::from(sharing_port);
     }
 
@@ -572,14 +555,11 @@ impl sciter::EventHandler for Handler {
         fn get_all_downloads();
         fn get_all_uploads();
         fn get_is_first_start();
-        fn get_local_ip();
         fn get_my_sharing_files();
         fn get_my_sharing_state();
         fn get_shared_users();
         fn get_sharing_port();
         fn get_public_id_string();
-
-        fn open_a_download(Value);
 
         fn set_my_sharing_state(Value);
         fn set_port(Value);
