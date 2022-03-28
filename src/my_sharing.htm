@@ -54,7 +54,6 @@
             ["on change at select#add-user"](evt, btn) {
                 let selected_user = btn.value;
                 let response = Window.this.xcall('add_user_to_shared', selected_user, this.filePath);
-                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("User added. Now sharing file <strong>" + this.filePath + "</strong> with <strong>" + selected_user + "</strong>");
                     this.parentElement.componentUpdate();
@@ -67,7 +66,6 @@
             ["on click at button.remove-shared-with"](evt, btn) {
                 let user = btn.getAttribute("user");
                 let response = Window.this.xcall('remove_user_from_sharing', user, this.filePath);
-                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("User removed. You will no longer share file <strong>" + this.filePath + "</strong> with <strong>" + user + "</strong>");
                     this.parentElement.componentUpdate();
@@ -79,7 +77,6 @@
 
             ["on click at button.remove-sharing"]() {
                 let response = Window.this.xcall('remove_file_from_sharing', this.filePath);
-                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("File removed. You will no longer be sharing <strong>" + this.filePath + "</strong>");
                     this.parentElement.componentUpdate();
@@ -132,7 +129,6 @@
                 }
                 if (files) {
                     let response = Window.this.xcall('add_files', files);
-                    //let response = [0, ""];
                     if (response[0] == 0) {
                         setMsgBoxSuccess("File(s) added to share.");
                         this.componentUpdate();
@@ -147,7 +143,6 @@
                 let files = Window.this.selectFolder();
                 if (files) {
                     let response = Window.this.xcall('add_files', files);
-                    //let response = [0, ""];
                     if (response[0] == 0) {
                         setMsgBoxSuccess("Folder added to share.");
                         this.componentUpdate();
@@ -163,7 +158,6 @@
         document.$("button#set-port").onclick = function() {
             let portValue = document.$("input#port").value;
             let response = Window.this.xcall('set_port', portValue);
-            //let response = [0, "err msg."];
             if (response[0] == 0) {
                 setMsgBoxSuccess("Port is now set to <strong>" + portValue + "</strong>");
             }
@@ -176,7 +170,6 @@
         document.$("form.sharing-form").on("click", function() { 
             var sharing_state = this.value.Sharing; 
             let response = Window.this.xcall('set_my_sharing_state', sharing_state);
-            //response = [0, "Failed to change sharing state"];
             if (response[0] == 0) {
                 setMsgBoxSuccess("Sharing is now set to <strong>" + sharing_state + "</strong>");
             }
@@ -198,14 +191,6 @@
         // Get port
         response = Window.this.xcall('get_sharing_port');
         document.$("input#port").value = response;
-        //response = [0, "8080"];
-        // if (response[0] == 0) {
-        //     document.$("input#port").value = response[1];
-        // }
-        // else {
-        //     setMsgBoxError("Failed to get port. " + response[1]);
-        // }
-
         document.$("div#my-files").content(<MyFiles />);
 
     </script>

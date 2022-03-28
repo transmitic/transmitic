@@ -10,7 +10,6 @@
 
         function setPublicID() {
             publicID = Window.this.xcall('get_public_id_string');
-            //publicID = new Date().toLocaleTimeString();
             document.$("span#public-id").content(publicID);
             return publicID;
         }

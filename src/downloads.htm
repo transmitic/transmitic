@@ -8,65 +8,6 @@
     <script src="global_transmitic.js"></script>
     <script>
 
-        let downloads_in_progress = [
-            {
-                owner: 'My Friend',
-                percent: 90,
-                path: 'C:\\Users\\my-friend\\Documents\\shared',
-            },
-            {
-                owner: 'Other Friend1',
-                percent: 50,
-                path: 'C:\\Users\\other-friend\\Documents\\file.txt',
-            }
-        ];
-
-        let downloads_invalid = [
-        {
-                owner: 'My Friend',
-                percent: 90,
-                path: 'C:\\Users\\my-friend\\Documents\\old',
-            },
-            {
-                owner: 'Other Friend1',
-                percent: 50,
-                path: 'C:\\Users\\other-friend\\Documents\\gone.txt',
-            }
-        ];
-
-        let downloads_offline = [
-            {
-                owner: 'My FriendO',
-                percent: 2,
-                path: 'C:\\hello\\world6',
-            },
-            {
-                owner: 'My Friend1Y',
-                percent: 54,
-                path: 'C:\\hello\\world8',
-            }
-        ];
-
-        let downloads_finished = [
-            {
-                owner: 'My FriendOFFF',
-                path: 'C:\\hello\\world77',
-            },
-            {
-                owner: 'My Friend1YYYYY',
-                path: 'C:\\hello\\world8999',
-            }
-        ];
-
-        // let all_downloads = {
-        //     //in_progress: Window.this.xcall('get_downloads_in_progress'),
-        //     in_progress: downloads_in_progress,
-        //     invalid: downloads_invalid,
-        //     offline: downloads_offline,
-        //     finished: downloads_finished,
-        //     queued: downloads_queued,
-        // };
-
         let all_downloads = Window.this.xcall('get_all_downloads');
         let all_uploads = Window.this.xcall('get_all_uploads');
 
@@ -120,8 +61,6 @@
                     downloadClass = "download-finished";
                     description = props.owner + " | 100% | Download Finished";
                     openDownload = <button class="open-download">Open</button>;
-                    //cancelDownload = <button class="cancel-download">Cancel</button>;
-                    //pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 }
 
                 this.filePath = escapeHTML(props.path);

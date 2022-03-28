@@ -26,7 +26,6 @@
             let new_ip = document.$("input#new-user-ip").value;
             let new_port = document.$("input#new-user-port").value;
             let response = Window.this.xcall('add_new_user', new_nickname, new_public_id, new_ip, new_port);
-            //let response = [0, ""];
             if (response[0] == 0) {
                 setMsgBoxSuccess("User <strong>" + new_nickname + "</strong> added. You can now share with them.");
                 resetNewuserInputs();
@@ -122,7 +121,6 @@
 
             ["on click at button.remove-user"]() {
                 let response = Window.this.xcall('remove_user', this.props.nickname);
-                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("User removed. You will no longer share with each other.");
                     this.parentElement.componentUpdate();
@@ -135,7 +133,6 @@
             ["on click at button.user-action"]() {
                 let response = Window.this.xcall('set_user_is_allowed_state', this.props.nickname, !this.isAllowed);
                 if (response[0] == 0) {
-                    //this.componentUpdate({ isAllowed: !this.isAllowed });
                     this.parentElement.componentUpdate();
                 }
                 else {
@@ -157,7 +154,6 @@
                 let new_port = document.$("input.edit-user-port[data-nickname='" + this.props.nickname + "']").value;
 
                 let response = Window.this.xcall('update_user', nickname, new_public_id, new_ip, new_port);
-                //let response = [0, ""]
                 if (response[0] == 0) {
                     setMsgBoxSuccess("<strong>" + nickname + "</strong> has been updated.");
                     this.parentElement.componentUpdate();
@@ -248,58 +244,6 @@
         <div>
             <h2>Current Users</h2>
             <div id="current-users">
-                <h3>Foo Bar</h3>
-                <table>
-                    <tr>
-                        <td>Nickname:</td>
-                        <td>Foo Bar</td>
-                    </tr>
-                    <tr>
-                        <td>Public ID:</td>
-                        <td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
-                    </tr>
-                    <tr>
-                        <td>IP Address: &nbsp;</td>
-                        <td>192.168.0.1</td>
-                    </tr>
-                    <tr>
-                        <td>Port:</td>
-                        <td>7878</td>
-                    </tr>
-                    <tr>
-                        <td>Status:</td>
-                        <td>Allowed</td>
-                    </tr>
-                </table>
-                <div style="margin-top: 10dip; margin-bottom: 25dip;">
-                    <button>Edit</button> <button>Block</button> <button>Remove</button>
-                </div>
-
-                <hr>
-
-                <h3>Foo Bar</h3>
-                <table>
-                    <tr>
-                        <td>Nickname:</td>
-                        <td>Foo Bar</td>
-                    </tr>
-                    <tr>
-                        <td>Public ID:</td>
-                        <td>SDFLKjhdflheiwuhfidksjvbsdbvbv=</td>
-                    </tr>
-                    <tr>
-                        <td>IP Address: &nbsp;</td>
-                        <td>192.168.0.1</td>
-                    </tr>
-                    <tr>
-                        <td>Port:</td>
-                        <td>7878</td>
-                    </tr>
-                    <tr>
-                        <td>Status:</td>
-                        <td>Allowed</td>
-                    </tr>
-                </table>
             </div>
         </div>
 
