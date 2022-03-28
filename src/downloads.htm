@@ -147,6 +147,7 @@
 
             ["on click at button.cancel-download"]() {
                 Window.this.xcall('downloads_cancel_single', this.owner, this.filePath);
+                setMsgBoxSuccess("Download will be cancelled. <strong>" + this.filePath + "</strong>");
             }
 
             ["on click at button.open-download"]() {
