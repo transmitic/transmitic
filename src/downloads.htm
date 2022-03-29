@@ -19,8 +19,6 @@
             filePathLocalDisk;
 
             this(props) {
-                console.error(props.path);
-                console.error(typeof props.path);
                 this.filePath = escapeHTML(props.path);
                 this.owner = props.owner;
                 this.filePathLocalDisk = escapeHTML(props.filePathLocalDisk);

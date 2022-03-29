@@ -57,9 +57,6 @@
                         showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                     }
                 }
-                console.error("d.path");
-                console.error(d.path);
-                console.error(d.file_size);
                 return <div><button data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br/> {this.createFileList(d.files, "", divID)}</div>
             }
 
@@ -125,7 +122,6 @@
             }
 
             ["on click at button#refresh-all"]() {
-                console.error("start refresh");
                 this.componentUpdate({refreshState: "refreshing"});
                 
                 let response = Window.this.xcall('refresh_shared_with_me');

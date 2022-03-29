@@ -399,7 +399,6 @@ impl Handler {
         }
 
         let json_string = serde_json::to_string_pretty(&ui_data).unwrap();
-        println!("{}", json_string);
         return Value::from_str(&json_string).unwrap();
 
     }
