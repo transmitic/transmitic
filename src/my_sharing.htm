@@ -111,10 +111,13 @@
                     filter: "All Files (*.*)|*.*",
                     mode: "open-multiple",
                 });
-                if (!(files instanceof Array)) {
-                    files = [files];
-                }
+
                 if (files) {
+
+                    if (!(files instanceof Array)) {
+                        files = [files];
+                    }
+
                     let response = Window.this.xcall('add_files', files);
                     if (response[0] == 0) {
                         setMsgBoxSuccess("File(s) added to share.");
