@@ -450,7 +450,7 @@ impl Handler {
         if state == "Off" {
             core_state = SharingState::Off;
         }
-        else if state == "Local Network" {
+        else if state == "Local" {
             core_state = SharingState::Local;
         }
         else if state == "Internet" {
