@@ -94,19 +94,6 @@
             }
 
             render(props) {
-                let my_filesx = [
-                    {
-                        file_path: "C:\\hello\\world",
-                        shared_with: ["John Smith", "Foo Bar"],
-                        add_users: ["Other Person"],
-                    },
-                    {
-                        file_path: "C:\\bye\\all",
-                        shared_with: [],
-                        add_users: ["John Smith", "Foo Bar", "Other Person"],
-                    },
-                ];
-
                 let my_files = Window.this.xcall('get_my_sharing_files');
 
                 return <div>
@@ -180,7 +167,6 @@
 
         // Get sharing state
         let response = Window.this.xcall('get_my_sharing_state');
-        //let response = [0, "Off"];
         if (response[0] == 0) {
             document.$("button[name=Sharing][value="+ response[1] + "]").state.checked = true;
         }
@@ -210,7 +196,7 @@
             <div style="margin-top: 0.5em;">
                 <button id="off-radio" type="radio" name="Sharing" value="Off">Off</button>&nbsp;&nbsp;&nbsp;
                 <button id="internet-radio" type="radio" name="Sharing" value="Internet">Internet</button>&nbsp;&nbsp;&nbsp;
-                <button type="radio" name="Sharing" value="Local Network">Local Network</button>&nbsp;&nbsp;
+                <button type="radio" name="Sharing" value="Local">Local Network</button>&nbsp;&nbsp;
             </div>
         </form>
         <br>
