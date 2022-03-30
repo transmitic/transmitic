@@ -113,12 +113,14 @@
                 });
 
                 if (files) {
-
-                    if (!(files instanceof Array)) {
+                    if ((typeof files) == 'string') { // instanceof isn't working
                         files = [files];
                     }
+                    for (let i=0; i < files.length; i++) {
+                        files[i] = decodeURI(files[i]);
+                    }
 
-                    let response = Window.this.xcall('add_files', files);
+                    let response = Window.this.xcall('add_files', [files]); // Weird: files is already array but I need this extra array here
                     if (response[0] == 0) {
                         setMsgBoxSuccess("File(s) added to share.");
                         this.componentUpdate();

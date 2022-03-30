@@ -1,5 +1,4 @@
 use std::env;
-use std::path::Path;
 use std::process::Command;
 use std::str;
 use std::str::FromStr;
