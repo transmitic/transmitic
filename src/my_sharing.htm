@@ -134,6 +134,7 @@
             ["on click at button#add-folder"]() {
                 let files = Window.this.selectFolder();
                 if (files) {
+                    files = decodeURI(files);
                     let response = Window.this.xcall('add_files', files);
                     if (response[0] == 0) {
                         setMsgBoxSuccess("Folder added to share.");
