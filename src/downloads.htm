@@ -51,7 +51,7 @@
                 }
                 else if (props.downloadState == "offline") {
                     downloadClass = "download-offline";
-                    description = props.owner +  " | User currently offline";
+                    description = props.owner + " | User currently offline";
                     cancelDownload = <button class="cancel-download">Cancel</button>;
                     //pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 }
@@ -89,11 +89,11 @@
 
             ["on click at button.open-download"]() {
                 Window.this.xcall('downloads_open_single', this.filePathLocalDisk);
-            }  
+            }
         }
 
         class PausedDownloadsBar extends Element {
-            
+
             this(props) {
 
             }
@@ -101,8 +101,8 @@
             render(props) {
                 if (props.is_downloading_paused) {
                     return <div style="background-color: #fffa66; padding: 1em 0 1em 0; color: #000; margin: 0 0 1em 0;">
-                    <div style="margin: 0 0 0 1em;"><strong>All Downloads are Paused</strong></div>
-                </div>
+                        <div style="margin: 0 0 0 1em;"><strong>All Downloads are Paused</strong></div>
+                    </div>
                 } else {
                     return <div style="display:none;"></div>
                 }
@@ -217,13 +217,13 @@
 
             ["on click at button#clear-finished"]() {
                 Window.this.xcall('downloads_clear_finished');
-                Window.post( new Event("render-downloads") );
+                Window.post(new Event("render-downloads"));
             }
 
             ["on click at button#clear-invalid"]() {
                 Window.this.xcall('downloads_clear_invalid');
                 setMsgBoxSuccess("All Invalid Downloads will be cleared");
-                Window.post( new Event("render-downloads") );
+                Window.post(new Event("render-downloads"));
             }
 
             ["on click at button#cancel-all-downloads"]() {
@@ -234,13 +234,13 @@
             ["on click at button#pause-all-downloads"]() {
                 let response = Window.this.xcall('downloads_pause_all');
                 setMsgBoxSuccess("All Downloads are being paused");
-                Window.post( new Event("render-downloads") );
+                Window.post(new Event("render-downloads"));
             }
 
             ["on click at button#resume-all-downloads"]() {
                 let response = Window.this.xcall('downloads_resume_all');
                 setMsgBoxSuccess("All Downloads are being resumed");
-                Window.post( new Event("render-downloads") );
+                Window.post(new Event("render-downloads"));
             }
 
         }

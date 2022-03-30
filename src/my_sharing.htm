@@ -9,7 +9,7 @@
     <script>
 
         class AFile extends Element {
-            
+
             filePath;
 
             this(props) {
@@ -22,16 +22,16 @@
                 if (props.sharedWith.length != 0) {
                     sharedWithBlock = <div>
                         <div style="padding: 1em 0 1em 0;">
-                        Shared With:
+                            Shared With:
                         </div>
 
                         <div class="shared-with" selectable>
-                            {props.sharedWith.map((d, index) => <div style="padding-bottom: 1em;">{index+1}. {d} <button style="margin-left: 1em;" class="remove-shared-with" user={d}>Remove</button></div>)}
+                            {props.sharedWith.map((d, index) => <div style="padding-bottom: 1em;">{index + 1}. {d} <button style="margin-left: 1em;" class="remove-shared-with" user={d}>Remove</button></div>)}
                         </div>
-                        </div>
+                    </div>
                 }
 
-                return  <div class="my-file">
+                return <div class="my-file">
                     <span selectable><strong>{props.filePath}</strong></span>
                     <br /><br />
                     <div class="my-file-inner">
@@ -42,12 +42,12 @@
                             {props.addUsers.map((d) => <option value={d}>{d}</option>)}
                         </select>
                         {sharedWithBlock}
-                        <br/>
+                        <br />
                         <button class="remove-sharing">Remove from Sharing</button>
                     </div>
-                <br />
-                <hr />
-                <br />
+                    <br />
+                    <hr />
+                    <br />
                 </div>
             }
 
@@ -88,7 +88,7 @@
         }
 
         class MyFiles extends Element {
-            
+
             this(props) {
 
             }
@@ -97,13 +97,13 @@
                 let my_files = Window.this.xcall('get_my_sharing_files');
 
                 return <div>
-                        <div class="menu-bar">
-                            <button id="add-file">Add Files</button> |
-                            <button id="add-folder">Add Folder</button>
-                        </div>
-                        <br /><br />
-				    { my_files.map((d) => <AFile filePath={d.file_path} sharedWith={d.shared_with} addUsers={d.add_users} />) } 
-			    </div>;
+                    <div class="menu-bar">
+                        <button id="add-file">Add Files</button> |
+                        <button id="add-folder">Add Folder</button>
+                    </div>
+                    <br /><br />
+                    {my_files.map((d) => <AFile filePath={d.file_path} sharedWith={d.shared_with} addUsers={d.add_users} />)}
+                </div>;
             }
 
             ["on click at button#add-file"]() {
@@ -116,7 +116,7 @@
                     if ((typeof files) == 'string') { // instanceof isn't working
                         files = [files];
                     }
-                    for (let i=0; i < files.length; i++) {
+                    for (let i = 0; i < files.length; i++) {
                         files[i] = decodeURI(files[i]);
                     }
 
@@ -148,7 +148,7 @@
         }
 
         // Set port
-        document.$("button#set-port").onclick = function() {
+        document.$("button#set-port").onclick = function () {
             let portValue = document.$("input#port").value;
             let response = Window.this.xcall('set_port', portValue);
             if (response[0] == 0) {
@@ -160,8 +160,8 @@
         }
 
         // Set sharing state
-        document.$("form.sharing-form").on("click", function() { 
-            var sharing_state = this.value.Sharing; 
+        document.$("form.sharing-form").on("click", function () {
+            var sharing_state = this.value.Sharing;
             let response = Window.this.xcall('set_my_sharing_state', sharing_state);
             if (response[0] == 0) {
                 setMsgBoxSuccess("Sharing is now set to <strong>" + sharing_state + "</strong>");
@@ -174,7 +174,7 @@
         // Get sharing state
         let response = Window.this.xcall('get_my_sharing_state');
         if (response[0] == 0) {
-            document.$("button[name=Sharing][value="+ response[1] + "]").state.checked = true;
+            document.$("button[name=Sharing][value=" + response[1] + "]").state.checked = true;
         }
         else {
             setMsgBoxError("Failed to get sharing state. " + response[1]);
@@ -201,13 +201,14 @@
             <label>My Sharing:</label>
             <div style="margin-top: 0.5em;">
                 <button id="off-radio" type="radio" name="Sharing" value="Off">Off</button>&nbsp;&nbsp;&nbsp;
-                <button id="internet-radio" type="radio" name="Sharing" value="Internet">Internet</button>&nbsp;&nbsp;&nbsp;
+                <button id="internet-radio" type="radio" name="Sharing"
+                    value="Internet">Internet</button>&nbsp;&nbsp;&nbsp;
                 <button type="radio" name="Sharing" value="Local">Local Network</button>&nbsp;&nbsp;
             </div>
         </form>
         <br>
-        Port:&nbsp; <input id="port" size="8" type="text"></input>&nbsp;&nbsp;&nbsp;<button id="set-port" name="set-port"
-            style="font-size: 10pt;">Set Port</button>
+        Port:&nbsp; <input id="port" size="8" type="text"></input>&nbsp;&nbsp;&nbsp;<button id="set-port"
+            name="set-port" style="font-size: 10pt;">Set Port</button>
 
         <br><br>
         <h2>My Shared Files</h2>

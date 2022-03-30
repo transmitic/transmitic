@@ -22,7 +22,7 @@
             render(props) {
                 return <div>
                     <h3>{props.owner}</h3>
-                    {this.createFileList(props.files, props.error, 0, 0)}    
+                    {this.createFileList(props.files, props.error, 0, 0)}
                 </div>
             }
 
@@ -33,19 +33,19 @@
                 if (!files) {
                     return "";
                 }
-                
+
                 let style = "padding-left: 1.5em";
                 let parentStyle = "display: none;";
-                if (divID == 0){
+                if (divID == 0) {
                     parentStyle = "";
                 }
                 return <div id={divID} style={parentStyle}>
-                    { files.map((d) =>  <div style={style}>{this.createFile(d)}</div> )}
+                    {files.map((d) => <div style={style}>{this.createFile(d)}</div>)}
                 </div>
             }
 
             createFile(d) {
-                let showMore  = "";
+                let showMore = "";
                 let divID = 0;
                 let info = "File";
                 if (d.files.length > 0) {
@@ -57,7 +57,7 @@
                         showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                     }
                 }
-                return <div><button data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br/> {this.createFileList(d.files, "", divID)}</div>
+                return <div><button data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br /> {this.createFileList(d.files, "", divID)}</div>
             }
 
             ["on click at button.show-more"](evt, btn) {
@@ -73,7 +73,7 @@
                     btn.setAttribute("data-state", "show");
                     btn.content("Show more (" + children + ")");
                 }
-                
+
             }
 
         }
@@ -93,11 +93,11 @@
                 if (this.refreshState === "empty") {
                     contentElements = <div><br />Press Refresh All. The UI might freeze while refreshing.</div>;
                 }
-                else if (this.refreshState === "refreshing"){
+                else if (this.refreshState === "refreshing") {
                     contentElements = <div><br />Please wait. Refreshing...</div>;
                 }
                 else if (this.refreshState === "finished") {
-                    contentElements = <div>{ this.fileData.map((d) => <div><SharedData owner={d.owner} files={d.files} error={d.error} /> <hr style="margin-top: 1em;"/></div>) } </div>;
+                    contentElements = <div>{this.fileData.map((d) => <div><SharedData owner={d.owner} files={d.files} error={d.error} /> <hr style="margin-top: 1em;" /></div>)} </div>;
                 }
                 else {
                     contentElements = <div><br />Error: Unknown refreshState '{this.refreshState}'</div>;
@@ -116,16 +116,16 @@
                 for (const box of checkedBoxes) {
                     let path = box.getAttribute("data-path");
                     let owner = box.getAttribute("data-owner");
-                    selectedFiles.push({"path": path, "owner": owner});
+                    selectedFiles.push({ "path": path, "owner": owner });
                 }
-                let response = Window.this.xcall('download_selected', {"files": selectedFiles});
+                let response = Window.this.xcall('download_selected', { "files": selectedFiles });
             }
 
             ["on click at button#refresh-all"]() {
-                this.componentUpdate({refreshState: "refreshing"});
-                
+                this.componentUpdate({ refreshState: "refreshing" });
+
                 let response = Window.this.xcall('refresh_shared_with_me');
-                this.componentUpdate({fileData: response, refreshState: "finished"});
+                this.componentUpdate({ fileData: response, refreshState: "finished" });
             }
 
         }
@@ -145,4 +145,5 @@
         <div id="shared-with-me"></div>
     </div>
 </body>
+
 </html>

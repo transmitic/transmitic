@@ -18,7 +18,7 @@
         document.ready = function () {
             document.$("h1#name").content(Window.this.xcall('get_app_display_name'));
             document.$("h3#version").content(Window.this.xcall('get_app_display_version'));
-            
+
             let appUrl = Window.this.xcall('get_app_url');
             document.$("h3#url").content(appUrl);
             document.$("a#urlh").setAttribute("href", appUrl);

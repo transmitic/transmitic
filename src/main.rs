@@ -62,8 +62,7 @@ impl Handler {
         if files.is_string() {
             let clean_file = self.clean_sciter_string(files);
             clean_strings.push(clean_file);
-        }
-        else {
+        } else {
             for file in files.into_iter() {
                 let clean_file = self.clean_sciter_string(file);
                 clean_strings.push(clean_file);
@@ -78,14 +77,23 @@ impl Handler {
         return response;
     }
 
-    fn add_new_user(&mut self, new_nickname: Value, new_public_id: Value, new_ip: Value, new_port: Value) -> Value {
+    fn add_new_user(
+        &mut self,
+        new_nickname: Value,
+        new_public_id: Value,
+        new_ip: Value,
+        new_port: Value,
+    ) -> Value {
         let new_nickname = self.clean_sciter_string(new_nickname);
         let new_public_id = self.clean_sciter_string(new_public_id);
         let new_ip = self.clean_sciter_string(new_ip);
         let new_port = self.clean_sciter_string(new_port);
 
         let response: Value;
-        match self.transmitic_core.add_new_user(new_nickname, new_public_id, new_ip, new_port) {
+        match self
+            .transmitic_core
+            .add_new_user(new_nickname, new_public_id, new_ip, new_port)
+        {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
@@ -124,17 +132,15 @@ impl Handler {
             let mut path = self.clean_sciter_string(file.get_item("path"));
             path = unescape_path(&path);
             path = path.replace("\\\\", "\\");
-            let new_download = SelectedDownload {
-                path,
-                owner,
-            };
+            let new_download = SelectedDownload { path, owner };
             downloads.push(new_download);
-        };
-        
+        }
 
         let response: Value;
         match self.transmitic_core.download_selected(downloads) {
-            Ok(_) => response = self.get_msg_box_response(0, &"Files will be downloaded".to_string()),
+            Ok(_) => {
+                response = self.get_msg_box_response(0, &"Files will be downloaded".to_string())
+            }
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
         return response;
@@ -149,12 +155,15 @@ impl Handler {
         let mut path_local_disk = self.clean_sciter_string(path_local_disk);
         path_local_disk = unescape_path(&path_local_disk);
         path_local_disk = path_local_disk.replace("\\\\", "\\");
-        
+
         match path_local_disk.strip_suffix("\\") {
             Some(s) => path_local_disk = s.to_string(),
-            None => {},
+            None => {}
         }
-        Command::new("explorer.exe").arg(path_local_disk).spawn().ok();
+        Command::new("explorer.exe")
+            .arg(path_local_disk)
+            .spawn()
+            .ok();
     }
 
     fn downloads_clear_finished(&mut self) {
@@ -177,8 +186,8 @@ impl Handler {
         file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
 
-        self.transmitic_core.downloads_cancel_single(nickname, file_path);
-
+        self.transmitic_core
+            .downloads_cancel_single(nickname, file_path);
     }
 
     fn downloads_pause_all(&mut self) {
@@ -194,7 +203,7 @@ impl Handler {
         let u = upload_state.read().unwrap();
 
         let mut uploads: Vec<SingleUploadState> = u.values().cloned().collect();
-        uploads.sort_by(|x,y| x.nickname.cmp(&y.nickname));
+        uploads.sort_by(|x, y| x.nickname.cmp(&y.nickname));
 
         let json_string = serde_json::to_string(&uploads).unwrap();
         return Value::from_str(&json_string).unwrap();
@@ -221,35 +230,62 @@ impl Handler {
             if download_state.is_online {
                 match &download_state.active_download_path {
                     Some(path) => {
-                        let mut path_local_disk = download_state.active_download_local_path.clone().unwrap_or("".to_string());
+                        let mut path_local_disk = download_state
+                            .active_download_local_path
+                            .clone()
+                            .unwrap_or("".to_string());
                         path_local_disk = path_local_disk.replace("/", "\\");
-                        in_progress.push(SingleDownloadUI { owner: nickname.clone(), percent: download_state.active_download_percent, path: path.clone(), path_local_disk: path_local_disk, });
-                    },
-                    None => {},  // Do nothing, there is no in progress download
+                        in_progress.push(SingleDownloadUI {
+                            owner: nickname.clone(),
+                            percent: download_state.active_download_percent,
+                            path: path.clone(),
+                            path_local_disk: path_local_disk,
+                        });
+                    }
+                    None => {} // Do nothing, there is no in progress download
                 }
 
                 for queued_download in download_state.download_queue.iter() {
-                    queued.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: queued_download.clone(), path_local_disk: "".to_string() });
+                    queued.push(SingleDownloadUI {
+                        owner: nickname.clone(),
+                        percent: 0,
+                        path: queued_download.clone(),
+                        path_local_disk: "".to_string(),
+                    });
                 }
-            }
-            else {
+            } else {
                 for queued_download in download_state.download_queue.iter() {
-                    offline.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: queued_download.clone(), path_local_disk: "".to_string() });
+                    offline.push(SingleDownloadUI {
+                        owner: nickname.clone(),
+                        percent: 0,
+                        path: queued_download.clone(),
+                        path_local_disk: "".to_string(),
+                    });
                 }
             }
 
             for invalid_download in download_state.invalid_downloads.iter() {
-                invalid.push(SingleDownloadUI { owner: nickname.clone(), percent: 0, path: invalid_download.clone(), path_local_disk: "".to_string() });
+                invalid.push(SingleDownloadUI {
+                    owner: nickname.clone(),
+                    percent: 0,
+                    path: invalid_download.clone(),
+                    path_local_disk: "".to_string(),
+                });
             }
 
             for finished_download in download_state.completed_downloads.iter() {
                 let mut path_local_disk = finished_download.path_local_disk.clone();
                 path_local_disk = path_local_disk.replace("/", "\\");
-                completed.push(SingleDownloadUI { owner: nickname.clone(), percent: 100, path: finished_download.path.clone(), path_local_disk: path_local_disk });
+                completed.push(SingleDownloadUI {
+                    owner: nickname.clone(),
+                    percent: 100,
+                    path: finished_download.path.clone(),
+                    path_local_disk: path_local_disk,
+                });
             }
         }
 
-        let all_downloads = AllDownloadsUI{
+        let all_downloads = AllDownloadsUI {
             is_downloading_paused: self.transmitic_core.is_downloading_paused(),
             in_progress,
             invalid,
@@ -296,7 +332,7 @@ impl Handler {
     fn get_my_sharing_files(&self) -> Value {
         let my_sharing_files = self.transmitic_core.get_my_sharing_files();
         let mut shared_users = Vec::new();
-        for user  in self.transmitic_core.get_shared_users() {
+        for user in self.transmitic_core.get_shared_users() {
             shared_users.push(user.nickname);
         }
 
@@ -330,7 +366,7 @@ impl Handler {
         let state = match self.transmitic_core.get_my_sharing_state() {
             SharingState::Off => "Off".to_string(),
             SharingState::Local => "Local".to_string(),
-            SharingState::Internet =>"Internet".to_string(),
+            SharingState::Internet => "Internet".to_string(),
         };
         return self.get_msg_box_response(0, &state);
     }
@@ -341,7 +377,7 @@ impl Handler {
 
         for user in shared_users {
             let mut new_user_dict = Value::new();
-            // TODO use serde to get the string? 
+            // TODO use serde to get the string?
             //  But the struct may evenutally contain data that the UI doesn't need?
             //  But that would just be ignored, that wouldn't be a problem
 
@@ -354,12 +390,11 @@ impl Handler {
             } else {
                 new_user_dict.set_item("status", "Blocked");
             }
-            
+
             user_list.push(new_user_dict);
-            
         }
 
-       return user_list;
+        return user_list;
     }
 
     fn get_sharing_port(&self) -> Value {
@@ -373,7 +408,6 @@ impl Handler {
     }
 
     fn refresh_shared_with_me(&mut self) -> Value {
-
         let refresh_data = self.transmitic_core.refresh_shared_with_me();
         let mut ui_data = Vec::new();
         for data in refresh_data {
@@ -385,28 +419,27 @@ impl Handler {
                         error: "".to_string(),
                         files: vec![file],
                     };
-                },
+                }
                 Err(e) => {
                     ui = RefreshDataUI {
                         owner: data.owner,
                         error: e.to_string(),
                         files: Vec::new(),
                     };
-                },
+                }
             }
             ui_data.push(ui);
         }
 
         let json_string = serde_json::to_string_pretty(&ui_data).unwrap();
         return Value::from_str(&json_string).unwrap();
-
     }
 
     fn remove_file_from_sharing(&mut self, file_path: Value) -> Value {
         let mut file_path = self.clean_sciter_string(file_path);
         file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\");
-        
+
         let response;
         match self.transmitic_core.remove_file_from_sharing(file_path) {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
@@ -434,7 +467,10 @@ impl Handler {
         file_path = file_path.replace("\\\\", "\\");
 
         let response: Value;
-        match self.transmitic_core.remove_user_from_sharing(nickname, file_path) {
+        match self
+            .transmitic_core
+            .remove_user_from_sharing(nickname, file_path)
+        {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
@@ -448,15 +484,13 @@ impl Handler {
         let core_state: SharingState;
         if state == "Off" {
             core_state = SharingState::Off;
-        }
-        else if state == "Local" {
+        } else if state == "Local" {
             core_state = SharingState::Local;
-        }
-        else if state == "Internet" {
+        } else if state == "Internet" {
             core_state = SharingState::Internet;
-        }
-        else {
-            return self.get_msg_box_response(1, &format!("Sharing state '{}' is not valid", state));
+        } else {
+            return self
+                .get_msg_box_response(1, &format!("Sharing state '{}' is not valid", state));
         }
 
         self.transmitic_core.set_my_sharing_state(core_state);
@@ -471,7 +505,7 @@ impl Handler {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        
+
         return response;
     }
 
@@ -483,11 +517,14 @@ impl Handler {
         };
 
         let response: Value;
-        match self.transmitic_core.set_user_is_allowed_state(nickname, is_allowed) {
+        match self
+            .transmitic_core
+            .set_user_is_allowed_state(nickname, is_allowed)
+        {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        
+
         return response;
     }
 
@@ -504,14 +541,16 @@ impl Handler {
         let new_port = self.clean_sciter_string(new_port);
 
         let response: Value;
-        match self.transmitic_core.update_user(nickname, new_public_id, new_ip, new_port) {
+        match self
+            .transmitic_core
+            .update_user(nickname, new_public_id, new_ip, new_port)
+        {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
 
         return response;
     }
-
 }
 
 fn unescape_path(path: &String) -> String {
