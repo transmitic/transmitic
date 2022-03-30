@@ -74,7 +74,7 @@ impl Handler {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        return response;
+        response
     }
 
     fn add_new_user(
@@ -97,7 +97,7 @@ impl Handler {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        return response;
+        response
     }
 
     fn add_user_to_shared(&mut self, nickname: Value, file_path: Value) -> Value {
@@ -111,7 +111,7 @@ impl Handler {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        return response;
+        response
     }
 
     fn create_new_id(&mut self) -> Value {
@@ -120,7 +120,7 @@ impl Handler {
             Ok(_) => response = self.get_msg_box_response(0, &"".to_string()),
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        return response;
+        response
     }
 
     fn download_selected(&mut self, files: Value) -> Value {
@@ -143,7 +143,7 @@ impl Handler {
             }
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
-        return response;
+        response
     }
 
     fn downloads_open(&self) {
@@ -156,9 +156,8 @@ impl Handler {
         path_local_disk = unescape_path(&path_local_disk);
         path_local_disk = path_local_disk.replace("\\\\", "\\");
 
-        match path_local_disk.strip_suffix("\\") {
-            Some(s) => path_local_disk = s.to_string(),
-            None => {}
+        if let Some(s) = path_local_disk.strip_suffix('\\') {
+            path_local_disk = s.to_string()
         }
         Command::new("explorer.exe")
             .arg(path_local_disk)
@@ -206,7 +205,7 @@ impl Handler {
         uploads.sort_by(|x, y| x.nickname.cmp(&y.nickname));
 
         let json_string = serde_json::to_string(&uploads).unwrap();
-        return Value::from_str(&json_string).unwrap();
+        Value::from_str(&json_string).unwrap()
     }
 
     fn get_all_downloads(&self) -> Value {
@@ -233,13 +232,13 @@ impl Handler {
                         let mut path_local_disk = download_state
                             .active_download_local_path
                             .clone()
-                            .unwrap_or("".to_string());
+                            .unwrap_or_else(|| "".to_string());
                         path_local_disk = path_local_disk.replace("/", "\\");
                         in_progress.push(SingleDownloadUI {
                             owner: nickname.clone(),
                             percent: download_state.active_download_percent,
                             path: path.clone(),
-                            path_local_disk: path_local_disk,
+                            path_local_disk,
                         });
                     }
                     None => {} // Do nothing, there is no in progress download
@@ -280,7 +279,7 @@ impl Handler {
                     owner: nickname.clone(),
                     percent: 100,
                     path: finished_download.path.clone(),
-                    path_local_disk: path_local_disk,
+                    path_local_disk,
                 });
             }
         }
@@ -290,15 +289,15 @@ impl Handler {
             in_progress,
             invalid,
             queued,
-            offline: offline,
+            offline,
             finished: completed,
         };
 
         let json_string = serde_json::to_string(&all_downloads).unwrap();
-        return Value::from_str(&json_string).unwrap();
+        Value::from_str(&json_string).unwrap()
     }
 
-    fn get_msg_box_response(&self, code: i32, msg: &String) -> Value {
+    fn get_msg_box_response(&self, code: i32, msg: &str) -> Value {
         let mut response = Value::new();
 
         response.push(Value::from(code));
@@ -359,7 +358,7 @@ impl Handler {
             my_files.push(new_file);
         }
 
-        return my_files;
+        my_files
     }
 
     fn get_my_sharing_state(&self) -> Value {
@@ -368,7 +367,7 @@ impl Handler {
             SharingState::Local => "Local".to_string(),
             SharingState::Internet => "Internet".to_string(),
         };
-        return self.get_msg_box_response(0, &state);
+        self.get_msg_box_response(0, &state)
     }
 
     fn get_shared_users(&self) -> Value {
@@ -394,12 +393,12 @@ impl Handler {
             user_list.push(new_user_dict);
         }
 
-        return user_list;
+        user_list
     }
 
     fn get_sharing_port(&self) -> Value {
         let sharing_port = self.transmitic_core.get_sharing_port();
-        return Value::from(sharing_port);
+        Value::from(sharing_port)
     }
 
     fn get_public_id_string(&self) -> Value {
@@ -432,7 +431,7 @@ impl Handler {
         }
 
         let json_string = serde_json::to_string_pretty(&ui_data).unwrap();
-        return Value::from_str(&json_string).unwrap();
+        Value::from_str(&json_string).unwrap()
     }
 
     fn remove_file_from_sharing(&mut self, file_path: Value) -> Value {
@@ -446,7 +445,7 @@ impl Handler {
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
 
-        return response;
+        response
     }
 
     fn remove_user(&mut self, nickname: Value) -> Value {
@@ -457,7 +456,7 @@ impl Handler {
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
 
-        return response;
+        response
     }
 
     fn remove_user_from_sharing(&mut self, nickname: Value, file_path: Value) -> Value {
@@ -475,7 +474,7 @@ impl Handler {
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
 
-        return response;
+        response
     }
 
     fn set_my_sharing_state(&mut self, state: Value) -> Value {
@@ -494,7 +493,7 @@ impl Handler {
         }
 
         self.transmitic_core.set_my_sharing_state(core_state);
-        return self.get_msg_box_response(0, &"".to_string());
+        self.get_msg_box_response(0, &"".to_string())
     }
 
     fn set_port(&mut self, port: Value) -> Value {
@@ -506,7 +505,7 @@ impl Handler {
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
 
-        return response;
+        response
     }
 
     fn set_user_is_allowed_state(&mut self, nickname: Value, is_allowed: Value) -> Value {
@@ -525,7 +524,7 @@ impl Handler {
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
 
-        return response;
+        response
     }
 
     fn update_user(
@@ -549,19 +548,20 @@ impl Handler {
             Err(e) => response = self.get_msg_box_response(1, &e.to_string()),
         }
 
-        return response;
+        response
     }
 }
 
-fn unescape_path(path: &String) -> String {
+fn unescape_path(path: &str) -> String {
     // TODO Need to update UI to say that the path was escaped to being with
-    let mut unescaped_path = path.clone();
+    let mut unescaped_path = path.to_string();
     unescaped_path = unescaped_path.replace("&#039;", "'");
     unescaped_path = unescaped_path.replace("&amp;", "&");
 
-    return unescaped_path;
+    unescaped_path
 }
 
+#[allow(clippy::eval_order_dependence)]
 impl sciter::EventHandler for Handler {
     dispatch_script_call! {
 
@@ -668,5 +668,5 @@ fn get_sciter_frame() -> sciter::Window {
             .unwrap();
     }
 
-    return frame;
+    frame
 }
