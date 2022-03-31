@@ -1,7 +1,9 @@
 # Transmitic Beta
 
 Transmitic is an encrypted, peer to peer, file transfer program with download pause and resume.  
-Transmitic is still in development.
+No third party server is involved.  
+The goal is to make transferring files and folders as easy as possible.  
+If you have ever thought _"I just want to send these files directly from this computer to another"_, Transmitic can help.  
 
 Discord: [https://discord.gg/tRT3J6T](https://discord.gg/tRT3J6T)  
 Reddit: [https://www.reddit.com/r/transmitic/](https://www.reddit.com/r/transmitic/)  
@@ -12,7 +14,6 @@ Website: [https://transmitic.net/](https://transmitic.net/)
 
 <a href="https://www.buymeacoffee.com/andrewshay" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" height="40" width="150" style="height: 40px !important;width: 150px !important;" ></a>
 
-
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J626I8G)
 
 [Patreon](https://www.patreon.com/andrewshay)
@@ -21,17 +22,13 @@ Website: [https://transmitic.net/](https://transmitic.net/)
 
 **Bittorrent**  
 Transmitic does not support bittorrent, or bittorent like functionality. Transmitic cannot download the same file from multiple peers to download it faster.  
-A file can only be downloaded from one user.
 
 **File Syncing**  
 Transmitic does _not_ have any file syncing capability and should never be used for this purpose.
 
 ## Development Status
 
-Transmitic in beta and still in development  
-
-This project is slowly being hacked on during nights and weekends.  
-It will eventually reach a stable and tested point.
+Transmitic is currently in beta.
 
 ## More Info
 
@@ -51,7 +48,7 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 - [x25519_dalek](https://docs.rs/x25519-dalek/)
 - [serde](https://serde.rs/)
 
-## Goals (Short Term and Long Term)
+## Future Features
 
 - Linux support
 - macOS support
@@ -62,6 +59,8 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 - Auto updates
 - Transmitic Mini
   - CLI only version with minimal dependencies
+
+See GitHub Issues and Discussions for more
 
 ## Cryptography Usage
 
@@ -83,6 +82,11 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 ### Current
 
 ![Transmitic](./screenshot.png)
+
+## Pricing
+
+At this time Transmitic is free for personal and commercial use.  
+Check back periodically for changes to pricing.  
 
 ## License
 
