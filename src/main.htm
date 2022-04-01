@@ -1,4 +1,4 @@
-<html window-frame="extended" window-blurbehind="dark" theme="dark">
+<html window-frame="extended" window-blurbehind="dark" theme="dark" window-width="600">
 
 <head>
     <title>Transmitic</title>
@@ -32,6 +32,13 @@
     <script src="global_transmitic.js"></script>
     <script>
         document.attributes["theme"] = "dark";
+
+        function replaceWindow() {
+            var [sx,sy,sw,sh] = Window.this.screenBox("workarea","xywh");
+            const w = 1500 * devicePixelRatio;
+            const h = 900 * devicePixelRatio; 
+            Window.this.move(sx + (sw - w)/2, sy + (sh - h)/2, w, h);
+        }
 
         let navLinks = [
             {
@@ -123,15 +130,20 @@
             }
         }
 
-        let activeIndexStart = 0;
-        if (Window.this.xcall('get_is_first_start')) {
-            let start_index = 6;
-            document.$("frame").src = navLinks[start_index].html;
-            activeIndexStart = start_index;
-        } else {
-            document.$("frame").src = navLinks[0].html;
-        }
-        document.$("div.nav-bar").content(<NavBar activeIndex={activeIndexStart} />);
+        document.ready = function ()
+          {
+            replaceWindow();
+
+            let activeIndexStart = 0;
+            if (Window.this.xcall('get_is_first_start')) {
+                let start_index = 6;
+                document.$("frame").src = navLinks[start_index].html;
+                activeIndexStart = start_index;
+            } else {
+                document.$("frame").src = navLinks[0].html;
+            }
+            document.$("div.nav-bar").content(<NavBar activeIndex={activeIndexStart} />);
+          }
 
     </script>
 </head>
