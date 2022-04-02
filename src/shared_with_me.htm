@@ -82,19 +82,26 @@
 
             refreshState;
             fileData;
+            totalCount;
+            finishedCount;
 
             this(props) {
                 this.refreshState = "empty";
                 this.fileData = [];
+                this.totalCount = 0;
+                this.finishedCount = 0;
             }
 
             render(props) {
+                console.error("RENDER");
+                console.error(this.totalCount);
+                console.error(this.finishedCount);
                 let contentElements;
                 if (this.refreshState === "empty") {
-                    contentElements = <div><br />Press Refresh All. The UI might freeze while refreshing.</div>;
+                    contentElements = <div><br />Press Refresh All</div>;
                 }
                 else if (this.refreshState === "refreshing") {
-                    contentElements = <div><br />Please wait. Refreshing...</div>;
+                    contentElements = <div><br />Please wait. Refreshing...{this.finishedCount}/{this.totalCount} complete</div>;
                 }
                 else if (this.refreshState === "finished") {
                     contentElements = <div>{this.fileData.map((d) => <div><SharedData owner={d.owner} files={d.files} error={d.error} /> <hr style="margin-top: 1em;" /></div>)} </div>;
@@ -102,8 +109,8 @@
                 else {
                     contentElements = <div><br />Error: Unknown refreshState '{this.refreshState}'</div>;
                 }
-                let finalData = <div selectable>
-                    <button id="refresh-all">Refresh All</button>
+                let finalData = <div>
+                    <button id="refresh-all">Refresh Alll</button>
                     <button style="margin-left: 1em;" id="download-selected">Download Selected</button>
                     {contentElements}
                 </div>
@@ -122,10 +129,25 @@
             }
 
             ["on click at button#refresh-all"]() {
-                this.componentUpdate({ refreshState: "refreshing" });
+                document.$("button#refresh-all").state.disabled = true;
+                let response = Window.this.xcall('start_refresh_shared_with_me');
+                this.componentUpdate({ refreshState: "refreshing", totalCount: response, finishedCount: 0 });
 
-                let response = Window.this.xcall('refresh_shared_with_me');
-                this.componentUpdate({ fileData: response, refreshState: "finished" });
+                this.timer(500, () => {
+                    let response = Window.this.xcall('get_refresh_state');
+                    let inProgress = response[0];
+                    let finishedCount = response[1];
+
+                    if (inProgress) {
+                        this.componentUpdate({ refreshState: "refreshing", finishedCount: finishedCount });
+                        return true; // to keep the timer ticking
+                    } else {
+                        let response = Window.this.xcall('refresh_shared_with_me');
+                        this.componentUpdate({ fileData: response, refreshState: "finished" });
+                        document.$("button#refresh-all").state.disabled = false;
+                        return false;
+                    }
+                });
             }
 
         }

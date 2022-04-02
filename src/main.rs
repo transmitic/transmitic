@@ -2,12 +2,15 @@ use std::env;
 use std::process::Command;
 use std::str;
 use std::str::FromStr;
+use std::sync::mpsc::Receiver;
 
 use serde::{Deserialize, Serialize};
 extern crate sciter;
 use sciter::dispatch_script_call;
 use sciter::Value;
 use transmitic_core::incoming_uploader::SharingState;
+use transmitic_core::outgoing_downloader::RefreshSharedMessages;
+use transmitic_core::shared_file::RefreshData;
 use transmitic_core::shared_file::SelectedDownload;
 use transmitic_core::shared_file::SharedFile;
 use transmitic_core::transmitic_core::SingleUploadState;
@@ -19,6 +22,24 @@ const URL: &str = "https://transmitic.net";
 
 struct Handler {
     transmitic_core: TransmiticCore,
+    refresh_is_inprogress: bool,
+    refresh_total_count: usize,
+    refresh_current_finished: usize,
+    refresh_data: Vec<RefreshData>,
+    refresh_recv: Option<Receiver<RefreshSharedMessages>>,
+}
+
+impl Handler {
+    pub fn new(transmitic_core: TransmiticCore) -> Self {
+        Handler {
+            transmitic_core,
+            refresh_is_inprogress: false,
+            refresh_total_count: 0,
+            refresh_current_finished: 0,
+            refresh_data: Vec::new(),
+            refresh_recv: None,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -400,18 +421,63 @@ impl Handler {
         Value::from(public_id_string)
     }
 
-    fn refresh_shared_with_me(&mut self) -> Value {
+    // TODO switch the channel with Arc mutex, would that be simpler?
+    fn start_refresh_shared_with_me(&mut self) -> Value {
+        if self.refresh_is_inprogress {
+            panic!("refresh already in progress");
+        }
+
         let refresh_data = self.transmitic_core.refresh_shared_with_me();
+        self.refresh_is_inprogress = true;
+        self.refresh_total_count = refresh_data.0;
+        self.refresh_recv = Some(refresh_data.1);
+        self.refresh_data.clear();
+
+        Value::from(self.refresh_total_count.to_string())
+    }
+
+    fn get_refresh_state(&mut self) -> Value {
+        let recv = match &self.refresh_recv {
+            Some(recv) => recv,
+            None => panic!("called refresh.recv on None"),
+        };
+
+        loop {
+            match recv.try_recv() {
+                Ok(msg) => match msg {
+                    RefreshSharedMessages::UIData(data) => self.refresh_data.push(data),
+                    RefreshSharedMessages::RefreshFinished => {
+                        self.refresh_is_inprogress = false;
+                        break;
+                    }
+                },
+                Err(e) => match e {
+                    std::sync::mpsc::TryRecvError::Empty => break,
+                    std::sync::mpsc::TryRecvError::Disconnected => {
+                        self.refresh_is_inprogress = false;
+                        break;
+                    }
+                },
+            }
+        }
+
+        let mut response = Value::new();
+        response.push(self.refresh_is_inprogress);
+        response.push(self.refresh_data.len().to_string());
+        response
+    }
+
+    fn refresh_shared_with_me(&mut self) -> Value {
         let mut ui_data = Vec::new();
-        for data in refresh_data {
-            let ui: RefreshDataUI = match data.data {
+        for data in self.refresh_data.iter() {
+            let ui: RefreshDataUI = match data.data.clone() {
                 Ok(file) => RefreshDataUI {
-                    owner: data.owner,
+                    owner: data.owner.clone(),
                     error: "".to_string(),
                     files: vec![file],
                 },
                 Err(e) => RefreshDataUI {
-                    owner: data.owner,
+                    owner: data.owner.clone(),
                     error: e.to_string(),
                     files: Vec::new(),
                 },
@@ -578,6 +644,8 @@ impl sciter::EventHandler for Handler {
         fn get_is_first_start();
         fn get_my_sharing_files();
         fn get_my_sharing_state();
+        fn start_refresh_shared_with_me();
+        fn get_refresh_state();
         fn get_shared_users();
         fn get_sharing_port();
         fn get_public_id_string();
@@ -625,7 +693,7 @@ fn main() {
         }
     };
 
-    let handler = Handler { transmitic_core };
+    let handler = Handler::new(transmitic_core);
 
     frame.event_handler(handler);
     frame.load_file(&sciter_string);
