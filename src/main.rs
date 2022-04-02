@@ -24,7 +24,6 @@ struct Handler {
     transmitic_core: TransmiticCore,
     refresh_is_inprogress: bool,
     refresh_total_count: usize,
-    refresh_current_finished: usize,
     refresh_data: Vec<RefreshData>,
     refresh_recv: Option<Receiver<RefreshSharedMessages>>,
 }
@@ -35,7 +34,6 @@ impl Handler {
             transmitic_core,
             refresh_is_inprogress: false,
             refresh_total_count: 0,
-            refresh_current_finished: 0,
             refresh_data: Vec::new(),
             refresh_recv: None,
         }
@@ -78,16 +76,15 @@ struct SingleDownloadUI {
 }
 
 impl Handler {
-    fn add_files(&mut self, files: Value) -> Value {
+    // When a sciter array is sent as it's self, it's expanded into args and fails, but put it in
+    // another array as a container, is fine.
+    fn add_files(&mut self, files_double_array: Value) -> Value {
         let mut clean_strings: Vec<String> = Vec::new();
-        if files.is_string() {
-            let clean_file = self.clean_sciter_string(files);
+
+        let files = files_double_array.get(0); // Get the inner array, which actually has the files
+        for file in files.into_iter() {
+            let clean_file = self.clean_sciter_string(file);
             clean_strings.push(clean_file);
-        } else {
-            for file in files.into_iter() {
-                let clean_file = self.clean_sciter_string(file);
-                clean_strings.push(clean_file);
-            }
         }
 
         let response = match self.transmitic_core.add_files(clean_strings) {

@@ -113,6 +113,7 @@
                 });
 
                 if (files) {
+
                     if ((typeof files) == 'string') { // instanceof isn't working
                         files = [files];
                     }
@@ -135,7 +136,12 @@
                 let files = Window.this.selectFolder();
                 if (files) {
                     files = decodeURI(files);
-                    let response = Window.this.xcall('add_files', files);
+
+                    // This double files array: 
+                    // rust add_files expects an array and selectFolder only returns 1 string. Add array.
+                    // sciter is expanding a single array into args causing failures, but works with an outer array. Add array.
+                    // total == 2 arrays
+                    let response = Window.this.xcall('add_files', [[files]]);
                     if (response[0] == 0) {
                         setMsgBoxSuccess("Folder added to share.");
                         this.componentUpdate();
