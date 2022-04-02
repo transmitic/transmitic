@@ -90,26 +90,28 @@
                 return <div>
                     <span selectable><h3>{this.props.nickname}</h3></span>
                     <table selectable>
-                        <tr>
-                            <td>Nickname:</td>
-                            <td>{this.elementNickname}</td>
-                        </tr>
-                        <tr>
-                            <td>Public ID:</td>
-                            <td>{this.elementPublicID}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding-right: 1em;">IP Address:</td>
-                            <td>{this.elementIP}</td>
-                        </tr>
-                        <tr>
-                            <td>Port:</td>
-                            <td>{this.elementPort}</td>
-                        </tr>
-                        <tr>
-                            <td>Status:</td>
-                            <td>{this.props.status}</td>
-                        </tr>
+                        <tbody>
+                            <tr>
+                                <td>Nickname:</td>
+                                <td>{this.elementNickname}</td>
+                            </tr>
+                            <tr>
+                                <td>Public ID:</td>
+                                <td>{this.elementPublicID}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-right: 1em;">IP Address:</td>
+                                <td>{this.elementIP}</td>
+                            </tr>
+                            <tr>
+                                <td>Port:</td>
+                                <td>{this.elementPort}</td>
+                            </tr>
+                            <tr>
+                                <td>Status:</td>
+                                <td>{this.props.status}</td>
+                            </tr>
+                        </tbody>
                     </table>
                     <div class="users-bar">
                         <button class="remove-user">Remove</button> {this.editButton} {this.actionButton}
@@ -214,27 +216,30 @@
         <div>
             <h2>Add New User</h2>
             <table>
-                <tr class="add-row">
-                    <td>Nickname: </td>
-                    <td><input id="new-user-nickname" type="text"></td>
-                </tr>
-                <tr class="add-row">
-                    <td>Public ID:</td>
-                    <td><input id="new-user-public-id" type="text"></td>
-                </tr>
-                <tr class="add-row">
-                    <td>IP Address: &nbsp;</td>
-                    <td><input id="new-user-ip" type="text"></td>
-                </tr>
-                <tr class="add-row">
-                    <td>Port:</td>
-                    <td><input id="new-user-port" type="text"></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td style="text-align:right;"><button id="add-user" style="margin-top: 10dip;">Add New User</button>
-                    </td>
-                </tr>
+                <tbody>
+                    <tr class="add-row">
+                        <td>Nickname: </td>
+                        <td><input id="new-user-nickname" type="text"></td>
+                    </tr>
+                    <tr class="add-row">
+                        <td>Public ID:</td>
+                        <td><input id="new-user-public-id" type="text"></td>
+                    </tr>
+                    <tr class="add-row">
+                        <td>IP Address: &nbsp;</td>
+                        <td><input id="new-user-ip" type="text"></td>
+                    </tr>
+                    <tr class="add-row">
+                        <td>Port:</td>
+                        <td><input id="new-user-port" type="text"></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td style="text-align:right;"><button id="add-user" style="margin-top: 10dip;">Add New
+                                User</button>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
             <br>
 
