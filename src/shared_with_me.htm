@@ -101,7 +101,7 @@
                     contentElements = <div><br />Press Refresh All</div>;
                 }
                 else if (this.refreshState === "refreshing") {
-                    contentElements = <div><br />Please wait. Refreshing...{this.finishedCount}/{this.totalCount} complete</div>;
+                    contentElements = <div><br />Refreshing...{this.finishedCount}/{this.totalCount} complete</div>;
                 }
                 else if (this.refreshState === "finished") {
                     contentElements = <div>{this.fileData.map((d) => <div><SharedData owner={d.owner} files={d.files} error={d.error} /> <hr style="margin-top: 1em;" /></div>)} </div>;
@@ -110,7 +110,7 @@
                     contentElements = <div><br />Error: Unknown refreshState '{this.refreshState}'</div>;
                 }
                 let finalData = <div>
-                    <button id="refresh-all">Refresh Alll</button>
+                    <button id="refresh-all">Refresh All</button>
                     <button style="margin-left: 1em;" id="download-selected">Download Selected</button>
                     {contentElements}
                 </div>
@@ -129,7 +129,8 @@
             }
 
             ["on click at button#refresh-all"]() {
-                document.$("button#refresh-all").state.disabled = true;
+                document.$("button#refresh-all").state.disabled = true; // TODO move into render
+                document.$("button#download-selected").state.disabled = true; // TODO move into render
                 let response = Window.this.xcall('start_refresh_shared_with_me');
                 this.componentUpdate({ refreshState: "refreshing", totalCount: response, finishedCount: 0 });
 
@@ -144,7 +145,8 @@
                     } else {
                         let response = Window.this.xcall('refresh_shared_with_me');
                         this.componentUpdate({ fileData: response, refreshState: "finished" });
-                        document.$("button#refresh-all").state.disabled = false;
+                        document.$("button#refresh-all").state.disabled = false; // TODO move into render
+                        document.$("button#download-selected").state.disabled = false; // TODO move into render
                         return false;
                     }
                 });
@@ -153,6 +155,7 @@
         }
 
         document.$("div#shared-with-me").content(<SharedWithMe />);
+        document.$("button#download-selected").state.disabled = true; // TODO move into render
 
     </script>
 </head>
