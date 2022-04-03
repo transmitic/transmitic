@@ -1,9 +1,9 @@
 html:theme(dark) {
 
-    var(accent): window-accent-color;
+    var(accent): window-accent-color; // TRAN
     var(accent-text): highlighttext;
 
-    var(panel-back): #000;
+    var(panel-back): #000; // TRAN
     var(popup-panel-back): #555;
     var(panel-text): #eee;
     var(back): #000;
@@ -33,7 +33,7 @@ html:theme(dark) {
 
 }
 
-//html:theme(light) 
+//html:theme(light)
 html:not(:theme(dark)) {
     var(accent): window-accent-color;
     var(accent-text): highlighttext;
@@ -53,7 +53,6 @@ html:not(:theme(dark)) {
 }
 
 html {
-
     font-family: "Segoe UI", Helvetica, sans-serif;
     font-size: 11pt;
 
@@ -81,7 +80,6 @@ html[ui-size="compact"] {
 }
 
 @set std-toggle {
-
     :root {
         display: inline-block;
         behavior: check;
@@ -113,7 +111,8 @@ html[ui-size="compact"] {
         foreground-size: 0.7em;
         fill: color(text);
         stroke: none;
-        transition: foreground-position sine-in 120ms, background-color linear 120ms, fill linear 120ms, border linear 120ms;
+        transition: foreground-position sine-in 120ms, background-color linear 120ms,
+            fill linear 120ms, border linear 120ms;
     }
 
     :root:checked::marker {
@@ -148,7 +147,6 @@ html[ui-size="compact"] {
         border: color(accent);
         fill: color(accent-text);
     }
-
 }
 
 toggle {
@@ -359,7 +357,6 @@ radio {
     :root:tab-focus {
         @STD-TAB-FOCUS;
     }
-
 }
 
 checkbox {
@@ -437,7 +434,6 @@ checkbox {
     :root[nullable]:empty {
         fill: transparent;
     }
-
 }
 
 editbox {
@@ -512,10 +508,7 @@ editbox {
     :root>button.plus {
         foreground-image: url(stock:chevron-up);
     }
-
 }
-
-
 
 /* dropdown combobox */
 @set std-select-dropdown < std-select-dropdown-base {
@@ -649,7 +642,6 @@ editbox {
         border-left: 0.07em color(border) solid;
         border-right: 0.07em color(border) solid;
     }
-
 }
 
 @set std-hslider < std-hslider-base {
@@ -666,7 +658,7 @@ editbox {
         background-repeat: no-repeat;
         background-position: 0 0;
         fill: color(accent);
-        background-size: var(slider-position, 0px) 0.14em; // "value" part 
+        background-size: var(slider-position, 0px) 0.14em; // "value" part
     }
 
     :root>.slider {
@@ -702,7 +694,6 @@ slider {
     }
 }
 
-
 @set std-progress < std-progress-base {
     :root {
         @STD-BOX-NORMAL;
@@ -732,7 +723,6 @@ slider {
         stroke-width: 0;
         animation: 1.2s infinite alternate flat-progress-slide;
     }
-
 }
 
 progress {
