@@ -28,7 +28,7 @@ Transmitic does _not_ have any file syncing capability and should never be used 
 
 ## Development Status
 
-Transmitic is currently in beta.
+Transmitic is currently in beta. Please report any bugs that you encounter.
 
 ## More Info
 
@@ -46,7 +46,6 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 - [ring](https://briansmith.org/rustdoc/ring/)
 - [aes-gcm](https://docs.rs/aes-gcm/)
 - [x25519_dalek](https://docs.rs/x25519-dalek/)
-- [serde](https://serde.rs/)
 
 ## Future Features
 
@@ -73,9 +72,11 @@ See GitHub Issues and Discussions for more
 - AES key generated
 - All further communication encrypted with `AES-GCM` with `ring`
 
-## Protocol Overview
+See these modules to review the cryptography usage
 
-- TODO
+- crypto.rs  
+- transmitic_stream.rs  
+- encrypted_stream.rs
 
 ## Screenshots
 
