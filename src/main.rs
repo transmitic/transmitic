@@ -76,7 +76,7 @@ struct SingleDownloadUI {
 }
 
 impl Handler {
-    // When a sciter array is sent as it's self, it's expanded into args and fails, but put it in
+    // When a sciter array is sent as its self, it's expanded into args and fails, but put it in
     // another array as a container, is fine.
     fn add_files(&mut self, files_double_array: Value) -> Value {
         let mut clean_strings: Vec<String> = Vec::new();

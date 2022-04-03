@@ -5,7 +5,7 @@
     html {
         var(accent-color): window-accent-color;
         var(text-color): #000;
-        border: window-frame-width solid transparent;
+        border: 1dip solid #3F4345;
     }
 
     html:theme(dark) {
@@ -13,7 +13,7 @@
     }
 
     html:owns-focus {
-        border-color: morph(color(accent-color), opacity:50%);
+        border: 1dip solid #323536;
     }
 
     html>window-header {
