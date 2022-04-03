@@ -122,7 +122,13 @@
                     let owner = box.getAttribute("data-owner");
                     selectedFiles.push({ "path": path, "owner": owner });
                 }
-                let response = Window.this.xcall('download_selected', { "files": selectedFiles });
+
+                let downloadCount = selectedFiles.length;
+                if (downloadCount > 0) {
+                    let response = Window.this.xcall('download_selected', { "files": selectedFiles });
+                    setMsgBoxSuccess("<strong>" + downloadCount + "</strong> downloads started");
+                }
+
             }
 
             ["on click at button#refresh-all"]() {
@@ -159,6 +165,7 @@
 
 <body>
     <div class="main-body">
+        <div id="msg-box"></div>
 
         <h1>
             Shared With Me
