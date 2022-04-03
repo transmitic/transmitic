@@ -777,13 +777,16 @@ section>div {
 }
 
 .nav-button {
-    height: 50dip;
+    height: 46dip;
     text-align: left;
     vertical-align: middle;
+    border-top: 0.1em solid transparent;
+    border-bottom: 0.1em solid transparent;
 }
 
 .nav-button:hover {
     background-color: color(nav-button-hover);
+    border-color: #323536;
 }
 
 .nav-bar {
@@ -801,13 +804,13 @@ section>div {
 
 .nav-text {
     display: inline-block;
-    padding-left: 5dip;
+    padding-left: 12dip;
 }
 
 .nav-icon {
     height: 20dip;
     vertical-align: middle;
-    padding-left: 5dip;
+    padding-left: 9dip;
 }
 
 .menu-bar {
