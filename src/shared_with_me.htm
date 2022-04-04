@@ -95,7 +95,7 @@
             render(props) {
                 let contentElements;
                 if (this.refreshState === "empty") {
-                    contentElements = <div><br />Press Refresh All to load files shared with you</div>;
+                    contentElements = <div><br />Press Refresh All to get files shared with you</div>;
                 }
                 else if (this.refreshState === "refreshing") {
                     contentElements = <div><br />Refreshing...{this.finishedCount}/{this.totalCount} complete</div>;
