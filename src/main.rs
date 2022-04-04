@@ -703,8 +703,11 @@ fn get_sciter_frame() -> sciter::Window {
             | sciter::SCRIPT_RUNTIME_FEATURES::ALLOW_FILE_IO as u8,
     ))
     .unwrap();
-    sciter::set_options(sciter::RuntimeOptions::DebugMode(true)).unwrap();
 
+    if cfg!(debug_assertions) {
+        sciter::set_options(sciter::RuntimeOptions::DebugMode(true)).unwrap();
+    }
+    
     let frame = sciter::Window::new();
 
     if cfg!(target_os = "macos") {
