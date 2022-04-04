@@ -421,7 +421,7 @@ impl Handler {
     // TODO switch the channel with Arc mutex, would that be simpler?
     fn start_refresh_shared_with_me(&mut self) -> Value {
         if self.refresh_is_inprogress {
-            panic!("refresh already in progress");
+            return Value::from(self.refresh_total_count.to_string());
         }
 
         let refresh_data = self.transmitic_core.refresh_shared_with_me();
@@ -707,7 +707,7 @@ fn get_sciter_frame() -> sciter::Window {
     if cfg!(debug_assertions) {
         sciter::set_options(sciter::RuntimeOptions::DebugMode(true)).unwrap();
     }
-    
+
     let frame = sciter::Window::new();
 
     if cfg!(target_os = "macos") {
