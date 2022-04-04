@@ -785,7 +785,7 @@ section>div {
 }
 
 .nav-button:hover {
-    background-color: color(nav-button-hover);
+    background: rgba(255, 255, 255, 0.25);
     border-color: #323536;
 }
 
