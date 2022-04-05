@@ -16,15 +16,16 @@ Website: [https://transmitic.net/](https://transmitic.net/)
 
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J626I8G)
 
-[Patreon](https://www.patreon.com/andrewshay)
+<a href="https://www.patreon.com/andrewshay" target="_blank"><img src="https://user-images.githubusercontent.com/4878195/161663353-d78961a3-71e6-4353-9a2e-3028e64c72e1.png" alt="Patreon" height="40" width="40" style="height: 40px !important;width: 40px !important;" > Patreon</a>
+
 
 ## Comparison To Other Tools
 
 **Bittorrent**  
-Transmitic does not support bittorrent, or bittorent like functionality. Transmitic cannot download the same file from multiple peers to download it faster.  
+Transmitic does not support bittorrent, or bittorent like functionality, in that Transmitic cannot download the same file from multiple peers to download it faster.  
 
 **File Syncing**  
-Transmitic does _not_ have any file syncing capability and should never be used for this purpose.
+Transmitic is _not_ designed for "file syncing" and should _never_ be used for this purpose.
 
 ## Development Status
 
