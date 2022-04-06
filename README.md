@@ -73,7 +73,7 @@ See GitHub Issues and Discussions for more
 - AES key generated
 - All further communication encrypted with `AES-GCM` with `ring`
 
-See these modules to review the cryptography usage
+See these modules to review the cryptography usage in [transmitic-core](https://github.com/transmitic/transmitic-core)
 
 - crypto.rs  
 - transmitic_stream.rs  
@@ -90,7 +90,6 @@ https://user-images.githubusercontent.com/4878195/161657290-e15fae8f-3fa3-4a4a-8
 ## Pricing
 
 At this time Transmitic is free for personal and commercial use.  
-Check back periodically for changes to pricing.  
 
 ## License
 
