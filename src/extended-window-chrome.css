@@ -128,5 +128,9 @@
 }
 
 html[window-blurbehind] {
+    background: #1f1f1f;
+}
+
+html[window-blurbehind]:owns-focus {
     background: transparent;
 }
