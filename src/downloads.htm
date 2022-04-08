@@ -201,13 +201,23 @@
             }
 
             render() {
+
+                let pauseResumeButton;
+                let response = Window.this.xcall('is_downloading_paused');
+                if (response) {
+                    pauseResumeButton = <button id="resume-all-downloads">Resume All</button>;
+
+                } else {
+                    pauseResumeButton = <button id="pause-all-downloads">Pause All</button>;
+
+                }
+
                 return <div class="menu-bar">
                     <button id="open-downloads">Open Downloads</button> |
                     <button id="clear-finished">Clear Finished</button> |
                     <button id="clear-invalid">Clear Invalid</button> |
                     <button id="cancel-all-downloads">Cancel All</button> |
-                    <button id="pause-all-downloads">Pause All</button> |
-                    <button id="resume-all-downloads">Resume All</button>
+                    {pauseResumeButton}
                 </div>;
             }
 
@@ -235,12 +245,14 @@
                 let response = Window.this.xcall('downloads_pause_all');
                 setMsgBoxSuccess("All Downloads are being paused");
                 Window.post(new Event("render-downloads"));
+                this.componentUpdate();
             }
 
             ["on click at button#resume-all-downloads"]() {
                 let response = Window.this.xcall('downloads_resume_all');
                 setMsgBoxSuccess("All Downloads are being resumed");
                 Window.post(new Event("render-downloads"));
+                this.componentUpdate();
             }
 
         }

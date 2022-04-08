@@ -464,6 +464,10 @@ impl Handler {
         response
     }
 
+    fn is_downloading_paused(&self) -> Value {
+        Value::from(self.transmitic_core.is_downloading_paused())
+    }
+
     fn refresh_shared_with_me(&mut self) -> Value {
         let mut ui_data = Vec::new();
         for data in self.refresh_data.iter() {
@@ -646,6 +650,7 @@ impl sciter::EventHandler for Handler {
         fn get_shared_users();
         fn get_sharing_port();
         fn get_public_id_string();
+        fn is_downloading_paused();
 
         fn set_my_sharing_state(Value);
         fn set_port(Value);
