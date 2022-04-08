@@ -675,7 +675,7 @@ fn main() {
         println!("Release");
         let sciter_path = env::current_exe().unwrap();
         let sciter_path = sciter_path.parent().unwrap();
-        let sciter_path = sciter_path.join("main.htm");
+        let sciter_path = sciter_path.join("data").join("main.htm");
         format!("file://{}", sciter_path.to_string_lossy())
     };
 
