@@ -31,6 +31,7 @@ html:theme(dark) {
     var(side-panel-back): #1f1f1f;
     var(nav-button-hover): #353535;
 
+    var(t-blue): #006FC7;
 }
 
 //html:theme(light)
@@ -734,7 +735,7 @@ progress {
 
 /**** GLOBAL ****/
 a {
-    color: color(accent);
+    color: color(t-blue);
 }
 
 a:hover {
