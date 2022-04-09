@@ -1,4 +1,4 @@
-<html window-frame="extended" window-blurbehind="dark" theme="dark" window-width="600">
+<html window-frame="extended" window-blurbehind="dark" theme="dark" window-width="600" window-icon="window_icon.svg">
 
 <head>
     <title>Transmitic</title>
@@ -34,10 +34,10 @@
         document.attributes["theme"] = "dark";
 
         function replaceWindow() {
-            var [sx,sy,sw,sh] = Window.this.screenBox("workarea","xywh");
+            var [sx, sy, sw, sh] = Window.this.screenBox("workarea", "xywh");
             const w = 1500 * devicePixelRatio;
-            const h = 900 * devicePixelRatio; 
-            Window.this.move(sx + (sw - w)/2, sy + (sh - h)/2, w, h);
+            const h = 900 * devicePixelRatio;
+            Window.this.move(sx + (sw - w) / 2, sy + (sh - h) / 2, w, h);
         }
 
         let navLinks = [
@@ -130,8 +130,7 @@
             }
         }
 
-        document.ready = function ()
-          {
+        document.ready = function () {
             replaceWindow();
 
             let activeIndexStart = 0;
@@ -143,7 +142,7 @@
                 document.$("frame").src = navLinks[0].html;
             }
             document.$("div.nav-bar").content(<NavBar activeIndex={activeIndexStart} />);
-          }
+        }
 
     </script>
 </head>
