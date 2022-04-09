@@ -843,6 +843,10 @@ section>div {
     border-left: 2px solid #6696ff;
 }
 
+.download-paused {
+    border-left: 2px solid #fffa66;
+}
+
 .download-invalid {
     border-left: 2px solid #ff6666;
 }
