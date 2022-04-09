@@ -2,8 +2,10 @@
 
 Transmitic is an encrypted, peer to peer, file transfer program with download pause and resume.  
 No third party server is involved.  
+No file size limit!
+
 The goal is to make transferring files and folders as easy as possible.  
-If you have ever thought _"I just want to send these files directly from this computer to another"_, Transmitic can help.  
+If you have ever thought _"I just want to send these files directly from this computer to another"_, Transmitic can help.   
 
 Discord: [https://discord.gg/tRT3J6T](https://discord.gg/tRT3J6T)  
 Reddit: [https://www.reddit.com/r/transmitic/](https://www.reddit.com/r/transmitic/)  
@@ -11,6 +13,8 @@ Twitter: [https://twitter.com/transmitic](https://twitter.com/transmitic)
 Website: [https://transmitic.net/](https://transmitic.net/)  
 
 ## Support Transmitic
+
+Your support is greatly needed  
 
 <a href="https://www.buymeacoffee.com/andrewshay" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" height="40" width="150" style="height: 40px !important;width: 150px !important;" ></a>
 
@@ -20,6 +24,9 @@ Website: [https://transmitic.net/](https://transmitic.net/)
 
 
 ## Comparison To Other Tools
+
+**FTP**  
+Transmitic is most similar to FTP (though the FTP protocol is not supported). You choose which files and folders you want to download from other computers.
 
 **Bittorrent**  
 Transmitic does not support bittorrent, or bittorent like functionality, in that Transmitic cannot download the same file from multiple peers to download it faster.  
@@ -33,7 +40,7 @@ Transmitic is currently in beta. Please report any bugs that you encounter.
 
 ## More Info
 
-See wiki for more information and limitations [https://github.com/transmitic/transmitic/wiki](https://github.com/transmitic/transmitic/wiki)
+See wiki for more information, help, and limitations [https://github.com/transmitic/transmitic/wiki](https://github.com/transmitic/transmitic/wiki)
 
 ## Contributing
 
@@ -60,24 +67,24 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 - Transmitic Mini
   - CLI only version with minimal dependencies
 
-See GitHub Issues and Discussions for more
+See [GitHub Issues](https://github.com/transmitic/transmitic/issues) and [Discussions](https://github.com/transmitic/transmitic/discussions) for more
 
 ## Cryptography Usage
 
 - Public, Private signing keys generated with `ring`
-- Signing `ring` keys are exchanged out of band, manually
+- Signing `ring` keys ("PublicIDs") are exchanged out of band, manually
 - Diffie-Hellman key generation with `x25519_dalek`
   - Diffie-Hellman keys are regenerated for every new TCP stream. Never reused.
 - Diffie-Hellman `x25519_dalek` keys are signed with the `ring` keys
-- Remote user verifies `x25519_dalek` key with that user's `ring` public key
+- Remote user verifies `x25519_dalek` key with that user's `ring` public key ("PublicID")
 - AES key generated
 - All further communication encrypted with `AES-GCM` with `ring`
 
 See these modules to review the cryptography usage in [transmitic-core](https://github.com/transmitic/transmitic-core)
 
-- crypto.rs  
-- transmitic_stream.rs  
-- encrypted_stream.rs
+- [crypto.rs](https://github.com/transmitic/transmitic-core/blob/main/src/crypto.rs)
+- [transmitic_stream.rs](https://github.com/transmitic/transmitic-core/blob/main/src/transmitic_stream.rs)
+- [encrypted_stream.rs](https://github.com/transmitic/transmitic-core/blob/main/src/encrypted_stream.rs)
 
 ## Screenshots
 
