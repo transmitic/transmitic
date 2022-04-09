@@ -180,19 +180,21 @@
             }
         });
 
-        // Get sharing state
-        let response = Window.this.xcall('get_my_sharing_state');
-        if (response[0] == 0) {
-            document.$("button[name=Sharing][value=" + response[1] + "]").state.checked = true;
-        }
-        else {
-            setMsgBoxError("Failed to get sharing state. " + response[1]);
-        }
+        document.ready = function () {
+            // Get sharing state
+            let response = Window.this.xcall('get_my_sharing_state');
+            if (response[0] == 0) {
+                document.$("button[name=Sharing][value=" + response[1] + "]").state.checked = true;
+            }
+            else {
+                setMsgBoxError("Failed to get sharing state. " + response[1]);
+            }
 
-        // Get port
-        response = Window.this.xcall('get_sharing_port');
-        document.$("input#port").value = response;
-        document.$("div#my-files").content(<MyFiles />);
+            // Get port
+            response = Window.this.xcall('get_sharing_port');
+            document.$("input#port").value = response;
+            document.$("div#my-files").content(<MyFiles />);
+        }
 
     </script>
 </head>

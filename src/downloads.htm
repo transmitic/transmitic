@@ -189,10 +189,7 @@
 
         }
 
-        let myDownloadsElement = <MyDownloads />;
-        let downloadsFromMeElement = <DownloadsFromMe />;
-        document.$("div#my-downloads").content(myDownloadsElement);
-        document.$("div#downloading-from-me").content(downloadsFromMeElement);
+
 
         class MenuBar extends Element {
 
@@ -275,8 +272,15 @@
 
         }
 
-        document.$(".menu-bar-holder").content(<MenuBar />);
-        document.$(".my-downloads-menu-bar-holder").content(<MenuBarFromMe />);
+        document.ready = function () {
+            let myDownloadsElement = <MyDownloads />;
+            let downloadsFromMeElement = <DownloadsFromMe />;
+            document.$("div#my-downloads").content(myDownloadsElement);
+            document.$("div#downloading-from-me").content(downloadsFromMeElement);
+
+            document.$(".menu-bar-holder").content(<MenuBar />);
+            document.$(".my-downloads-menu-bar-holder").content(<MenuBarFromMe />);
+        }
 
     </script>
 </head>
