@@ -5,7 +5,7 @@
     html {
         var(accent-color): window-accent-color;
         var(text-color): #000;
-        border: 1dip solid #3F4345;
+        border: 1dip solid #3F4345; //TRAN
     }
 
     html:theme(dark) {
@@ -13,7 +13,7 @@
     }
 
     html:owns-focus {
-        border: 1dip solid #323536;
+        border: 1dip solid #323536; //TRAN
     }
 
     html>window-header {
@@ -72,7 +72,7 @@
     }
 
     html[window-state="maximized"] {
-        border-color: transparent;
+        border: window-frame-width solid transparent; //TRAN
     }
 
     html[window-state="maximized"]>window-header>window-buttons>window-button[role="window-maximize"] {
@@ -80,7 +80,7 @@
     }
 
     html[window-state="full-screen"] {
-        border-width: 0;
+        border: window-frame-width solid transparent; //TRAN
     }
 
     html>window-header>window-buttons>window-button[role="window-minimize"] {
