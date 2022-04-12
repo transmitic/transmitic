@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+from datetime import date
 
 print("#### BUILD TRANSMITIC ####")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -84,19 +85,19 @@ result = subprocess.run(cmd, check=True)
 print(result)
 
 print("")
-cmd = f'{rc_edit_path} "{transmitic_exe_path}" --set-version-string "FileDescription" Transmitic'
+cmd = f'{rc_edit_path} "{transmitic_exe_path}" --set-version-string "FileDescription" "Transmitic"'
 print(f"{cmd}")
 result = subprocess.run(cmd, check=True)
 print(result)
 
 print("")
-cmd = f'{rc_edit_path} "{transmitic_exe_path}" --set-version-string "ProductName" Transmitic'
+cmd = f'{rc_edit_path} "{transmitic_exe_path}" --set-version-string "ProductName" "Transmitic"'
 print(f"{cmd}")
 result = subprocess.run(cmd, check=True)
 print(result)
 
 print("")
-cmd = f'{rc_edit_path} "{transmitic_exe_path}" --set-version-string "LegalCopyright" "2022 Transmitic"'
+cmd = f'{rc_edit_path} "{transmitic_exe_path}" --set-version-string "LegalCopyright" "{date.today().year} Transmitic"'
 print(f"{cmd}")
 result = subprocess.run(cmd, check=True)
 print(result)
