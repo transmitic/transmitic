@@ -158,6 +158,8 @@
         }
 
         document.ready = function () {
+            eachPageReady();
+
             document.$("div#shared-with-me").content(<SharedWithMe />);
             document.$("button#download-selected").state.disabled = true; // TODO move into render
         }

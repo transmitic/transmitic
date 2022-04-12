@@ -286,6 +286,8 @@
         }
 
         document.ready = function () {
+            eachPageReady();
+
             let myDownloadsElement = <MyDownloads />;
             let downloadsFromMeElement = <DownloadsFromMe />;
             document.$("div#my-downloads").content(myDownloadsElement);

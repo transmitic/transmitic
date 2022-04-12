@@ -28,6 +28,8 @@
         }
 
         document.ready = function () {
+            eachPageReady();
+
             setPublicID();
             setPort();
         }
@@ -37,6 +39,7 @@
 
 <body>
     <div class="main-body" selectable>
+        <div id="msg-box"></div>
 
         <h1>Welcome to Transmitic</h1>
         <p>

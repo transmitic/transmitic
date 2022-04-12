@@ -734,6 +734,11 @@ progress {
 /********************* TRANSMITIC CUSTOM *********************/
 
 /**** GLOBAL ****/
+body {
+    margin: 0;
+    overflow-y: scroll-indicator;
+}
+
 a {
     color: color(t-blue);
 }
@@ -775,6 +780,12 @@ section>div {
     margin-bottom: 1em;
     padding-right: -30dip;
     display: none;
+}
+
+#msg-box.sticky {
+    width: *;
+    position: fixed;
+    top: 0;
 }
 
 .nav-button {

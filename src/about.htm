@@ -16,6 +16,8 @@
         });
 
         document.ready = function () {
+            eachPageReady();
+
             document.$("h1#name").content(Window.this.xcall('get_app_display_name'));
             document.$("h3#version").content(Window.this.xcall('get_app_display_version'));
 
@@ -28,6 +30,7 @@
 
 <body>
     <div class="main-body" selectable>
+        <div id="msg-box"></div>
 
         <h1 id="name"></h1>
         <h3 id="version"></h3>

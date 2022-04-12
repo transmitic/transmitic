@@ -181,6 +181,8 @@
         });
 
         document.ready = function () {
+            eachPageReady();
+
             // Get sharing state
             let response = Window.this.xcall('get_my_sharing_state');
             if (response[0] == 0) {
@@ -195,6 +197,8 @@
             document.$("input#port").value = response;
             document.$("div#my-files").content(<MyFiles />);
         }
+
+
 
     </script>
 </head>

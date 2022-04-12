@@ -31,3 +31,11 @@ function escapeHTML(html) {
     newHtml.replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
     return newHtml;
 }
+
+function eachPageReady() {
+    let msgBox = document.$("#msg-box");
+    let stickyPos = msgBox.state.box("top", "border", "parent");
+    document.body.onscroll = function () {
+        msgBox.classList.toggle("sticky", this.scrollTop > stickyPos);
+    }
+}
