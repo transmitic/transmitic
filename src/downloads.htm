@@ -162,9 +162,17 @@
             }
 
             render(props) {
+
+                let msg = 'Message not set';
+                if (props.percent == 100) {
+                    msg = `${props.name} | Completed`
+                } else {
+                    msg = `${props.name} | ${props.percent}% | Downloading now...`
+                }
+
                 return <div><div class="download">
                     <div class="download-inner" selectable>
-                        {props.name} | {props.percent}% | Downloading now...
+                        {msg}
                         <br /><br />
                         {props.path}
                     </div>
