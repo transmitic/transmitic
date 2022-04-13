@@ -73,6 +73,7 @@ struct SingleDownloadUI {
     pub percent: u64,
     pub path: String,
     pub path_local_disk: String,
+    pub size: String,
 }
 
 impl Handler {
@@ -251,6 +252,7 @@ impl Handler {
                             percent: download_state.active_download_percent,
                             path: path.clone(),
                             path_local_disk,
+                            size: download_state.active_download_size.clone(),
                         });
                     }
                     None => {} // Do nothing, there is no in progress download
@@ -262,6 +264,7 @@ impl Handler {
                         percent: 0,
                         path: queued_download.clone(),
                         path_local_disk: "".to_string(),
+                        size: "".to_string(),
                     });
                 }
             } else {
@@ -271,6 +274,7 @@ impl Handler {
                         percent: 0,
                         path: queued_download.clone(),
                         path_local_disk: "".to_string(),
+                        size: "".to_string(),
                     });
                 }
             }
@@ -281,6 +285,7 @@ impl Handler {
                     percent: 0,
                     path: invalid_download.clone(),
                     path_local_disk: "".to_string(),
+                    size: "".to_string(),
                 });
             }
 
@@ -292,6 +297,7 @@ impl Handler {
                     percent: 100,
                     path: finished_download.path.clone(),
                     path_local_disk,
+                    size: finished_download.size_string.clone(),
                 });
             }
         }
