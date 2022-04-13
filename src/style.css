@@ -16,12 +16,11 @@ html:theme(dark) {
     var(disabled-back): #444;
     var(hover-option-cover): rgba(255, 255, 255, 0.1);
 
-
+    /* Update global_transmitic.js */
     var(red-t): #ff4545;
-    /* Update global_transmitic.js */
-    var(error-t): #ff6666;
-    /* Update global_transmitic.js */
+    var(yellow-t): #bdaf55;
 
+    var(blue-t): #006FC7;
     var(green-t): #66ff6b;
     /* Update global_transmitic.js */
     var(success-t): #66ff6b;
@@ -31,7 +30,7 @@ html:theme(dark) {
     var(side-panel-back): #1f1f1f;
     var(nav-button-hover): #353535;
 
-    var(t-blue): #006FC7;
+
 }
 
 //html:theme(light)
@@ -740,7 +739,7 @@ body {
 }
 
 a {
-    color: color(t-blue);
+    color: color(blue-t);
 }
 
 a:hover {
@@ -916,4 +915,64 @@ section>div {
 
 .remove-shared-with {
     font-size: 9pt;
+}
+
+.danger-button {
+    background: var(red-t) !important;
+    border-color: var(red-t) !important;
+}
+
+.danger-button:active {
+    background: morph(color(red-t), darken: 8%) !important;
+    border-color: var(red-t) !important;
+}
+
+.danger-button:hover {
+    border-color: color(hover-border) !important;
+}
+
+.danger-button:disabled {
+    color: color(disabled-text) !important;
+    background-color: color(disabled-back) !important;
+    border: color(disabled-back) !important;
+}
+
+.active-button {
+    background: var(blue-t) !important;
+    border-color: var(blue-t) !important;
+}
+
+.active-button:active {
+    background: morph(color(blue-t), darken: 10%) !important;
+    border-color: color(hover-border) !important;
+}
+
+.active-button:hover {
+    border-color: color(hover-border) !important;
+}
+
+.active-button:disabled {
+    color: color(disabled-text) !important;
+    background-color: color(disabled-back) !important;
+    border: color(disabled-back) !important;
+}
+
+.warning-button {
+    background: var(yellow-t) !important;
+    border-color: var(yellow-t) !important;
+}
+
+.warning-button:active {
+    background: morph(color(yellow-t), darken: 8%) !important;
+    border-color: var(yellow-t) !important;
+}
+
+.warning-button:hover {
+    border-color: color(hover-border) !important;
+}
+
+.warning-button:disabled {
+    color: color(disabled-text) !important;
+    background-color: color(disabled-back) !important;
+    border: color(disabled-back) !important;
 }

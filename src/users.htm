@@ -63,11 +63,11 @@
                     this.actionButton = <button class="user-action">Block</button>;
                 }
                 else {
-                    this.actionButton = <button class="user-action">Allow</button>;
+                    this.actionButton = <button class="user-action warning-button">Allow</button>;
                 }
 
                 if (this.isEditing) {
-                    this.editButton = <button class="save-user">Save</button>
+                    this.editButton = <button class="save-user active-button">Save</button>
 
                     // TODO Add a copy button to click for each field
 
@@ -108,13 +108,13 @@
                                 <td>{this.elementPort}</td>
                             </tr>
                             <tr>
-                                <td>Status:</td>
+                                <td>Sharing:</td>
                                 <td>{this.props.status}</td>
                             </tr>
                         </tbody>
                     </table>
                     <div class="users-bar">
-                        <button class="remove-user">Remove</button> {this.editButton} {this.actionButton}
+                        <button class="remove-user danger-button">Remove</button> {this.editButton} {this.actionButton}
                     </div>
 
                     <hr />
@@ -224,7 +224,8 @@
                     </tr>
                     <tr>
                         <td></td>
-                        <td style="text-align:right;"><button id="add-user" style="margin-top: 10dip;">Add New
+                        <td style="text-align:right;"><button id="add-user" class="active-button"
+                                style="margin-top: 10dip;">Add New
                                 User</button>
                         </td>
                     </tr>
