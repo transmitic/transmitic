@@ -182,7 +182,9 @@ impl Handler {
         self.transmitic_core.downloads_clear_finished();
     }
 
-    fn downloads_clear_finished_from_me(&self) {}
+    fn downloads_clear_finished_from_me(&mut self) {
+        self.transmitic_core.downloads_clear_finished_from_me();
+    }
 
     fn downloads_clear_invalid(&mut self) {
         self.transmitic_core.downloads_clear_invalid();

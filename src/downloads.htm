@@ -256,7 +256,6 @@
 
             ["on click at button#clear-invalid"]() {
                 Window.this.xcall('downloads_clear_invalid');
-                setMsgBoxSuccess("All Invalid Downloads will be cleared");
                 Window.post(new Event("render-downloads"));
             }
 
@@ -289,12 +288,13 @@
 
             render() {
                 return <div class="menu-bar">
-                    <button id="clear-finished-from-me"></button>
+                    <button id="clear-finished-from-me">Clear</button>
                 </div>;
             }
 
             ["on click at button#clear-finished-from-me"]() {
-                //let response = Window.this.xcall('downloads_clear_finished_from_me');
+                let response = Window.this.xcall('downloads_clear_finished_from_me');
+                Window.post(new Event("render-downloads"));
             }
 
         }
