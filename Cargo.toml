@@ -1,6 +1,6 @@
 [package]
 name = "transmitic"
-version = "0.10.1"
+version = "0.10.2"
 authors = ["Andrew Shay <andrew.shay@andrewshay.me>"]
 edition = "2018"
 
