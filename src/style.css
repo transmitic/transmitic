@@ -850,7 +850,7 @@ section>div {
 }
 
 .download-active {
-    border-left: 2px solid #6696ff;
+    border-left: 2px solid color(blue-t);
 }
 
 .download-paused {
@@ -858,7 +858,7 @@ section>div {
 }
 
 .download-invalid {
-    border-left: 2px solid #ff6666;
+    border-left: 2px solid color(red-t);
 }
 
 .download-offline {
@@ -866,7 +866,7 @@ section>div {
 }
 
 .download-finished {
-    border-left: 2px solid #66ff6b;
+    border-left: 2px solid color(green-t);
 }
 
 .open-download {

@@ -19,7 +19,6 @@
             render(props) {
 
                 let sharedWithBlock = <div></div>
-                let removeSharingButton = <div></div>
                 if (props.sharedWith.length != 0) {
                     sharedWithBlock = <div>
                         <div style="padding: 1em 0 1em 0;">
@@ -31,7 +30,6 @@
                         </div>
                     </div>
 
-                    removeSharingButton = <button class="remove-sharing danger-button">Remove file from Sharing</button>
                 }
 
                 return <div class="my-file" selectable>
@@ -46,7 +44,7 @@
                         </select>
                         {sharedWithBlock}
                         <br />
-                        {removeSharingButton}
+                        <button class="remove-sharing danger-button">Remove file from Sharing</button>
                     </div>
                     <br />
                     <hr />

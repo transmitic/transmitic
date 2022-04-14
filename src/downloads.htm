@@ -39,7 +39,7 @@
                     //pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 } else if (props.downloadState == "paused") {
                     downloadClass = "download-paused";
-                    description = props.owner + " | " + props.percent + "% | Paused";
+                    description = props.owner + " | " + props.sizeString + " | " + props.percent + "% | Paused";
                     openDownload = <button class="open-download">Open</button>;
                     cancelDownload = <button class="cancel-download">Cancel</button>;
                     //pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
