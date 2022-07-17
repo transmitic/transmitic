@@ -14,21 +14,40 @@
         class SharedData extends Element {
 
             owner
+            inProgress
+            files
+            error
 
             this(props) {
                 this.owner = props.owner;
+                this.inProgress = props.in_progress;
+                this.files = props.files;
+                this.error = props.error;
             }
 
             render(props) {
+                let content;
+                let refreshButton = <button class="refresh-user" style="font-size: 8pt; margin-left: 1em; display: inline-block;">Refresh</button>
+
+                if (this.inProgress) {
+                    content = <div>Refreshing...</div>;
+                }
+                else {
+                    content = this.createFileList(this.files, this.error, 0);
+                }
+
                 return <div>
-                    <h3>{props.owner}</h3>
-                    {this.createFileList(props.files, props.error, 0, 0)}
+                    <div>
+                        <h3 style="display: inline-block;">{this.owner}</h3>
+                        {refreshButton}
+                    </div>
+                    {content}
                 </div>
             }
 
             createFileList(files, error, divID) {
                 if (error) {
-                    return error;
+                    return <span>{error}<br /></span>;
                 }
                 if (!files) {
                     return "";
@@ -57,7 +76,11 @@
                         showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                     }
                 }
-                return <div><button data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br /> {this.createFileList(d.files, "", divID)}</div>
+                return <div><button class="file-checkbox" data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br /> {this.createFileList(d.files, "", divID)}</div>
+            }
+
+            ["on click at button.file-checkbox"](evt, btn) {
+                document.$("button#download-selected").state.disabled = false;
             }
 
             ["on click at button.show-more"](evt, btn) {
@@ -76,6 +99,33 @@
 
             }
 
+            ["on click at button.refresh-user"](evt, btn) {
+                let response = Window.this.xcall('start_refresh_shared_with_me_single_user', this.owner);
+                this.componentUpdate({ inProgress: true });
+
+                this.timer(500, () => {
+
+                    let response = Window.this.xcall('get_shared_with_me_data');
+
+                    let keepRefreshing = false;
+                    let files = [];
+                    let error;
+                    for (const fileData of response) {
+                        if (fileData.owner == this.owner) {
+                            keepRefreshing = fileData.in_progress;
+                            files = fileData.files;
+                            error = fileData.error;
+                        }
+                    }
+
+                    if (!keepRefreshing) {
+                        this.componentUpdate({ inProgress: false, files: files, error: error, });
+                    }
+
+                    return keepRefreshing; // keep ticking
+                });
+            }
+
         }
 
         class SharedWithMe extends Element {
@@ -87,21 +137,23 @@
 
             this(props) {
                 this.refreshState = "empty";
-                this.fileData = [];
+                this.fileData = Window.this.xcall('get_shared_with_me_data');;
                 this.totalCount = 0;
                 this.finishedCount = 0;
             }
 
             render(props) {
+
                 let contentElements;
                 if (this.refreshState === "empty") {
-                    contentElements = <div><br />Press Refresh All to get files shared with you</div>;
+                    contentElements = <div>{this.fileData.map((d) => <div><hr style="margin-top: 2em;" /><SharedData owner={d.owner} files={d.files} error={d.error} inProgress={d.in_progress} /> </div>)} </div>;
                 }
                 else if (this.refreshState === "refreshing") {
-                    contentElements = <div><br />Refreshing...{this.finishedCount}/{this.totalCount} complete</div>;
+                    contentElements = <div><br />Refreshing All...<br />{this.fileData.map((d) => <div><hr style="margin-top: 2em;" /><SharedData owner={d.owner} files={d.files} error={d.error} inProgress={d.in_progress} /></div>)} </div>;
+
                 }
                 else if (this.refreshState === "finished") {
-                    contentElements = <div>{this.fileData.map((d) => <div><SharedData owner={d.owner} files={d.files} error={d.error} /> <hr style="margin-top: 1em;" /></div>)} </div>;
+                    contentElements = <div><br />Finished Refreshing<br />{this.fileData.map((d) => <div><hr style="margin-top: 2em;" /><SharedData owner={d.owner} files={d.files} error={d.error} inProgress={d.in_progress} /></div>)} </div>;
                 }
                 else {
                     contentElements = <div><br />Error: Unknown refreshState '{this.refreshState}'</div>;
@@ -125,8 +177,13 @@
 
                 let downloadCount = selectedFiles.length;
                 if (downloadCount > 0) {
+                    document.$("button#download-selected").state.disabled = true;
                     let response = Window.this.xcall('download_selected', { "files": selectedFiles });
                     setMsgBoxSuccess("<strong>" + downloadCount + "</strong> downloads started");
+                    for (const box of checkedBoxes) {
+                        box.checked = false;
+                    }
+
                 }
 
             }
@@ -134,24 +191,26 @@
             ["on click at button#refresh-all"]() {
                 document.$("button#refresh-all").state.disabled = true; // TODO move into render
                 document.$("button#download-selected").state.disabled = true; // TODO move into render
-                let response = Window.this.xcall('start_refresh_shared_with_me');
-                this.componentUpdate({ refreshState: "refreshing", totalCount: response, finishedCount: 0 });
+                let response = Window.this.xcall('start_refresh_shared_with_me_all');
+                this.componentUpdate({ refreshState: "refreshing" });
 
                 this.timer(500, () => {
-                    let response = Window.this.xcall('get_refresh_state');
-                    let inProgress = response[0];
-                    let finishedCount = response[1];
 
-                    if (inProgress) {
-                        this.componentUpdate({ refreshState: "refreshing", finishedCount: finishedCount });
-                        return true; // to keep the timer ticking
-                    } else {
-                        let response = Window.this.xcall('refresh_shared_with_me');
+                    let response = Window.this.xcall('get_shared_with_me_data');
+                    this.componentUpdate({ fileData: response, refreshState: "refreshing" });
+
+                    let keepRefreshing = false;
+                    for (const fileData of response) {
+                        if (fileData.in_progress) {
+                            keepRefreshing = true;
+                        }
+                    }
+                    if (!keepRefreshing) {
                         this.componentUpdate({ fileData: response, refreshState: "finished" });
                         document.$("button#refresh-all").state.disabled = false; // TODO move into render
-                        document.$("button#download-selected").state.disabled = false; // TODO move into render
-                        return false;
                     }
+
+                    return keepRefreshing; // keep ticking
                 });
             }
 
@@ -161,7 +220,7 @@
             eachPageReady();
 
             document.$("div#shared-with-me").content(<SharedWithMe />);
-            document.$("button#download-selected").state.disabled = true; // TODO move into render
+            document.$("button#download-selected").state.disabled = true;
         }
 
     </script>

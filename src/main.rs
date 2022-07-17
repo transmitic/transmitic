@@ -2,15 +2,12 @@ use std::env;
 use std::process::Command;
 use std::str;
 use std::str::FromStr;
-use std::sync::mpsc::Receiver;
 
 use serde::{Deserialize, Serialize};
 extern crate sciter;
 use sciter::dispatch_script_call;
 use sciter::Value;
 use transmitic_core::incoming_uploader::SharingState;
-use transmitic_core::outgoing_downloader::RefreshSharedMessages;
-use transmitic_core::shared_file::RefreshData;
 use transmitic_core::shared_file::SelectedDownload;
 use transmitic_core::shared_file::SharedFile;
 use transmitic_core::transmitic_core::SingleUploadState;
@@ -22,21 +19,11 @@ const URL: &str = "https://transmitic.net";
 
 struct Handler {
     transmitic_core: TransmiticCore,
-    refresh_is_inprogress: bool,
-    refresh_total_count: usize,
-    refresh_data: Vec<RefreshData>,
-    refresh_recv: Option<Receiver<RefreshSharedMessages>>,
 }
 
 impl Handler {
     pub fn new(transmitic_core: TransmiticCore) -> Self {
-        Handler {
-            transmitic_core,
-            refresh_is_inprogress: false,
-            refresh_total_count: 0,
-            refresh_data: Vec::new(),
-            refresh_recv: None,
-        }
+        Handler { transmitic_core }
     }
 }
 
@@ -55,6 +42,7 @@ struct RefreshDataUI {
     owner: String,
     error: String,
     files: Vec<SharedFile>,
+    in_progress: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -426,76 +414,46 @@ impl Handler {
         Value::from(public_id_string)
     }
 
-    // TODO switch the channel with Arc mutex, would that be simpler?
-    fn start_refresh_shared_with_me(&mut self) -> Value {
-        if self.refresh_is_inprogress {
-            return Value::from(self.refresh_total_count.to_string());
-        }
+    fn get_shared_with_me_data(&mut self) -> Value {
+        let refresh_data = self.transmitic_core.get_shared_with_me_data();
 
-        let refresh_data = self.transmitic_core.refresh_shared_with_me();
-        self.refresh_is_inprogress = true;
-        self.refresh_total_count = refresh_data.0;
-        self.refresh_recv = Some(refresh_data.1);
-        self.refresh_data.clear();
-
-        Value::from(self.refresh_total_count.to_string())
-    }
-
-    fn get_refresh_state(&mut self) -> Value {
-        let recv = match &self.refresh_recv {
-            Some(recv) => recv,
-            None => panic!("called refresh.recv on None"),
-        };
-
-        loop {
-            match recv.try_recv() {
-                Ok(msg) => match msg {
-                    RefreshSharedMessages::UIData(data) => self.refresh_data.push(data),
-                    RefreshSharedMessages::RefreshFinished => {
-                        self.refresh_is_inprogress = false;
-                        break;
-                    }
-                },
-                Err(e) => match e {
-                    std::sync::mpsc::TryRecvError::Empty => break,
-                    std::sync::mpsc::TryRecvError::Disconnected => {
-                        self.refresh_is_inprogress = false;
-                        break;
-                    }
-                },
-            }
-        }
-
-        let mut response = Value::new();
-        response.push(self.refresh_is_inprogress);
-        response.push(self.refresh_data.len().to_string());
-        response
-    }
-
-    fn is_downloading_paused(&self) -> Value {
-        Value::from(self.transmitic_core.is_downloading_paused())
-    }
-
-    fn refresh_shared_with_me(&mut self) -> Value {
         let mut ui_data = Vec::new();
-        for data in self.refresh_data.iter() {
-            let ui: RefreshDataUI = match data.data.clone() {
-                Ok(file) => RefreshDataUI {
-                    owner: data.owner.clone(),
+        for (nickname, data) in refresh_data.iter() {
+            let ui = match &data.data {
+                Ok(shared_file) => RefreshDataUI {
+                    owner: nickname.to_string(),
                     error: "".to_string(),
-                    files: vec![file],
+                    files: vec![shared_file.clone()],
+                    in_progress: data.in_progress,
                 },
                 Err(e) => RefreshDataUI {
-                    owner: data.owner.clone(),
+                    owner: nickname.to_string(),
                     error: e.to_string(),
                     files: Vec::new(),
+                    in_progress: data.in_progress,
                 },
             };
             ui_data.push(ui);
         }
 
+        ui_data.sort_by(|f, g| f.owner.cmp(&g.owner));
+
         let json_string = serde_json::to_string_pretty(&ui_data).unwrap();
         Value::from_str(&json_string).unwrap()
+    }
+
+    fn start_refresh_shared_with_me_all(&mut self) {
+        self.transmitic_core.start_refresh_shared_with_me_all();
+    }
+
+    fn start_refresh_shared_with_me_single_user(&mut self, nickname: Value) {
+        let nickname = self.clean_sciter_string(nickname);
+        self.transmitic_core
+            .start_refresh_shared_with_me_single_user(nickname);
+    }
+
+    fn is_downloading_paused(&self) -> Value {
+        Value::from(self.transmitic_core.is_downloading_paused())
     }
 
     fn remove_file_from_sharing(&mut self, file_path: Value) -> Value {
@@ -639,7 +597,6 @@ impl sciter::EventHandler for Handler {
         fn downloads_pause_all();
         fn downloads_resume_all();
 
-        fn refresh_shared_with_me();
         fn remove_file_from_sharing(Value);
         fn remove_user(Value);
         fn remove_user_from_sharing(Value, Value);
@@ -653,8 +610,9 @@ impl sciter::EventHandler for Handler {
         fn get_is_first_start();
         fn get_my_sharing_files();
         fn get_my_sharing_state();
-        fn start_refresh_shared_with_me();
-        fn get_refresh_state();
+        fn get_shared_with_me_data();
+        fn start_refresh_shared_with_me_all();
+        fn start_refresh_shared_with_me_single_user(Value);
         fn get_shared_users();
         fn get_sharing_port();
         fn get_public_id_string();
