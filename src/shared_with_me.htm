@@ -137,12 +137,16 @@
 
             this(props) {
                 this.refreshState = "empty";
-                this.fileData = Window.this.xcall('get_shared_with_me_data');;
+                this.fileData = Window.this.xcall('get_shared_with_me_data');
                 this.totalCount = 0;
                 this.finishedCount = 0;
             }
 
             render(props) {
+
+                if (this.fileData.length == 0) {
+                    return <div>Add a new user in the "Users" tab</div>;
+                }
 
                 let contentElements;
                 if (this.refreshState === "empty") {
@@ -220,7 +224,10 @@
             eachPageReady();
 
             document.$("div#shared-with-me").content(<SharedWithMe />);
-            document.$("button#download-selected").state.disabled = true;
+            let downloadButton = document.$("button#download-selected");
+            if (downloadButton) {
+                downloadButton.state.disabled = true;
+            }
         }
 
     </script>
