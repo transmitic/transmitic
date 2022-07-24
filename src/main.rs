@@ -3,11 +3,11 @@ use std::process::Command;
 use std::str;
 use std::str::FromStr;
 
-use serde::{Deserialize, Serialize};
-extern crate sciter;
 use sciter::dispatch_script_call;
 use sciter::Value;
+use serde::{Deserialize, Serialize};
 use transmitic_core::incoming_uploader::SharingState;
+use transmitic_core::logger::LogLevel;
 use transmitic_core::shared_file::SelectedDownload;
 use transmitic_core::shared_file::SharedFile;
 use transmitic_core::transmitic_core::SingleUploadState;
@@ -336,6 +336,69 @@ impl Handler {
         Value::from(self.transmitic_core.get_is_first_start())
     }
 
+    fn get_log_messages(&self) -> Value {
+        let log_messages = self.transmitic_core.get_log_messages();
+        let mut value_messages = Value::new();
+        for message in log_messages {
+            value_messages.push(message);
+        }
+        value_messages
+    }
+
+    // TODO can the UI load possible values from a function so it isn't hard coded in HTML?
+    fn get_log_level(&self) -> Value {
+        let log_level = self.transmitic_core.get_log_level();
+        let level = match log_level {
+            LogLevel::Critical => "CRITICAL",
+            LogLevel::Error => "ERROR",
+            LogLevel::Warning => "WARNING",
+            LogLevel::Info => "INFO",
+            LogLevel::Debug => "DEBUG",
+        };
+        Value::from(level)
+    }
+
+    fn set_log_level(&mut self, log_level: Value) -> Value {
+        let log_level = self.clean_sciter_string(log_level);
+
+        // TODO hardcoded strings with get_log_level
+        // Can this be in an enum with match?
+        let mut response = self.get_msg_box_response(0, "");
+        let log_enum;
+        if log_level == "CRITICAL" {
+            log_enum = LogLevel::Critical;
+        } else if log_level == "ERROR" {
+            log_enum = LogLevel::Error;
+        } else if log_level == "WARNING" {
+            log_enum = LogLevel::Warning;
+        } else if log_level == "INFO" {
+            log_enum = LogLevel::Info;
+        } else if log_level == "DEBUG" {
+            log_enum = LogLevel::Debug;
+        } else {
+            log_enum = LogLevel::Debug;
+            response = self.get_msg_box_response(
+                1,
+                &format!("Unknown log level '{}'. Defaulting to DEBUG.", log_level),
+            );
+        }
+        self.transmitic_core.set_log_level(log_enum);
+
+        response
+    }
+
+    fn is_log_to_file(&self) -> Value {
+        Value::from(self.transmitic_core.is_log_to_file())
+    }
+
+    fn log_to_file_start(&mut self) {
+        self.transmitic_core.log_to_file_start();
+    }
+
+    fn log_to_file_stop(&mut self) {
+        self.transmitic_core.log_to_file_stop();
+    }
+
     fn get_my_sharing_files(&self) -> Value {
         let my_sharing_files = self.transmitic_core.get_my_sharing_files();
         let mut shared_users = Vec::new();
@@ -413,6 +476,12 @@ impl Handler {
         let public_id_string = self.transmitic_core.get_public_id_string();
         Value::from(public_id_string)
     }
+
+    // fn get_log_message(&self) -> Vec<String> {}
+
+    // fn get_log_level(&self) -> LogLevel {}
+
+    // fn set_log_level(&mut self, log_level: LogLevel) {}
 
     fn get_shared_with_me_data(&mut self) -> Value {
         let refresh_data = self.transmitic_core.get_shared_with_me_data();
@@ -604,6 +673,13 @@ impl sciter::EventHandler for Handler {
         fn get_app_display_name();
         fn get_app_display_version();
         fn get_app_url();
+
+        fn is_log_to_file();
+        fn log_to_file_start();
+        fn log_to_file_stop();
+        fn get_log_messages();
+        fn get_log_level();
+        fn set_log_level(Value);
 
         fn get_all_downloads();
         fn get_all_uploads();

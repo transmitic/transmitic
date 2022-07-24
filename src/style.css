@@ -976,3 +976,12 @@ section>div {
     background-color: color(disabled-back) !important;
     border: color(disabled-back) !important;
 }
+
+.textarea-t {
+    padding: 0.3rem;
+    border: 2px solid color(border);
+    width: 95%;
+    height: 60%;
+    white-space: pre;
+    overflow: auto;
+}
