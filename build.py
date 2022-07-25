@@ -20,6 +20,9 @@ print(f"cwd: {os.getcwd()}")
 rc_edit_path = os.path.join(workspace_path, "more", "rcedit-x64.exe")
 if not os.path.exists(rc_edit_path):
     raise Exception(f"rcedit not found at {rc_edit_path}")
+    
+manifest_path = os.path.join(HERE, "transmitic.exe.manifest")
+print(f"manifest path: {manifest_path}")
 
 print("\n\n")
 # Find cargo version
@@ -98,6 +101,12 @@ print(result)
 
 print("")
 cmd = f'{rc_edit_path} "{transmitic_exe_path}" --set-version-string "LegalCopyright" "{date.today().year} Transmitic"'
+print(f"{cmd}")
+result = subprocess.run(cmd, check=True)
+print(result)
+
+print("")
+cmd = f'{rc_edit_path} "{transmitic_exe_path}" --application-manifest "{manifest_path}"'
 print(f"{cmd}")
 result = subprocess.run(cmd, check=True)
 print(result)
