@@ -865,6 +865,10 @@ section>div {
     border-left: 2px solid #ccc;
 }
 
+.download-offline-error {
+    border-left: 2px solid color(red-t);
+}
+
 .download-finished {
     border-left: 2px solid color(green-t);
 }

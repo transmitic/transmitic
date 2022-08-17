@@ -74,6 +74,8 @@
             document.$("#log-messages-div").content(<LogMessages />);
             document.$(".pause").checked = rootNamespace.isPaused;
             document.$(".file-checkbox").checked = Window.this.xcall('is_log_to_file');
+
+            document.$("#log-file-path").content(Window.this.xcall('get_log_path'));
         }
 
     </script>
@@ -96,6 +98,7 @@
         <br>
         <label for="file-checkbox">Log to file: </label>
         <button class="file-checkbox" type="checkbox"></button>
+        <div id="log-file-path" selectable></div>
         <br>
         <label>Pause updates: </label>
         <button class="pause" type="checkbox"></button>

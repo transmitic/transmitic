@@ -1,4 +1,5 @@
 use std::env;
+use std::path::PathBuf;
 use std::process::Command;
 use std::str;
 use std::str::FromStr;
@@ -62,6 +63,7 @@ struct SingleDownloadUI {
     pub path: String,
     pub path_local_disk: String,
     pub size: String,
+    pub error: String,
 }
 
 impl Handler {
@@ -243,6 +245,7 @@ impl Handler {
                             path: path.clone(),
                             path_local_disk,
                             size: download_state.active_download_size.clone(),
+                            error: "".to_string(),
                         });
                     }
                     None => {} // Do nothing, there is no in progress download
@@ -255,6 +258,7 @@ impl Handler {
                         path: queued_download.clone(),
                         path_local_disk: "".to_string(),
                         size: "".to_string(),
+                        error: "".to_string(),
                     });
                 }
             } else {
@@ -265,6 +269,10 @@ impl Handler {
                         path: queued_download.clone(),
                         path_local_disk: "".to_string(),
                         size: "".to_string(),
+                        error: download_state
+                            .error
+                            .clone()
+                            .unwrap_or_else(|| "".to_string()),
                     });
                 }
             }
@@ -276,6 +284,7 @@ impl Handler {
                     path: invalid_download.clone(),
                     path_local_disk: "".to_string(),
                     size: "".to_string(),
+                    error: "".to_string(),
                 });
             }
 
@@ -288,6 +297,7 @@ impl Handler {
                     path: finished_download.path.clone(),
                     path_local_disk,
                     size: finished_download.size_string.clone(),
+                    error: "".to_string(),
                 });
             }
         }
@@ -334,6 +344,18 @@ impl Handler {
 
     fn get_is_first_start(&self) -> Value {
         Value::from(self.transmitic_core.get_is_first_start())
+    }
+
+    fn get_log_path(&self) -> Value {
+        let path = self.transmitic_core.get_log_path();
+        let mut p = path.as_os_str().to_string_lossy().to_string();
+
+        // Strip starting slashes and question mark
+        let i = 4;
+        if p.len() > i {
+            p = p[i..].to_string();
+        }
+        Value::from(p)
     }
 
     fn get_log_messages(&self) -> Value {
@@ -476,12 +498,6 @@ impl Handler {
         let public_id_string = self.transmitic_core.get_public_id_string();
         Value::from(public_id_string)
     }
-
-    // fn get_log_message(&self) -> Vec<String> {}
-
-    // fn get_log_level(&self) -> LogLevel {}
-
-    // fn set_log_level(&mut self, log_level: LogLevel) {}
 
     fn get_shared_with_me_data(&mut self) -> Value {
         let refresh_data = self.transmitic_core.get_shared_with_me_data();
@@ -677,6 +693,7 @@ impl sciter::EventHandler for Handler {
         fn is_log_to_file();
         fn log_to_file_start();
         fn log_to_file_stop();
+        fn get_log_path();
         fn get_log_messages();
         fn get_log_level();
         fn set_log_level(Value);
