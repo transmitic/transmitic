@@ -1,5 +1,9 @@
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
+
 use std::env;
-use std::path::PathBuf;
 use std::process::Command;
 use std::str;
 use std::str::FromStr;
@@ -350,9 +354,8 @@ impl Handler {
         let path = self.transmitic_core.get_log_path();
         let mut p = path.as_os_str().to_string_lossy().to_string();
 
-        // Strip starting slashes and question mark
         let i = 4;
-        if p.len() > i {
+        if p.starts_with("\\\\?\\") && p.len() > i {
             p = p[i..].to_string();
         }
         Value::from(p)

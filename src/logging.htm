@@ -64,7 +64,7 @@
 
             render(props) {
                 let messages = Window.this.xcall('get_log_messages');
-                return <div class='textarea-t' selectable>{messages.join("\n")}</div>;
+                return <div class='textarea-t' selectable>{escapeHTML(messages.join("\n"))}</div>;
             }
         }
 
