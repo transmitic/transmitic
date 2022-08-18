@@ -364,7 +364,12 @@ impl Handler {
     fn get_log_messages(&self) -> Value {
         let log_messages = self.transmitic_core.get_log_messages();
         let mut value_messages = Value::new();
-        for message in log_messages {
+
+        let max = 200; // TODO Sciter won't show after 400 strings, so max at 200 to be safe
+        for (count, message) in log_messages.into_iter().enumerate() {
+            if count >= max {
+                break;
+            }
             value_messages.push(message);
         }
         value_messages
