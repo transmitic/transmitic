@@ -57,8 +57,14 @@
                     //pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 }
                 else if (props.downloadState == "offline") {
-                    downloadClass = "download-offline";
-                    description = props.owner + " | User currently offline";
+                    if (props.error != "") {
+                        downloadClass = "download-offline-error";
+                        description = props.owner + " | " + props.error;
+                    } else {
+                        downloadClass = "download-offline";
+                        description = props.owner + " | User currently offline";
+                    }
+
                     cancelDownload = <button class="cancel-download">Cancel</button>;
                     //pauseDownload = <button class="pause-all">Pause Downloads from My Friend</button>;
                 }
@@ -150,7 +156,7 @@
                     {all_downloads.in_progress.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState={inProgressPausedState} filePathLocalDisk={d.path_local_disk} sizeString={d.size} />)}
                     {all_downloads.invalid.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="invalid" filePathLocalDisk={d.path_local_disk} />)}
                     {all_downloads.queued.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="queued" filePathLocalDisk={d.path_local_disk} />)}
-                    {all_downloads.offline.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="offline" filePathLocalDisk={d.path_local_disk} />)}
+                    {all_downloads.offline.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="offline" filePathLocalDisk={d.path_local_disk} error={d.error} />)}
                     {all_downloads.finished.map((d) => <SingleDownload owner={d.owner} percent={d.percent} path={d.path} downloadState="finished" filePathLocalDisk={d.path_local_disk} sizeString={d.size} />)}
                 </div>;
             }

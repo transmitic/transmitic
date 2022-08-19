@@ -1,0 +1,109 @@
+<html>
+
+<head>
+    <title>Logging</title>
+    <style>
+        @import url(style.css);
+    </style>
+    <script src="global_transmitic.js"></script>
+    <script>
+
+        let logLevel = "";
+
+        const rootNamespace = Window.this.document.globalThis;
+        if (!rootNamespace.hasOwnProperty('isPaused')) {
+            rootNamespace.isPaused = false;
+        }
+
+        function setLogLevel() {
+            logLevel = Window.this.xcall('get_log_level');
+            document.$("select#logging-level").value = logLevel;
+        }
+
+        document.$(".pause").onchange = function (evt, btn) {
+            rootNamespace.isPaused = !rootNamespace.isPaused;
+        }
+
+        document.$(".file-checkbox").onchange = function (evt, btn) {
+            let is_checked = this.checked;
+            if (is_checked) {
+                Window.this.xcall('log_to_file_start');
+                setMsgBoxSuccess("Logging to file started");
+            } else {
+                Window.this.xcall('log_to_file_stop');
+                setMsgBoxSuccess("Logging to file stopped");
+            }
+        }
+
+        document.$("select#logging-level").onchange = function (evt, btn) {
+            let response = Window.this.xcall('set_log_level', this.value);
+            if (response[0] == 0) {
+                setMsgBoxSuccess("Logging level changed to <strong>" + this.value + "</strong>");
+            }
+            else {
+                setMsgBoxError(response[1]);
+            }
+            setLogLevel();
+        }
+
+        class LogMessages extends Element {
+
+
+            this(props) {
+            }
+
+            componentDidMount() {
+                this.timer(2000, () => {
+                    if (rootNamespace.isPaused) {
+                        return true;
+                    }
+                    this.componentUpdate();
+                    return true; // to keep the timer ticking
+                });
+            }
+
+            render(props) {
+                let messages = Window.this.xcall('get_log_messages');
+                return <div class='textarea-t' selectable>{escapeHTML(messages.join("\n"))}</div>;
+            }
+        }
+
+        document.ready = function () {
+            eachPageReady();
+            setLogLevel();
+            document.$("#log-messages-div").content(<LogMessages />);
+            document.$(".pause").checked = rootNamespace.isPaused;
+            document.$(".file-checkbox").checked = Window.this.xcall('is_log_to_file');
+
+            document.$("#log-file-path").content(Window.this.xcall('get_log_path'));
+        }
+
+    </script>
+</head>
+
+<body>
+    <div class="main-body">
+        <div id="msg-box"></div>
+
+        <h1>Logging</h1>
+
+        <label for="logging-level">Logging Level:</label>
+        <select name="logging-level" id="logging-level">
+            <option value="CRITICAL">Critical</option>
+            <option value="ERROR">Error</option>
+            <option value="WARNING" selected>Warning (default)</option>
+            <option value="INFO">Info</option>
+            <option value="DEBUG">Debug</option>
+        </select>
+        <br>
+        <label for="file-checkbox">Log to file: </label>
+        <button class="file-checkbox" type="checkbox"></button>
+        <div id="log-file-path" selectable></div>
+        <br>
+        <label>Pause updates: </label>
+        <button class="pause" type="checkbox"></button>
+        <div id="log-messages-div" style="font-family: monospace;"></div>
+    </div>
+</body>
+
+</html>

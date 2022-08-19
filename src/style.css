@@ -865,6 +865,10 @@ section>div {
     border-left: 2px solid #ccc;
 }
 
+.download-offline-error {
+    border-left: 2px solid color(red-t);
+}
+
 .download-finished {
     border-left: 2px solid color(green-t);
 }
@@ -975,4 +979,13 @@ section>div {
     color: color(disabled-text) !important;
     background-color: color(disabled-back) !important;
     border: color(disabled-back) !important;
+}
+
+.textarea-t {
+    padding: 0.3rem;
+    border: 2px solid color(border);
+    width: 95%;
+    height: 60%;
+    white-space: pre;
+    overflow: auto;
 }

@@ -1,13 +1,18 @@
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
+
 use std::env;
 use std::process::Command;
 use std::str;
 use std::str::FromStr;
 
-use serde::{Deserialize, Serialize};
-extern crate sciter;
 use sciter::dispatch_script_call;
 use sciter::Value;
+use serde::{Deserialize, Serialize};
 use transmitic_core::incoming_uploader::SharingState;
+use transmitic_core::logger::LogLevel;
 use transmitic_core::shared_file::SelectedDownload;
 use transmitic_core::shared_file::SharedFile;
 use transmitic_core::transmitic_core::SingleUploadState;
@@ -62,6 +67,7 @@ struct SingleDownloadUI {
     pub path: String,
     pub path_local_disk: String,
     pub size: String,
+    pub error: String,
 }
 
 impl Handler {
@@ -243,6 +249,7 @@ impl Handler {
                             path: path.clone(),
                             path_local_disk,
                             size: download_state.active_download_size.clone(),
+                            error: "".to_string(),
                         });
                     }
                     None => {} // Do nothing, there is no in progress download
@@ -255,6 +262,7 @@ impl Handler {
                         path: queued_download.clone(),
                         path_local_disk: "".to_string(),
                         size: "".to_string(),
+                        error: "".to_string(),
                     });
                 }
             } else {
@@ -265,6 +273,10 @@ impl Handler {
                         path: queued_download.clone(),
                         path_local_disk: "".to_string(),
                         size: "".to_string(),
+                        error: download_state
+                            .error
+                            .clone()
+                            .unwrap_or_else(|| "".to_string()),
                     });
                 }
             }
@@ -276,6 +288,7 @@ impl Handler {
                     path: invalid_download.clone(),
                     path_local_disk: "".to_string(),
                     size: "".to_string(),
+                    error: "".to_string(),
                 });
             }
 
@@ -288,6 +301,7 @@ impl Handler {
                     path: finished_download.path.clone(),
                     path_local_disk,
                     size: finished_download.size_string.clone(),
+                    error: "".to_string(),
                 });
             }
         }
@@ -334,6 +348,85 @@ impl Handler {
 
     fn get_is_first_start(&self) -> Value {
         Value::from(self.transmitic_core.get_is_first_start())
+    }
+
+    fn get_log_path(&self) -> Value {
+        let path = self.transmitic_core.get_log_path();
+        let mut p = path.as_os_str().to_string_lossy().to_string();
+
+        let i = 4;
+        if p.starts_with("\\\\?\\") && p.len() > i {
+            p = p[i..].to_string();
+        }
+        Value::from(p)
+    }
+
+    fn get_log_messages(&self) -> Value {
+        let log_messages = self.transmitic_core.get_log_messages();
+        let mut value_messages = Value::new();
+
+        let max = 200; // TODO Sciter won't show after 400 strings, so max at 200 to be safe
+        for (count, message) in log_messages.into_iter().enumerate() {
+            if count >= max {
+                break;
+            }
+            value_messages.push(message);
+        }
+        value_messages
+    }
+
+    // TODO can the UI load possible values from a function so it isn't hard coded in HTML?
+    fn get_log_level(&self) -> Value {
+        let log_level = self.transmitic_core.get_log_level();
+        let level = match log_level {
+            LogLevel::Critical => "CRITICAL",
+            LogLevel::Error => "ERROR",
+            LogLevel::Warning => "WARNING",
+            LogLevel::Info => "INFO",
+            LogLevel::Debug => "DEBUG",
+        };
+        Value::from(level)
+    }
+
+    fn set_log_level(&mut self, log_level: Value) -> Value {
+        let log_level = self.clean_sciter_string(log_level);
+
+        // TODO hardcoded strings with get_log_level
+        // Can this be in an enum with match?
+        let mut response = self.get_msg_box_response(0, "");
+        let log_enum;
+        if log_level == "CRITICAL" {
+            log_enum = LogLevel::Critical;
+        } else if log_level == "ERROR" {
+            log_enum = LogLevel::Error;
+        } else if log_level == "WARNING" {
+            log_enum = LogLevel::Warning;
+        } else if log_level == "INFO" {
+            log_enum = LogLevel::Info;
+        } else if log_level == "DEBUG" {
+            log_enum = LogLevel::Debug;
+        } else {
+            log_enum = LogLevel::Debug;
+            response = self.get_msg_box_response(
+                1,
+                &format!("Unknown log level '{}'. Defaulting to DEBUG.", log_level),
+            );
+        }
+        self.transmitic_core.set_log_level(log_enum);
+
+        response
+    }
+
+    fn is_log_to_file(&self) -> Value {
+        Value::from(self.transmitic_core.is_log_to_file())
+    }
+
+    fn log_to_file_start(&mut self) {
+        self.transmitic_core.log_to_file_start();
+    }
+
+    fn log_to_file_stop(&mut self) {
+        self.transmitic_core.log_to_file_stop();
     }
 
     fn get_my_sharing_files(&self) -> Value {
@@ -578,7 +671,7 @@ fn unescape_path(path: &str) -> String {
     unescaped_path
 }
 
-#[allow(clippy::eval_order_dependence)]
+#[allow(clippy::mixed_read_write_in_expression)]
 impl sciter::EventHandler for Handler {
     dispatch_script_call! {
 
@@ -604,6 +697,14 @@ impl sciter::EventHandler for Handler {
         fn get_app_display_name();
         fn get_app_display_version();
         fn get_app_url();
+
+        fn is_log_to_file();
+        fn log_to_file_start();
+        fn log_to_file_stop();
+        fn get_log_path();
+        fn get_log_messages();
+        fn get_log_level();
+        fn set_log_level(Value);
 
         fn get_all_downloads();
         fn get_all_uploads();
