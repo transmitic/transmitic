@@ -671,7 +671,7 @@ fn unescape_path(path: &str) -> String {
     unescaped_path
 }
 
-#[allow(clippy::eval_order_dependence)]
+#[allow(clippy::mixed_read_write_in_expression)]
 impl sciter::EventHandler for Handler {
     dispatch_script_call! {
 
