@@ -1,6 +1,7 @@
-# Transmitic Beta
+# <img src="./src/window_icon.svg" alt="Transmitic Logo" height="30"> Transmitic Beta
 
 Transmitic is an encrypted, peer to peer, file transfer program with download pause and resume.  
+Built with Rust.  
 No third party server is involved.  
 No file size limit!
 
@@ -26,10 +27,10 @@ Your support is greatly needed
 ## Comparison To Other Tools
 
 **FTP**  
-Transmitic is most similar to FTP (though the FTP protocol is not supported). You choose which files and folders you want to download from other computers.
+Transmitic is most similar to FTP (though the FTP protocol is not supported). You choose which files and folders you want to download from other computers that are shared with you.
 
-**Bittorrent**  
-Transmitic does not support bittorrent, or bittorent like functionality, in that Transmitic cannot download the same file from multiple peers to download it faster.  
+**BitTorrent**  
+Transmitic does not support BitTorrent, or BitTorrent like functionality, in that Transmitic cannot download the same file from multiple peers to download it faster.  
 
 **File Syncing**  
 Transmitic is _not_ designed for "file syncing" and should _never_ be used for this purpose.
@@ -97,6 +98,32 @@ https://user-images.githubusercontent.com/4878195/161657290-e15fae8f-3fa3-4a4a-8
 ## Pricing
 
 At this time Transmitic is free for personal and commercial use.  
+
+## Build
+
+```
+$ mkdir transmitic_workspace
+$ cd transmitic_workspace
+$ git clone git@github.com:transmitic/transmitic.git
+$ git clone git@github.com:transmitic/transmitic-core.git
+
+# You need the sciter dll. Either pull the repo and put the x64 folder in path
+#   OR just download sciter.dll, put it in your sys path, or next to transmitic.exe
+$ git clone git@gitlab.com:sciter-engine/sciter-js-sdk.git
+# Add to sys path sciter-js-sdk\bin\windows\x64
+
+# Create transmitic_workspace\Cargo.toml
+[workspace]
+
+members = [
+    "transmitic",
+    "transmitic-core"
+]
+
+
+$ cargo run -p transmitic
+```
+
 
 ## License
 

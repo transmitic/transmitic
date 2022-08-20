@@ -1,9 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 99 99" width="99" height="99">
-	<style>
+<svg
+   viewBox="0 0 99 99"
+   width="99"
+   height="99"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <style
+     id="style2">
 		tspan { white-space:pre }
 		.shp0 { fill: #41e296 } 
 	</style>
-	<g >
-		<path fill-rule="evenodd" class="shp0" d="M81.57 36L49.57 67.99L17.58 36L49.57 4L81.57 36ZM34.53 36L49.57 51.04L64.62 35.99L49.57 20.95L34.53 36ZM81.71 94L65.78 94L65.78 62.03L81.71 46.1L81.71 94ZM33.37 94L17.44 94L17.44 46.1L33.37 62.03L33.37 94Z" />
-	</g>
+  <g
+     id="g6"
+     transform="matrix(1.0922156,0,0,1.0922156,-4.0245509,-4.0245509)">
+    <path
+       fill-rule="evenodd"
+       class="shp0"
+       d="M 81.57,36 49.57,67.99 17.58,36 49.57,4 Z M 34.53,36 49.57,51.04 64.62,35.99 49.57,20.95 Z M 81.71,94 H 65.78 V 62.03 L 81.71,46.1 Z M 33.37,94 H 17.44 V 46.1 l 15.93,15.93 z"
+       id="path4" />
+  </g>
 </svg>
