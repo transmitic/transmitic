@@ -153,23 +153,37 @@ impl Handler {
         response
     }
 
+    fn open_in_file_explorer(&self, path: String) {
+        let binary: String;
+
+        if cfg!(target_os = "windows") {
+            binary = "explorer.exe".to_owned();
+        } else if cfg!(target_os = "macos") {
+            binary = "open".to_owned();
+        } else {
+            binary = "xdg-open".to_owned();
+        }
+
+        Command::new(binary).arg(path).spawn().ok();
+    }
+
     fn downloads_open(&self) {
         let dir_path = self.transmitic_core.get_downloads_dir().unwrap();
-        Command::new("explorer.exe").arg(dir_path).spawn().ok();
+        self.open_in_file_explorer(dir_path.to_string_lossy().to_string());
     }
 
     fn downloads_open_single(&self, path_local_disk: Value) {
         let mut path_local_disk = self.clean_sciter_string(path_local_disk);
         path_local_disk = unescape_path(&path_local_disk);
-        path_local_disk = path_local_disk.replace("\\\\", "\\");
 
-        if let Some(s) = path_local_disk.strip_suffix('\\') {
-            path_local_disk = s.to_string()
+        if cfg!(target_family = "windows") {
+            path_local_disk = path_local_disk.replace("\\\\", "\\");
+            if let Some(s) = path_local_disk.strip_suffix('\\') {
+                path_local_disk = s.to_string()
+            }
         }
-        Command::new("explorer.exe")
-            .arg(path_local_disk)
-            .spawn()
-            .ok();
+
+        self.open_in_file_explorer(path_local_disk);
     }
 
     fn downloads_clear_finished(&mut self) {
@@ -242,7 +256,11 @@ impl Handler {
                             .active_download_local_path
                             .clone()
                             .unwrap_or_else(|| "".to_string());
-                        path_local_disk = path_local_disk.replace('/', "\\");
+
+                        if cfg!(target_family = "windows") {
+                            path_local_disk = path_local_disk.replace('/', "\\");
+                        }
+
                         in_progress.push(SingleDownloadUI {
                             owner: nickname.clone(),
                             percent: download_state.active_download_percent,
@@ -294,7 +312,11 @@ impl Handler {
 
             for finished_download in download_state.completed_downloads.iter() {
                 let mut path_local_disk = finished_download.path_local_disk.clone();
-                path_local_disk = path_local_disk.replace('/', "\\");
+
+                if cfg!(target_family = "windows") {
+                    path_local_disk = path_local_disk.replace('/', "\\");
+                }
+
                 completed.push(SingleDownloadUI {
                     owner: nickname.clone(),
                     percent: 100,
