@@ -58,7 +58,6 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 
 ## Future Features
 
-- Linux support
 - macOS support
 - Add users with a "friend request"
 - UPnP
