@@ -804,11 +804,11 @@ fn get_sciter_frame() -> sciter::Window {
 
     let frame = sciter::Window::new();
 
-    if cfg!(target_os = "macos") {
-        frame
-            .set_options(sciter::window::Options::DebugMode(true))
-            .unwrap();
-    }
+    // if cfg!(target_os = "macos") {
+    //     frame
+    //         .set_options(sciter::window::Options::DebugMode(true))
+    //         .unwrap();
+    // }
 
     frame
 }
