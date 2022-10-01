@@ -1,3 +1,7 @@
+html[window-blurbehind] {
+    background: #1f1f1f;
+}
+
 // Windows || Linux
 @media platform !="OSX"
 
@@ -97,9 +101,6 @@
         foreground-image: url(window_icon.svg);
     }
 
-    html[window-blurbehind]:owns-focus {
-        background: transparent;
-    }
 }
 
 @media platform=="OSX" {
@@ -132,6 +133,8 @@
     }
 }
 
-html[window-blurbehind] {
-    background: #1f1f1f;
+@media platform=="Windows" {
+    html[window-blurbehind]:owns-focus {
+        background: transparent;
+    }
 }
