@@ -96,6 +96,10 @@
         // awesome:cubes
         foreground-image: url(window_icon.svg);
     }
+
+    html[window-blurbehind]:owns-focus {
+        background: transparent;
+    }
 }
 
 @media platform=="OSX" {
@@ -114,11 +118,12 @@
     }
 
     html>window-header>window-caption {
-        display: block;
+        display: inline-block;
         line-height: window-caption-height;
         width: *;
         margin-left: 3em;
         text-align: center;
+        padding: 0.20em 0 0.20em 0;
     }
 
     html>window-header>window-buttons {
@@ -129,8 +134,4 @@
 
 html[window-blurbehind] {
     background: #1f1f1f;
-}
-
-html[window-blurbehind]:owns-focus {
-    background: transparent;
 }

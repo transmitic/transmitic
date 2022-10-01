@@ -989,3 +989,9 @@ section>div {
     white-space: pre;
     overflow: auto;
 }
+
+@media platform=="OSX" {
+    hr {
+        border-top: 1px solid #A0A0A0;
+    }
+}
