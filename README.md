@@ -3,7 +3,8 @@
 Transmitic is an encrypted, peer to peer, file transfer program with download pause and resume.  
 Built with Rust.  
 No third party server is involved.  
-No file size limit!
+No file size limit!  
+You add users and choose which files and folders you want to share with them.
 
 The goal is to make transferring files and folders as easy as possible.  
 If you have ever thought _"I just want to send these files directly from this computer to another"_, Transmitic can help.   
@@ -33,7 +34,7 @@ Transmitic is most similar to FTP (though the FTP protocol is not supported). Yo
 Transmitic does not support BitTorrent, or BitTorrent like functionality, in that Transmitic cannot download the same file from multiple peers to download it faster.  
 
 **File Syncing**  
-Transmitic is _not_ designed for "file syncing" and should _never_ be used for this purpose.
+Transmitic is _not_ designed for "file syncing" and should not be used for this purpose.
 
 ## Development Status
 
@@ -58,7 +59,7 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 
 ## Future Features
 
-- macOS support
+- Platform installers and bundles
 - Add users with a "friend request"
 - UPnP
 - Transmitic Discovery
@@ -86,9 +87,7 @@ See these modules to review the cryptography usage in [transmitic-core](https://
 - [transmitic_stream.rs](https://github.com/transmitic/transmitic-core/blob/main/src/transmitic_stream.rs)
 - [encrypted_stream.rs](https://github.com/transmitic/transmitic-core/blob/main/src/encrypted_stream.rs)
 
-## Screenshots
-
-### Current
+## Demo
 
 ![Transmitic](./screenshot.png)
 
