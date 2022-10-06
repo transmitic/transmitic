@@ -1,6 +1,6 @@
 [package]
 name = "transmitic"
-version = "0.10.5"
+version = "0.10.6"
 authors = ["Andrew Shay <andrew.shay@andrewshay.me>"]
 edition = "2018"
 
@@ -9,10 +9,10 @@ edition = "2018"
 
 [dependencies]
 sciter-rs = "0.5.58"
-libc = "0.2.132"
+libc = "0.2.134"
 lazy_static = "1.4"
 
-serde = { version = "1.0.143", features = ["derive", "rc"] }
-serde_json = "1.0.83"
+serde = { version = "1.0.145", features = ["derive", "rc"] }
+serde_json = "1.0.85"
 
 transmitic_core = { path = "../transmitic-core" }
