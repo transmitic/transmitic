@@ -4,9 +4,83 @@
     <title>My Shared</title>
     <style>
         @import url(style.css);
+
+        div.file-drop-zone {
+            /* prototype: FileDropZone; */
+            /* height: 5em; */
+            width: 15em;
+            color: color(button-back);
+            border: 2px dashed;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0em 0em 0em 1em;
+            padding: 6dip 10dip 6dip 10dip;
+            display: inline-block;
+        }
+
+        div.file-drop-zone.active-target {
+            background: color(highlight-t);
+            border-color: color(panel-back);
+            color: #000;
+        }
     </style>
     <script src="global_transmitic.js"></script>
-    <script>
+    <script type="module">
+
+        import * as Environment from "@env";
+
+        class FileDropZone extends Element {
+            files = []; // filtered files
+
+            render() {
+                return <div class="file-drop-zone">
+                    Drop file(s) and folder(s) here
+                </div>
+            }
+
+            ondragaccept(evt) {
+                if (evt.detail.dataType == "file") {
+                    this.files = evt.detail.data;
+                    if (!Array.isArray(this.files))
+                        this.files = [this.files];
+                    return true; // accept only files
+                }
+            }
+
+            ondragenter(evt) {
+                this.classList.add("active-target");
+                return true;
+            }
+
+            ondragleave(evt) {
+                this.classList.remove("active-target");
+                return true;
+            }
+
+            ondrag(evt) {
+                return true;
+            }
+
+            ondrop(evt) {
+                this.classList.remove("active-target");
+
+                for (let i = 0; i < this.files.length; i++) {
+                    this.files[i] = decodeURI(this.files[i]);
+                }
+
+                let response = Window.this.xcall('add_files', [this.files]); // Weird: files is already array but I need this extra array here
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("File(s) added to share.");
+                    this.parentElement.parentElement.parentElement.componentUpdate();
+                }
+                else {
+                    setMsgBoxError("Failed to add files. " + response[1]);
+                }
+
+                return true;
+            }
+
+        }
 
         class AFile extends Element {
 
@@ -100,10 +174,16 @@
             render(props) {
                 let my_files = Window.this.xcall('get_my_sharing_files');
 
+                let drop = <span></span>;
+                if (Environment.PLATFORM != "Linux") {
+                    drop = <span> | <FileDropZone /></span>;
+                }
+
                 return <div>
                     <div class="menu-bar">
                         <button id="add-file">Add Files</button> |
                         <button id="add-folder">Add Folder</button>
+                        {drop}
                     </div>
                     <br /><br />
                     {my_files.map((d) => <AFile filePath={d.file_path} sharedWith={d.shared_with} addUsers={d.add_users} />)}
