@@ -256,7 +256,7 @@ impl Handler {
                         let mut path_local_disk = download_state
                             .active_download_local_path
                             .clone()
-                            .unwrap_or_else(|| "".to_string());
+                            .unwrap_or_default();
 
                         if cfg!(target_family = "windows") {
                             path_local_disk = path_local_disk.replace('/', "\\");
@@ -292,10 +292,7 @@ impl Handler {
                         path: queued_download.clone(),
                         path_local_disk: "".to_string(),
                         size: "".to_string(),
-                        error: download_state
-                            .error
-                            .clone()
-                            .unwrap_or_else(|| "".to_string()),
+                        error: download_state.error.clone().unwrap_or_default(),
                     });
                 }
             }
