@@ -261,22 +261,39 @@
             }
         });
 
-        document.ready = function () {
-            eachPageReady();
-
-            // Get sharing state
+        function getMySharingState() {
             let response = Window.this.xcall('get_my_sharing_state');
             if (response[0] == 0) {
+                let sharingButtons = document.querySelectorAll("button[name=Sharing]");
+                for (const b of sharingButtons) {
+                    b.checked = false;
+                }
                 document.$("button[name=Sharing][value=" + response[1] + "]").state.checked = true;
             }
             else {
                 setMsgBoxError("Failed to get sharing state. " + response[1]);
             }
+        }
+
+        document.ready = function () {
+            eachPageReady();
+
+            // Get sharing state
+            getMySharingState();
 
             // Get port
-            response = Window.this.xcall('get_sharing_port');
+            let response = Window.this.xcall('get_sharing_port');
             document.$("input#port").value = response;
             document.$("div#my-files").content(<MyFiles />);
+
+            this.timer(1000, () => {
+                let response = Window.this.xcall('get_and_reset_my_sharing_error');
+                if (response[0] != 0) {
+                    setMsgBoxError(response[1]);
+                    getMySharingState();
+                }
+                return true;
+            });
         }
 
 

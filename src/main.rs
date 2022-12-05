@@ -11,6 +11,7 @@ use std::str::FromStr;
 use sciter::dispatch_script_call;
 use sciter::Value;
 use serde::{Deserialize, Serialize};
+use transmitic_core::incoming_uploader::IncomingUploaderError;
 use transmitic_core::incoming_uploader::SharingState;
 use transmitic_core::logger::LogLevel;
 use transmitic_core::shared_file::SelectedDownload;
@@ -493,6 +494,23 @@ impl Handler {
         self.get_msg_box_response(0, &state)
     }
 
+    fn get_and_reset_my_sharing_error(&mut self) -> Value {
+        let error = self.transmitic_core.get_and_reset_my_sharing_error();
+
+        match error {
+            Some(error) => match error {
+                IncomingUploaderError::PortInUse => self.get_msg_box_response(
+                    1,
+                    "Port already in use. Sharing stopped. Choose another port.",
+                ),
+                IncomingUploaderError::Generic(string) => {
+                    self.get_msg_box_response(1, &format!("Sharing stopped. {}", string))
+                }
+            },
+            None => self.get_msg_box_response(0, ""),
+        }
+    }
+
     fn get_shared_users(&self) -> Value {
         let shared_users = self.transmitic_core.get_shared_users();
         let mut user_list = Value::new();
@@ -733,6 +751,7 @@ impl sciter::EventHandler for Handler {
         fn get_is_first_start();
         fn get_my_sharing_files();
         fn get_my_sharing_state();
+        fn get_and_reset_my_sharing_error();
         fn get_shared_with_me_data();
         fn start_refresh_shared_with_me_all();
         fn start_refresh_shared_with_me_single_user(Value);
