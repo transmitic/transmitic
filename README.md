@@ -14,6 +14,16 @@ Reddit: [https://www.reddit.com/r/transmitic/](https://www.reddit.com/r/transmit
 Twitter: [https://twitter.com/transmitic](https://twitter.com/transmitic)  
 Website: [https://transmitic.net/](https://transmitic.net/)  
 
+## How it Works
+
+1. Users exchange PublicIDs that Transmitic automatically generates.
+1. Add users' PublicIDs and IPs that you want to share with.
+1. Add files or folders you want to share, and which users you want to share with.
+1. Turn sharing on! Users can choose which files they want to download directly from your device.
+1. View all files that are shared with you, and download directly from the other user's device.
+
+See Demo below
+
 ## Support Transmitic
 
 Your support is greatly needed  
@@ -23,7 +33,6 @@ Your support is greatly needed
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J626I8G)
 
 <a href="https://www.patreon.com/andrewshay" target="_blank"><img src="https://user-images.githubusercontent.com/4878195/161663353-d78961a3-71e6-4353-9a2e-3028e64c72e1.png" alt="Patreon" height="40" width="40" style="height: 40px !important;width: 40px !important;" > Patreon</a>
-
 
 ## Comparison To Other Tools
 
