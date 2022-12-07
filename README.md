@@ -108,6 +108,8 @@ At this time Transmitic is free for personal and commercial use.
 
 ## Build
 
+Prebuilt binaries available at [Releases](https://github.com/transmitic/transmitic/releases)
+
 ```
 $ mkdir transmitic_workspace
 $ cd transmitic_workspace
