@@ -3,14 +3,22 @@
     windows_subsystem = "windows"
 )]
 
+use std::cell::RefCell;
 use std::env;
+use std::error::Error;
+use std::path::PathBuf;
 use std::process::Command;
+use std::rc::Rc;
 use std::str;
 use std::str::FromStr;
 
 use sciter::dispatch_script_call;
 use sciter::Value;
 use serde::{Deserialize, Serialize};
+use transmitic_core::config::create_config_dir;
+use transmitic_core::config::get_path_config_json;
+use transmitic_core::config::get_path_encrypted_config;
+use transmitic_core::config::Config;
 use transmitic_core::incoming_uploader::IncomingUploaderError;
 use transmitic_core::incoming_uploader::SharingState;
 use transmitic_core::logger::LogLevel;
@@ -23,13 +31,81 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NAME: &str = "Transmitic Beta";
 const URL: &str = "https://transmitic.net";
 
-struct Handler {
+struct ConfigData {
+    password: Option<String>,
+    config: Option<Config>,
+}
+
+struct ConfigHandler {
+    config_data: Rc<RefCell<ConfigData>>,
+    is_new_config: bool,
+}
+
+impl ConfigHandler {
+    pub fn new(config_data: Rc<RefCell<ConfigData>>, is_new_config: bool) -> Self {
+        ConfigHandler {
+            config_data,
+            is_new_config,
+        }
+    }
+}
+
+impl ConfigHandler {
+    fn is_new_config(&self) -> Value {
+        Value::from(self.is_new_config)
+    }
+
+    fn set_config_password(&mut self, password: Value, retype_password: Value) -> Value {
+        let password = clean_sciter_string_no_trim(password);
+        let retype_password = clean_sciter_string_no_trim(retype_password);
+
+        let is_valid = transmitic_core::config::is_new_password_valid(&password, &retype_password);
+
+        match is_valid {
+            Ok(_) => {
+                let mut reference = self.config_data.borrow_mut();
+                reference.password = Some(password);
+                get_msg_box_response(0, "")
+            }
+            Err(e) => get_msg_box_response(1, &e.to_string()),
+        }
+    }
+
+    fn unlock(&mut self, password: Value) -> Value {
+        let password = clean_sciter_string_no_trim(password);
+
+        match Config::new(false, Some(password.clone())) {
+            Ok(c) => {
+                let mut reference = self.config_data.borrow_mut();
+                reference.password = Some(password);
+
+                reference.config = Some(c);
+                get_msg_box_response(0, "")
+            }
+            Err(e) => get_msg_box_response(
+                1,
+                &format!("Failed to unlock. Double check your password. {}", e),
+            ),
+        }
+    }
+}
+
+impl sciter::EventHandler for ConfigHandler {
+    dispatch_script_call! {
+
+        fn is_new_config();
+        fn set_config_password(Value, Value);
+        fn unlock(Value);
+    }
+}
+
+struct TransmiticHandler {
     transmitic_core: TransmiticCore,
 }
 
-impl Handler {
+impl TransmiticHandler {
     pub fn new(transmitic_core: TransmiticCore) -> Self {
-        Handler { transmitic_core }
+        TransmiticHandler { transmitic_core }
     }
 }
 
@@ -71,7 +147,33 @@ struct SingleDownloadUI {
     pub error: String,
 }
 
-impl Handler {
+impl TransmiticHandler {
+    fn is_config_encrypted(&self) -> Value {
+        Value::from(self.transmitic_core.is_config_encrypted())
+    }
+
+    fn decrypt_config(&mut self) -> Value {
+        match self.transmitic_core.decrypt_config() {
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
+        }
+    }
+
+    fn encrypt_config(&mut self, password: Value, retype_password: Value) -> Value {
+        let password = clean_sciter_string_no_trim(password);
+        let retype_password = clean_sciter_string_no_trim(retype_password);
+
+        match transmitic_core::config::is_new_password_valid(&password, &retype_password) {
+            Ok(_) => {}
+            Err(e) => return get_msg_box_response(1, &e.to_string()),
+        }
+
+        match self.transmitic_core.encrypt_config(password) {
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
+        }
+    }
+
     // When a sciter array is sent as its self, it's expanded into args and fails, but put it in
     // another array as a container, is fine.
     fn add_files(&mut self, files_double_array: Value) -> Value {
@@ -79,13 +181,13 @@ impl Handler {
 
         let files = files_double_array.get(0); // Get the inner array, which actually has the files
         for file in files.into_iter() {
-            let clean_file = self.clean_sciter_string(file);
+            let clean_file = clean_sciter_string(file);
             clean_strings.push(clean_file);
         }
 
         let response = match self.transmitic_core.add_files(clean_strings) {
-            Ok(_) => self.get_msg_box_response(0, ""),
-            Err(e) => self.get_msg_box_response(1, &e.to_string()),
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
         };
         response
     }
@@ -97,39 +199,39 @@ impl Handler {
         new_ip: Value,
         new_port: Value,
     ) -> Value {
-        let new_nickname = self.clean_sciter_string(new_nickname);
-        let new_public_id = self.clean_sciter_string(new_public_id);
-        let new_ip = self.clean_sciter_string(new_ip);
-        let new_port = self.clean_sciter_string(new_port);
+        let new_nickname = clean_sciter_string(new_nickname);
+        let new_public_id = clean_sciter_string(new_public_id);
+        let new_ip = clean_sciter_string(new_ip);
+        let new_port = clean_sciter_string(new_port);
 
         let response =
             match self
                 .transmitic_core
                 .add_new_user(new_nickname, new_public_id, new_ip, new_port)
             {
-                Ok(_) => self.get_msg_box_response(0, ""),
-                Err(e) => self.get_msg_box_response(1, &e.to_string()),
+                Ok(_) => get_msg_box_response(0, ""),
+                Err(e) => get_msg_box_response(1, &e.to_string()),
             };
         response
     }
 
     fn add_user_to_shared(&mut self, nickname: Value, file_path: Value) -> Value {
-        let nickname = self.clean_sciter_string(nickname);
-        let mut file_path = self.clean_sciter_string(file_path);
+        let nickname = clean_sciter_string(nickname);
+        let mut file_path = clean_sciter_string(file_path);
         file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
 
         let response = match self.transmitic_core.add_user_to_shared(nickname, file_path) {
-            Ok(_) => self.get_msg_box_response(0, ""),
-            Err(e) => self.get_msg_box_response(1, &e.to_string()),
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
         };
         response
     }
 
     fn create_new_id(&mut self) -> Value {
         let response = match self.transmitic_core.create_new_id() {
-            Ok(_) => self.get_msg_box_response(0, ""),
-            Err(e) => self.get_msg_box_response(1, &e.to_string()),
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
         };
         response
     }
@@ -139,8 +241,8 @@ impl Handler {
 
         let mut downloads: Vec<SelectedDownload> = Vec::new();
         for file in files.values() {
-            let owner = self.clean_sciter_string(file.get_item("owner"));
-            let mut path = self.clean_sciter_string(file.get_item("path"));
+            let owner = clean_sciter_string(file.get_item("owner"));
+            let mut path = clean_sciter_string(file.get_item("path"));
             path = unescape_path(&path);
             path = path.replace("\\\\", "\\");
             let new_download = SelectedDownload { path, owner };
@@ -148,8 +250,8 @@ impl Handler {
         }
 
         let response = match self.transmitic_core.download_selected(downloads) {
-            Ok(_) => self.get_msg_box_response(0, "Files will be downloaded"),
-            Err(e) => self.get_msg_box_response(1, &e.to_string()),
+            Ok(_) => get_msg_box_response(0, "Files will be downloaded"),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
         };
         response
     }
@@ -174,7 +276,7 @@ impl Handler {
     }
 
     fn downloads_open_single(&self, path_local_disk: Value) {
-        let mut path_local_disk = self.clean_sciter_string(path_local_disk);
+        let mut path_local_disk = clean_sciter_string(path_local_disk);
         path_local_disk = unescape_path(&path_local_disk);
 
         if cfg!(target_family = "windows") {
@@ -204,8 +306,8 @@ impl Handler {
     }
 
     fn downloads_cancel_single(&mut self, nickname: Value, file_path: Value) {
-        let nickname = self.clean_sciter_string(nickname);
-        let mut file_path = self.clean_sciter_string(file_path);
+        let nickname = clean_sciter_string(nickname);
+        let mut file_path = clean_sciter_string(file_path);
         file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
 
@@ -339,21 +441,6 @@ impl Handler {
         Value::from_str(&json_string).unwrap()
     }
 
-    fn get_msg_box_response(&self, code: i32, msg: &str) -> Value {
-        let mut response = Value::new();
-
-        response.push(Value::from(code));
-        response.push(Value::from(msg));
-        response
-    }
-
-    fn clean_sciter_string(&self, s: Value) -> String {
-        let mut s = s.to_string();
-        s = s[1..s.len() - 1].to_string();
-        s = s.trim().to_string();
-        s
-    }
-
     fn get_app_display_name(&self) -> Value {
         Value::from(NAME)
     }
@@ -385,7 +472,7 @@ impl Handler {
         let log_messages = self.transmitic_core.get_log_messages();
         let mut value_messages = Value::new();
 
-        let max = 200; // TODO Sciter won't show after 400 strings, so max at 200 to be safe
+        let max = 200; // Sciter won't show after 400 strings, so max at 200 to be safe
         for (count, message) in log_messages.into_iter().enumerate() {
             if count >= max {
                 break;
@@ -409,11 +496,11 @@ impl Handler {
     }
 
     fn set_log_level(&mut self, log_level: Value) -> Value {
-        let log_level = self.clean_sciter_string(log_level);
+        let log_level = clean_sciter_string(log_level);
 
         // TODO hardcoded strings with get_log_level
         // Can this be in an enum with match?
-        let mut response = self.get_msg_box_response(0, "");
+        let mut response = get_msg_box_response(0, "");
         let log_enum;
         if log_level == "CRITICAL" {
             log_enum = LogLevel::Critical;
@@ -427,7 +514,7 @@ impl Handler {
             log_enum = LogLevel::Debug;
         } else {
             log_enum = LogLevel::Debug;
-            response = self.get_msg_box_response(
+            response = get_msg_box_response(
                 1,
                 &format!("Unknown log level '{}'. Defaulting to DEBUG.", log_level),
             );
@@ -488,7 +575,7 @@ impl Handler {
             SharingState::Local => "Local".to_string(),
             SharingState::Internet => "Internet".to_string(),
         };
-        self.get_msg_box_response(0, &state)
+        get_msg_box_response(0, &state)
     }
 
     fn get_and_reset_my_sharing_error(&mut self) -> Value {
@@ -496,15 +583,15 @@ impl Handler {
 
         match error {
             Some(error) => match error {
-                IncomingUploaderError::PortInUse => self.get_msg_box_response(
+                IncomingUploaderError::PortInUse => get_msg_box_response(
                     1,
                     "Port already in use. Sharing stopped. Choose another port.",
                 ),
                 IncomingUploaderError::Generic(string) => {
-                    self.get_msg_box_response(1, &format!("Sharing stopped. {}", string))
+                    get_msg_box_response(1, &format!("Sharing stopped. {}", string))
                 }
             },
-            None => self.get_msg_box_response(0, ""),
+            None => get_msg_box_response(0, ""),
         }
     }
 
@@ -577,7 +664,7 @@ impl Handler {
     }
 
     fn start_refresh_shared_with_me_single_user(&mut self, nickname: Value) {
-        let nickname = self.clean_sciter_string(nickname);
+        let nickname = clean_sciter_string(nickname);
         self.transmitic_core
             .start_refresh_shared_with_me_single_user(nickname);
     }
@@ -587,31 +674,31 @@ impl Handler {
     }
 
     fn remove_file_from_sharing(&mut self, file_path: Value) -> Value {
-        let mut file_path = self.clean_sciter_string(file_path);
+        let mut file_path = clean_sciter_string(file_path);
         file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\");
 
         let response = match self.transmitic_core.remove_file_from_sharing(file_path) {
-            Ok(_) => self.get_msg_box_response(0, ""),
-            Err(e) => self.get_msg_box_response(1, &e.to_string()),
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
         };
 
         response
     }
 
     fn remove_user(&mut self, nickname: Value) -> Value {
-        let nickname = self.clean_sciter_string(nickname);
+        let nickname = clean_sciter_string(nickname);
         let response = match self.transmitic_core.remove_user(nickname) {
-            Ok(_) => self.get_msg_box_response(0, ""),
-            Err(e) => self.get_msg_box_response(1, &e.to_string()),
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
         };
 
         response
     }
 
     fn remove_user_from_sharing(&mut self, nickname: Value, file_path: Value) -> Value {
-        let nickname = self.clean_sciter_string(nickname);
-        let mut file_path = self.clean_sciter_string(file_path);
+        let nickname = clean_sciter_string(nickname);
+        let mut file_path = clean_sciter_string(file_path);
         file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\");
 
@@ -619,15 +706,15 @@ impl Handler {
             .transmitic_core
             .remove_user_from_sharing(nickname, file_path)
         {
-            Ok(_) => self.get_msg_box_response(0, ""),
-            Err(e) => self.get_msg_box_response(1, &e.to_string()),
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
         };
 
         response
     }
 
     fn set_my_sharing_state(&mut self, state: Value) -> Value {
-        let state = self.clean_sciter_string(state);
+        let state = clean_sciter_string(state);
 
         let core_state: SharingState;
         if state == "Off" {
@@ -637,38 +724,37 @@ impl Handler {
         } else if state == "Internet" {
             core_state = SharingState::Internet;
         } else {
-            return self
-                .get_msg_box_response(1, &format!("Sharing state '{}' is not valid", state));
+            return get_msg_box_response(1, &format!("Sharing state '{}' is not valid", state));
         }
 
         self.transmitic_core.set_my_sharing_state(core_state);
-        self.get_msg_box_response(0, "")
+        get_msg_box_response(0, "")
     }
 
     fn set_port(&mut self, port: Value) -> Value {
-        let port = self.clean_sciter_string(port);
+        let port = clean_sciter_string(port);
 
         let response = match self.transmitic_core.set_port(port) {
-            Ok(_) => self.get_msg_box_response(0, ""),
-            Err(e) => self.get_msg_box_response(1, &e.to_string()),
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
         };
 
         response
     }
 
     fn set_user_is_allowed_state(&mut self, nickname: Value, is_allowed: Value) -> Value {
-        let nickname = self.clean_sciter_string(nickname);
+        let nickname = clean_sciter_string(nickname);
         let is_allowed = match is_allowed.to_bool() {
             Some(is_allowed) => is_allowed,
-            None => return self.get_msg_box_response(1, "is_allowed is not a bool"),
+            None => return get_msg_box_response(1, "is_allowed is not a bool"),
         };
 
         let response = match self
             .transmitic_core
             .set_user_is_allowed_state(nickname, is_allowed)
         {
-            Ok(_) => self.get_msg_box_response(0, ""),
-            Err(e) => self.get_msg_box_response(1, &e.to_string()),
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
         };
 
         response
@@ -681,18 +767,18 @@ impl Handler {
         new_ip: Value,
         new_port: Value,
     ) -> Value {
-        let nickname = self.clean_sciter_string(nickname);
-        let new_public_id = self.clean_sciter_string(new_public_id);
-        let new_ip = self.clean_sciter_string(new_ip);
-        let new_port = self.clean_sciter_string(new_port);
+        let nickname = clean_sciter_string(nickname);
+        let new_public_id = clean_sciter_string(new_public_id);
+        let new_ip = clean_sciter_string(new_ip);
+        let new_port = clean_sciter_string(new_port);
 
         let response =
             match self
                 .transmitic_core
                 .update_user(nickname, new_public_id, new_ip, new_port)
             {
-                Ok(_) => self.get_msg_box_response(0, ""),
-                Err(e) => self.get_msg_box_response(1, &e.to_string()),
+                Ok(_) => get_msg_box_response(0, ""),
+                Err(e) => get_msg_box_response(1, &e.to_string()),
             };
 
         response
@@ -709,8 +795,12 @@ fn unescape_path(path: &str) -> String {
 }
 
 #[allow(clippy::mixed_read_write_in_expression)]
-impl sciter::EventHandler for Handler {
+impl sciter::EventHandler for TransmiticHandler {
     dispatch_script_call! {
+
+        fn is_config_encrypted();
+        fn decrypt_config();
+        fn encrypt_config(Value, Value);
 
         fn add_files(Value);
         fn add_new_user(Value, Value, Value, Value);
@@ -771,39 +861,59 @@ fn main() {
     println!("cli args");
     println!("{:?}\n", args);
 
-    let sciter_string = if cfg!(debug_assertions) {
+    let config_start_path: PathBuf;
+    let main_path: PathBuf;
+    if cfg!(debug_assertions) {
         println!("DEBUG BUILD");
-        let mut sciter_path = env::current_dir().unwrap();
-        sciter_path.push("transmitic\\src\\main.htm");
-        format!("file://{}", sciter_path.to_string_lossy())
+        let mut base = env::current_dir().unwrap();
+        base.push("transmitic\\src\\");
+
+        main_path = base.join("main.htm");
+        config_start_path = base.join("config_start.htm");
     } else {
         println!("Release");
         let sciter_path = env::current_exe().unwrap();
         let sciter_path = sciter_path.parent().unwrap();
-        let sciter_path = sciter_path.join("res").join("main.htm");
-        format!("file://{}", sciter_path.to_string_lossy())
-    };
+        let sciter_path = sciter_path.join("res");
+
+        main_path = sciter_path.join("main.htm");
+        config_start_path = sciter_path.join("config_start.htm");
+    }
+
+    let main_path: String = format!("file://{}", main_path.to_string_lossy());
+    let config_start_path: String = format!("file://{}", config_start_path.to_string_lossy());
 
     println!("Current Working Dir: '{:?}'", env::current_dir().unwrap());
-    println!("Sciter path: '{}'", sciter_string);
+    println!("Sciter path: '{}'", main_path);
+    println!("Config start path: '{}'", config_start_path);
     println!("Transmitic Path: '{:?}'", env::current_exe().unwrap());
 
-    let mut frame = get_sciter_frame();
-
-    let transmitic_core: TransmiticCore = match TransmiticCore::new() {
-        Ok(t) => t,
+    let config = match initialize_config(&config_start_path) {
+        Ok(c) => c,
         Err(e) => {
-            let html_error = format!("Transmitic failed to start<br>{}", &e.to_string());
+            let html_error = format!("Transmitic failed to load config<br>{}", &e.to_string());
+            let mut frame = get_sciter_frame();
             frame.load_html(&html_error.into_bytes(), Some("example://main.htm"));
             frame.run_app();
             panic!("{:?}", e.to_string());
         }
     };
 
-    let handler = Handler::new(transmitic_core);
+    let transmitic_core: TransmiticCore = match TransmiticCore::new(config) {
+        Ok(t) => t,
+        Err(e) => {
+            let html_error = format!("Transmitic failed to start<br>{}", &e.to_string());
+            let mut frame = get_sciter_frame();
+            frame.load_html(&html_error.into_bytes(), Some("example://main.htm"));
+            frame.run_app();
+            panic!("{:?}", e.to_string());
+        }
+    };
 
+    let handler = TransmiticHandler::new(transmitic_core);
+    let mut frame = get_sciter_frame();
     frame.event_handler(handler);
-    frame.load_file(&sciter_string);
+    frame.load_file(&main_path);
     frame.run_app();
 }
 
@@ -819,4 +929,75 @@ fn get_sciter_frame() -> sciter::Window {
     }
 
     sciter::Window::new()
+}
+
+fn clean_sciter_string_no_trim(s: Value) -> String {
+    let mut s = s.to_string();
+    s = s[1..s.len() - 1].to_string();
+    s
+}
+
+fn clean_sciter_string(s: Value) -> String {
+    let mut s = clean_sciter_string_no_trim(s);
+    s = s.trim().to_string();
+    s
+}
+
+fn get_msg_box_response(code: i32, msg: &str) -> Value {
+    let mut response = Value::new();
+
+    response.push(Value::from(code));
+    response.push(Value::from(msg));
+    response
+}
+
+fn initialize_config(config_start_path: &str) -> Result<Config, Box<dyn Error>> {
+    create_config_dir()?;
+    let config_data = Rc::new(RefCell::new(ConfigData {
+        password: None,
+        config: None,
+    }));
+
+    let json_path = get_path_config_json()?;
+    let encrypted_path = get_path_encrypted_config()?;
+    let json_exists = json_path.exists();
+    let encrypted_exists = encrypted_path.exists();
+    let mut is_new_config = false;
+
+    if json_exists && encrypted_exists {
+        Err(format!(
+            "Encrypted config and unencrypted config both exist. Only one may exist. '{}' and '{}'",
+            json_path.to_string_lossy(),
+            encrypted_path.to_string_lossy()
+        ))?;
+    } else if json_exists {
+    } else {
+        if !encrypted_exists {
+            is_new_config = true;
+        }
+        let mut frame = get_sciter_frame();
+        let handler = ConfigHandler::new(Rc::clone(&config_data), is_new_config);
+        frame.event_handler(handler);
+        frame.load_file(config_start_path);
+        frame.run_app();
+
+        let mut password = config_data.borrow().password.clone();
+
+        // Unlock attempt with empty string
+        if password == Some("".to_string()) {
+            password = None;
+        }
+
+        // Window closed
+        if password.is_none() && encrypted_exists {
+            std::process::exit(0);
+        }
+    }
+
+    let config = match config_data.borrow().config.clone() {
+        Some(c) => c,
+        None => Config::new(is_new_config, config_data.borrow().password.clone())?,
+    };
+
+    Ok(config)
 }

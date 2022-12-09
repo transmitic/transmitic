@@ -1,0 +1,166 @@
+<html window-frame="extended" window-blurbehind="dark" theme="dark" window-width="600" window-icon="window_icon.svg">
+
+<head>
+    <title>Config Start</title>
+    <style src="extended-window-chrome.css"></style>
+    <style>
+        @import url(style.css);
+    </style>
+    <script src="global_transmitic.js"></script>
+    <script>
+        document.attributes["theme"] = "dark";
+
+        function replaceWindow() {
+            var [sx, sy, sw, sh] = Window.this.screenBox("workarea", "xywh");
+            const w = 800 * devicePixelRatio;
+            const h = 500 * devicePixelRatio;
+            Window.this.move(sx + (sw - w) / 2, sy + (sh - h) / 2, w, h);
+        }
+
+        class SetPassword extends Element {
+
+            render(props) {
+                return <div>
+                    <h1>Before Getting Started</h1>
+
+                    <div id="text-body">
+                        <p>
+                            You can create a password to encrypt your Transmitic configuration and ID.
+                            <br />
+                            If you do not want to do this now, you can do it later in the "My ID" tab.
+                            <br />
+                        </p>
+
+                        <table>
+                            <tbody>
+                                <tr class="add-row">
+                                    <td>Password: </td>
+                                    <td>
+                                        <input id="password" type="password" size="36" />
+                                    </td>
+                                </tr>
+                                <tr class="add-row">
+                                    <td>Retype Password:</td>
+                                    <td class="code-font">
+                                        <input id="retype-password" type="password" size="36" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td style="text-align:right;"><button id="set-password" class="active-button"
+                                        style="margin-top: 10dip;">Set Password</button>&nbsp;
+                                        <button id="not-now" style="margin-top: 10dip;">Not Now</button>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            }
+
+            ["on click at button#set-password"]() {
+                let password = document.$("input#password").value;
+                let retyped = document.$("input#retype-password").value;
+
+                let response = Window.this.xcall('set_config_password', password, retyped);
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("Password set");
+                    let continueButton = <button id="continue" class="active-button"
+                        style="margin-top: 10dip;">Continue</button>;
+                    let continueDiv = <div>Continue to Getting Started<br />{continueButton}</div>;
+                    document.$("div#text-body").content(continueDiv);
+                    document.$("button#continue").onclick = doneWithPassword;
+                }
+                else {
+                    setMsgBoxError(response[1]);
+                }
+            }
+
+            ["on click at button#not-now"]() {
+                doneWithPassword();
+            }
+        }
+
+        class Unlock extends Element {
+
+            render(props) {
+                return <div>
+                    <h1>Enter Password to Unlock</h1>
+
+                    <div id="text-body">
+                        <table>
+                            <tbody>
+                                <tr class="add-row">
+                                    <td>Password: </td>
+                                    <td>
+                                        <input id="password" type="password" size="36" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td style="text-align:right;"><button id="unlock" class="active-button"
+                                        style="margin-top: 10dip;">Unlock</button>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            }
+
+            ["on click at button#unlock"]() {
+                let password = document.$("input#password").value;
+
+                let response = Window.this.xcall('unlock', password);
+                if (response[0] == 0) {
+                    Window.this.close();
+                }
+                else {
+                    setMsgBoxError(response[1]);
+                }
+            }
+        }
+
+        function doneWithPassword() {
+            Window.this.close();
+        }
+
+        document.ready = function () {
+            replaceWindow();
+            eachPageReady();
+
+            let is_new_config = Window.this.xcall('is_new_config');
+            if (is_new_config) {
+                document.$("div#content").content(<SetPassword />);
+            } else {
+                document.$("div#content").content(<Unlock />);
+            }
+        }
+
+    </script>
+</head>
+
+<window-header>
+    <window-icon role="window-icon" />
+    <window-caption role=window-caption>Transmitic Beta</window-caption>
+    <window-buttons>
+        <window-button role="window-minimize"></window-button>
+        <window-button role="window-maximize"></window-button>
+        <window-button role="window-close"></window-button>
+    </window-buttons>
+</window-header>
+
+<body>
+    <div class="main-body">
+        <div id="msg-box"></div>
+
+        <div id="content"></div>
+
+    </div>
+</body>
+
+</html>

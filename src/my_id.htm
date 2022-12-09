@@ -32,10 +32,80 @@
             }
         }
 
+        class EncryptedID extends Element {
+
+            this(props) {
+
+            }
+
+            render(props) {
+                let is_config_encrypted = Window.this.xcall('is_config_encrypted');
+                if (is_config_encrypted) {
+                    return <div>
+                        <h2>Decrypt My ID and Config</h2>
+                        <button id="decrypt" class="warning-button" style="margin-top: 10dip;">Decrypt</button>
+                    </div>
+                } else {
+                    return <div>
+                        <h2>Encrypt My ID and Config</h2>
+                        <table>
+                            <tbody>
+                                <tr class="add-row">
+                                    <td>Password: </td>
+                                    <td>
+                                        <input id="password" type="password" size="36" />
+                                    </td>
+                                </tr>
+                                <tr class="add-row">
+                                    <td>Retype Password:</td>
+                                    <td class="code-font">
+                                        <input id="retype-password" type="password" size="36" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td style="text-align:right;"><button id="set-password" class="active-button"
+                                        style="margin-top: 10dip;">Encrypt</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+
+            ["on click at button#set-password"]() {
+                let password = document.$("input#password").value;
+                let retyped = document.$("input#retype-password").value;
+
+                let response = Window.this.xcall('encrypt_config', password, retyped);
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("ID successfully encrypted");
+                    this.componentUpdate();
+                } else {
+                    setMsgBoxError("Failed to encrypt ID. " + response[1]);
+                }
+            }
+
+            ["on click at button#decrypt"]() {
+                let response = Window.this.xcall('decrypt_config');
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("Successfully decrypted");
+                    this.componentUpdate();
+                }
+                else {
+                    setMsgBoxError("Failed to decrypt. " + response[1]);
+                }
+            }
+
+
+        }
+
         document.ready = function () {
             eachPageReady();
 
             setPublicID();
+            document.$("div#encrypted-id").content(<EncryptedID />);
         }
 
     </script>
@@ -53,6 +123,8 @@
             Your Public ID is: <span id="public-id" class="highlight code-font"></span>&nbsp;<button #copy-id
                 style="font-size:9pt;">Copy</button><span #copy-success></span>
         </p>
+
+        <div id="encrypted-id"></div>
 
         <h2>Create New ID</h2>
         You will not be able to share with anyone until they update to your new ID.
