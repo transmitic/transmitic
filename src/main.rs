@@ -918,12 +918,6 @@ fn main() {
 }
 
 fn get_sciter_frame() -> sciter::Window {
-    sciter::set_options(sciter::RuntimeOptions::ScriptFeatures(
-        sciter::SCRIPT_RUNTIME_FEATURES::ALLOW_SYSINFO as u8
-            | sciter::SCRIPT_RUNTIME_FEATURES::ALLOW_FILE_IO as u8,
-    ))
-    .unwrap();
-
     if cfg!(debug_assertions) {
         sciter::set_options(sciter::RuntimeOptions::DebugMode(true)).unwrap();
     }
