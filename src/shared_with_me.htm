@@ -33,7 +33,21 @@
                     content = <div>Refreshing...</div>;
                 }
                 else {
-                    content = this.createFileList(this.files, this.error, 0);
+                    let selectAll = <span></span>;
+                    if (this.files.length > 0) {
+                        this.files = this.files[0].files; // skip everything/ file
+
+                        if (this.files.length > 0) {
+                            selectAll = <button class="select-all" type="checkbox">Select All</button>;
+                        }
+
+                        // set isRoot on top level files for "Select All"
+                        for (let f in this.files) {
+                            this.files[f].isRoot = true;
+                        }
+
+                    }
+                    content = <div>{selectAll}{this.createFileList(this.files, this.error, 0)}</div>;
                 }
 
                 return <div>
@@ -76,7 +90,18 @@
                         showMore = <button style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                     }
                 }
-                return <div><button class="file-checkbox" data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br /> {this.createFileList(d.files, "", divID)}</div>
+                return <div><button class="file-checkbox" data-isRoot={d.isRoot} data-path={d.path} data-owner={this.owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br /> {this.createFileList(d.files, "", divID)}</div>
+            }
+
+            ["on click at button.select-all"](evt, btn) {
+                let query = `button[type=checkbox][data-isRoot=true][data-owner="${this.owner}"]`;
+                let rootBoxes = document.querySelectorAll(query);
+                for (const c of rootBoxes) {
+                    c.checked = btn.checked;
+                }
+                if (btn.checked) {
+                    document.$("button#download-selected").state.disabled = false;
+                }
             }
 
             ["on click at button.file-checkbox"](evt, btn) {
