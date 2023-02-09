@@ -42,12 +42,12 @@
                 let is_config_encrypted = Window.this.xcall('is_config_encrypted');
                 if (is_config_encrypted) {
                     return <div>
-                        <h2>Decrypt My ID and Config</h2>
+                        <h2>Decrypt My ID and Data</h2>
                         <button id="decrypt" class="warning-button" style="margin-top: 10dip;">Decrypt</button>
                     </div>
                 } else {
                     return <div>
-                        <h2>Encrypt My ID and Config</h2>
+                        <h2>Encrypt My ID and Data</h2>
                         <table>
                             <tbody>
                                 <tr class="add-row">
@@ -57,7 +57,7 @@
                                     </td>
                                 </tr>
                                 <tr class="add-row">
-                                    <td>Retype Password:</td>
+                                    <td>Retype Password:&nbsp;</td>
                                     <td class="code-font">
                                         <input id="retype-password" type="password" size="36" />
                                     </td>
@@ -120,7 +120,7 @@
         Share your Public ID with anyone you want to share with.
         <br>
         <p>
-            Your Public ID is: <span id="public-id" class="highlight code-font"></span>&nbsp;<button #copy-id
+            Your Public ID: <span id="public-id" class="highlight code-font"></span>&nbsp;<button #copy-id
                 style="font-size:9pt;">Copy</button><span #copy-success></span>
         </p>
 
