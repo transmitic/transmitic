@@ -39,3 +39,17 @@ function eachPageReady() {
         msgBox.classList.toggle("sticky", this.scrollTop > stickyPos);
     }
 }
+
+function displayWarningModal(parent) {
+    let dim = parent.box("rectw", "border", "screen", true);
+    var isYesModal = Window.this.modal {
+        url: __DIR__ + "dialog.htm",
+            parameters: { parentDim: dim },
+};
+var isYes = false;
+if (isYesModal != null) {
+    isYes = isYesModal.yes;
+}
+
+return isYes;
+}

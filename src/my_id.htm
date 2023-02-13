@@ -22,14 +22,18 @@
         }
 
         document.$("button#create-new-id").onclick = function () {
-            let response = Window.this.xcall('create_new_id');
-            if (response[0] == 0) {
-                setPublicID();
-                setMsgBoxSuccess("Your new Public ID is <strong>" + publicID + "</strong>");
+            let isYes = displayWarningModal(Window.this);
+            if (isYes) {
+                let response = Window.this.xcall('create_new_id');
+                if (response[0] == 0) {
+                    setPublicID();
+                    setMsgBoxSuccess("Your new Public ID is <strong>" + publicID + "</strong>");
+                }
+                else {
+                    setMsgBoxError("Failed to create new Public ID.");
+                }
             }
-            else {
-                setMsgBoxError("Failed to create new Public ID.");
-            }
+
         }
 
         class EncryptedID extends Element {
@@ -88,6 +92,10 @@
             }
 
             ["on click at button#decrypt"]() {
+                let isYes = displayWarningModal(Window.this);
+                if (!isYes) {
+                    return;
+                }
                 let response = Window.this.xcall('decrypt_config');
                 if (response[0] == 0) {
                     setMsgBoxSuccess("Successfully decrypted");
@@ -132,8 +140,6 @@
         <i>Your current ID will no longer work.</i>
         <br><br>
         <button id="create-new-id" class="danger-button">Create New ID</button>
-        <!--TODO modal are you sure?-->
-
     </div>
 </body>
 

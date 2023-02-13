@@ -1,0 +1,102 @@
+<html window-frame="extended" theme="dark" window-width="400" window-height="150" window-icon="window_icon.svg">
+
+<head>
+    <title>Test</title>
+    <style src="extended-window-chrome.css"></style>
+    <style>
+        @import url(style.css);
+
+        html {
+            border: 1dip solid window-accent-color;
+        }
+    </style>
+    <script>
+
+        function yes() {
+            Window.this.close({ yes: true });
+        }
+
+        function no() {
+            Window.this.close({ yes: false });
+        }
+
+        document.on("keydown", function (evt) {
+            var cmd;
+            console.log(evt.code);
+            if (evt.code == "Escape")
+                no()
+            else if (evt.code == "Enter")
+                return;
+            else
+                return;
+        });
+
+        function replaceWindow(parentDim) {
+            var [sxScreen, syScreen, swScreen, shScreen] = Window.this.screenBox("workarea", "xywh");
+            var [sxParent, syParent, swParent, shParent] = parentDim;
+            const w = 400 * devicePixelRatio;
+            const h = 150 * devicePixelRatio;
+
+            let sxNew = sxParent + (swParent - w) / 2;
+            let syNew = syParent + (shParent - h) / 2;
+
+            let realWidth = sxNew + w;
+            if (realWidth > swScreen) {
+                let diff = realWidth - swScreen;
+                sxNew = sxNew - diff;
+            }
+
+            let realHeight = syNew + h;
+            if (realHeight > shScreen) {
+                let diff = realHeight - shScreen;
+                syNew = syNew - diff;
+            }
+
+            if (sxNew < w) {
+                sxNew = sxScreen;
+            }
+
+            if (syNew < h) {
+                syNew = syScreen;
+            }
+
+            Window.this.move(sxNew, syNew, w, h);
+        }
+
+        const { parentDim } = Window.this.parameters;
+
+        document.on("click", "button#close-yes", function () {
+            yes();
+        });
+
+        document.on("click", "button#close-no", function () {
+            no();
+        });
+
+        document.ready = function () {
+            replaceWindow(parentDim);
+        }
+
+    </script>
+</head>
+
+<window-header>
+    <window-caption role=window-caption>Warning</window-caption>
+    <window-buttons>
+        <window-button role="window-close"></window-button>
+    </window-buttons>
+</window-header>
+
+<body style="padding: 10dip;">
+    <main style="vertical-align: middle;">
+        <img style="height: 50dip; vertical-align: middle;" src="ic_fluent_warning_24_regular.svg" />
+        <div style="display: inline-block">Are You Sure?</div>
+    </main>
+    <footer style="text-align: right;">
+        <button #close-yes>Yes</button>
+        <button #close-no class="active-button">No</button>
+    </footer>
+
+</body>
+
+</html>
