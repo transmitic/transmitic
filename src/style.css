@@ -17,13 +17,13 @@ html:theme(dark) {
     var(hover-option-cover): rgba(255, 255, 255, 0.1);
 
     /* Update global_transmitic.js */
-    var(red-t): #ff4545;
+    var(red-t): #E24141;
     var(yellow-t): #bdaf55;
 
     var(blue-t): #006FC7;
-    var(green-t): #66ff6b;
+    var(green-t): #41E296;
     /* Update global_transmitic.js */
-    var(success-t): #66ff6b;
+    var(success-t): #41E296;
     /* Update global_transmitic.js */
     var(highlight-t): var(green-t);
 

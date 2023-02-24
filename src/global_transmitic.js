@@ -1,5 +1,5 @@
-const GREEN = "#66ff6b";
-const RED = "#ff4545";
+const GREEN = "#41E296";
+const RED = "#E24141";
 
 const SUCCESS = GREEN;
 const ERROR = RED;
