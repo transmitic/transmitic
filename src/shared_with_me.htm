@@ -209,13 +209,18 @@
             ["on click at button#download-selected"]() {
                 let checkedBoxes = document.querySelectorAll("button[type=checkbox]:checked");
                 let selectedFiles = [];
+                let downloadCount = 0;
                 for (const box of checkedBoxes) {
+                    let eleClass = box.getAttribute("class");
+                    if (eleClass != "file-checkbox") {
+                        continue;
+                    }
                     let path = box.getAttribute("data-path");
                     let owner = box.getAttribute("data-owner");
                     selectedFiles.push({ "path": path, "owner": owner });
+                    downloadCount = downloadCount + 1;
                 }
 
-                let downloadCount = selectedFiles.length;
                 if (downloadCount > 0) {
                     document.$("button#download-selected").state.disabled = true;
                     let response = Window.this.xcall('download_selected', { "files": selectedFiles });
