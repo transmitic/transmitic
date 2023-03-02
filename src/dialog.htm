@@ -30,39 +30,7 @@
                 return;
         });
 
-        function replaceWindow(parentDim) {
-            var [sxScreen, syScreen, swScreen, shScreen] = Window.this.screenBox("workarea", "xywh");
-            var [sxParent, syParent, swParent, shParent] = parentDim;
-            const w = 400 * devicePixelRatio;
-            const h = 150 * devicePixelRatio;
-
-            let sxNew = sxParent + (swParent - w) / 2;
-            let syNew = syParent + (shParent - h) / 2;
-
-            let realWidth = sxNew + w;
-            if (realWidth > swScreen) {
-                let diff = realWidth - swScreen;
-                sxNew = sxNew - diff;
-            }
-
-            let realHeight = syNew + h;
-            if (realHeight > shScreen) {
-                let diff = realHeight - shScreen;
-                syNew = syNew - diff;
-            }
-
-            if (sxNew < w) {
-                sxNew = sxScreen;
-            }
-
-            if (syNew < h) {
-                syNew = syScreen;
-            }
-
-            Window.this.move(sxNew, syNew, w, h);
-        }
-
-        const { parentDim } = Window.this.parameters;
+        const { } = Window.this.parameters;
 
         document.on("click", "button#close-yes", function () {
             yes();
@@ -73,7 +41,6 @@
         });
 
         document.ready = function () {
-            replaceWindow(parentDim);
         }
 
     </script>

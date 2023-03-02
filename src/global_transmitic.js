@@ -41,10 +41,13 @@ function eachPageReady() {
 }
 
 function displayWarningModal(parent) {
-    let dim = parent.box("rectw", "border", "screen", true);
     var isYesModal = Window.this.modal {
         url: __DIR__ + "dialog.htm",
-            parameters: { parentDim: dim },
+            parameters: { },
+    parent: parent,
+        alignment: -5,
+            width: 400 * devicePixelRatio,
+                height: 150 * devicePixelRatio,
 };
 var isYes = false;
 if (isYesModal != null) {
