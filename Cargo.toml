@@ -1,18 +1,18 @@
 [package]
 name = "transmitic"
-version = "0.11.1"
+version = "0.12.0"
 authors = ["Andrew Shay <andrew.shay@andrewshay.me>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 
 [dependencies]
 sciter-rs = "0.5.58"
-libc = "0.2.139"
+libc = "0.2.140"
 lazy_static = "1.4"
 
-serde = { version = "1.0.152", features = ["derive", "rc"] }
-serde_json = "1.0.91"
+serde = { version = "1.0.155", features = ["derive", "rc"] }
+serde_json = "1.0.94"
 
 transmitic_core = { path = "../transmitic-core" }
