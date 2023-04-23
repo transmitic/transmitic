@@ -578,6 +578,14 @@ impl TransmiticHandler {
         get_msg_box_response(0, &state)
     }
 
+    fn is_ignore_incoming(&self) -> Value {
+        Value::from(self.transmitic_core.is_ignore_incoming())
+    }
+
+    fn is_reverse_connection(&self) -> Value {
+        Value::from(self.transmitic_core.is_reverse_connection())
+    }
+
     fn get_and_reset_my_sharing_error(&mut self) -> Value {
         let error = self.transmitic_core.get_and_reset_my_sharing_error();
 
@@ -636,19 +644,15 @@ impl TransmiticHandler {
 
         let mut ui_data = Vec::new();
         for (nickname, data) in refresh_data.iter() {
-            let ui = match &data.data {
-                Ok(shared_file) => RefreshDataUI {
-                    owner: nickname.to_string(),
-                    error: "".to_string(),
-                    files: vec![shared_file.clone()],
-                    in_progress: data.in_progress,
-                },
-                Err(e) => RefreshDataUI {
-                    owner: nickname.to_string(),
-                    error: e.to_string(),
-                    files: Vec::new(),
-                    in_progress: data.in_progress,
-                },
+            let files = match &data.data {
+                Some(shared_file) => vec![shared_file.clone()],
+                None => vec![],
+            };
+            let ui = RefreshDataUI {
+                owner: nickname.to_string(),
+                error: data.error.clone().unwrap_or("".to_string()),
+                files,
+                in_progress: data.in_progress,
             };
             ui_data.push(ui);
         }
@@ -729,6 +733,26 @@ impl TransmiticHandler {
 
         self.transmitic_core.set_my_sharing_state(core_state);
         get_msg_box_response(0, "")
+    }
+
+    fn set_ignore_incoming(&mut self, state: Value) -> Value {
+        let state = state.to_bool().unwrap();
+        let response = match self.transmitic_core.set_ignore_incoming(state) {
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
+        };
+
+        response
+    }
+
+    fn set_reverse_connection(&mut self, state: Value) -> Value {
+        let state = state.to_bool().unwrap();
+        let response = match self.transmitic_core.set_reverse_connection(state) {
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
+        };
+
+        response
     }
 
     fn set_port(&mut self, port: Value) -> Value {
@@ -838,6 +862,10 @@ impl sciter::EventHandler for TransmiticHandler {
         fn get_is_first_start();
         fn get_my_sharing_files();
         fn get_my_sharing_state();
+        fn is_ignore_incoming();
+        fn set_ignore_incoming(Value);
+        fn is_reverse_connection();
+        fn set_reverse_connection(Value);
         fn get_and_reset_my_sharing_error();
         fn get_shared_with_me_data();
         fn start_refresh_shared_with_me_all();

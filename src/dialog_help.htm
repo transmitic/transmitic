@@ -1,7 +1,7 @@
 <html window-frame="extended" theme="dark" window-width="400" window-height="150" window-icon="window_icon.svg">
 
 <head>
-    <title>Dialog</title>
+    <title>Help</title>+
     <style src="extended-window-chrome.css"></style>
     <style>
         @import url(style.css);
@@ -30,7 +30,7 @@
                 return;
         });
 
-        const { } = Window.this.parameters;
+        const { text } = Window.this.parameters;
 
         document.on("click", "button#close-yes", function () {
             yes();
@@ -41,13 +41,14 @@
         });
 
         document.ready = function () {
+            document.$("#mainText").content(text);
         }
 
     </script>
 </head>
 
 <window-header>
-    <window-caption role=window-caption>Warning</window-caption>
+    <window-caption role=window-caption>Help</window-caption>
     <window-buttons>
         <window-button role="window-close"></window-button>
     </window-buttons>
@@ -55,13 +56,13 @@
 
 <body style="padding: 10dip;">
     <main style="vertical-align: middle;">
-        <img style="height: 50dip; vertical-align: middle;" src="ic_fluent_warning_24_regular.svg" />
-        <div style="display: inline-block; padding-left: 1em;">Are You Sure?</div>
+        <section>
+            <img style="height: 50dip; vertical-align: top;" src="ic_fluent_question_circle_28_regular.svg" />
+            <div selectable style="display: inline-block; padding-left: 1em;" id="mainText">
+            </div>
+        </section>
+
     </main>
-    <footer style="text-align: right;">
-        <button #close-yes>Yes</button>
-        <button #close-no class="active-button">No</button>
-    </footer>
 
 </body>
 

@@ -261,6 +261,101 @@
             }
         });
 
+        document.$("#sharing-help").on("click", function () {
+            let helpText = <span>
+                <strong>Off</strong>&nbsp;= No one can connect to download your files<br /><br />
+                <strong>Internet</strong>&nbsp;= Devices from the internet can connect to download your files<br /><br />
+                <strong>Local Network</strong>&nbsp;= Only devices on your local network can connect to download your files
+            </span>;
+            displayHelpModal(Window.this, helpText);
+        });
+
+        document.$("#reverse-help").on("click", function () {
+            let helpText = <span>
+                When Reverse Connection is <strong>On</strong>, Transmitic will periodically connect to users you share with, to let them download files from you.<br /><br />
+
+                If you can connect and download from users, but users cannot connect <strong>to you</strong> and download, turn Reverse Connection <strong>On</strong>.<br /><br />
+
+                If users have no issues connecting <strong>to you</strong>, there is no need for Reverse Connection to be On.<br /><br />
+
+                If you have Reverse Connection <strong>On</strong>, the users you connect to must have: <br />
+                <ol>
+                    <li>Sharing On</li>
+                    <li>Reverse Connection Off</li>
+                </ol><br />
+
+                <strong>Technical Notes</strong><br /><br /><br />
+                <ol>
+                    <li>Reverse Connections will be made every several seconds, increasing time, eventually being made every 30 minutes. Turn Sharing Off, and then back On, to restart this time.</li>
+                    <li>When Reverse Connection is On, incoming connections will not be accepted.</li>
+                </ol>
+
+            </span>;
+            displayHelpModal(Window.this, helpText);
+        });
+
+        document.$("#ignore-incoming-help").on("click", function () {
+            let helpText = <span>
+                <strong>On</strong>&nbsp;= Any IP will be allowed to connect, as long as the Public ID is in your "Users" tab.
+                <br /><br />
+                <strong>Off</strong>&nbsp;= Only IPs from the "Users" tab will be allowed to connect. Any IP not from the "Users" tab will be rejected.
+                <br /><br />
+                <strong>On</strong>&nbsp;is useful if your Users' IPs change and you do not want to keep them updated. It is also useful if you have a unique network setup where the incoming IPs would never match.
+                <br /><br />
+                <strong>Note</strong>: No matter which option you choose, the PublicIDs will still be checked.
+            </span >;
+            displayHelpModal(Window.this, helpText);
+        });
+
+        // Set Ignore Incoming
+        document.$("form.ignore-incoming-form").on("click", function () {
+            var state = (this.value.IgnoreIncoming === 'true');
+            var stateStr = (state ? 'On' : 'Off');
+            let response = Window.this.xcall('set_ignore_incoming', state);
+            if (response[0] == 0) {
+                setMsgBoxSuccess("Ignore Incoming is now set to <strong>" + stateStr + "</strong>");
+            }
+            else {
+                setMsgBoxError("Failed to set Ignore Incoming. " + response[1]);
+                getIgnoreIncomingState();
+            }
+        });
+
+        // Set Reverse Connection
+        document.$("form.reverse-form").on("click", function () {
+            var state = (this.value.Reverse === 'true');
+            var stateStr = (state ? 'On' : 'Off');
+            let response = Window.this.xcall('set_reverse_connection', state);
+            if (response[0] == 0) {
+                setMsgBoxSuccess("Reverse Connection is now set to <strong>" + stateStr + "</strong>");
+            }
+            else {
+                setMsgBoxError("Failed to set Reverse Connection. " + response[1]);
+                getReverseState();
+            }
+        });
+
+        function getIgnoreIncomingState() {
+            let response = Window.this.xcall('is_ignore_incoming');
+
+            // TODO these loops need to go
+            let buttons = document.querySelectorAll("button[name=IgnoreIncoming]");
+            for (const b of buttons) {
+                b.checked = false;
+            }
+            document.$("button[name=IgnoreIncoming][value=" + response + "]").state.checked = true;
+        }
+
+        function getReverseState() {
+            let response = Window.this.xcall('is_reverse_connection');
+
+            let buttons = document.querySelectorAll("button[name=Reverse]");
+            for (const b of buttons) {
+                b.checked = false;
+            }
+            document.$("button[name=Reverse][value=" + response + "]").state.checked = true;
+        }
+
         function getMySharingState() {
             let response = Window.this.xcall('get_my_sharing_state');
             if (response[0] == 0) {
@@ -278,8 +373,10 @@
         document.ready = function () {
             eachPageReady();
 
-            // Get sharing state
+            // Get states
             getMySharingState();
+            getIgnoreIncomingState();
+            getReverseState();
 
             // Get port
             let response = Window.this.xcall('get_sharing_port');
@@ -310,6 +407,9 @@
         </h1>
 
         <h2>Sharing Settings</h2>
+        <div>Sharing <img id="sharing-help" style="height:1.3em; vertical-align:middle;"
+                src="ic_fluent_question_circle_28_regular.svg" />:
+        </div>
         <form class="sharing-form">
             <div style="margin-top: 0.5em;">
                 <button id="off-radio" type="radio" name="Sharing" value="Off">Off</button>&nbsp;&nbsp;&nbsp;
@@ -318,9 +418,37 @@
                 <button type="radio" name="Sharing" value="Local">Local Network</button>&nbsp;&nbsp;
             </div>
         </form>
-        <br>
-        Port:&nbsp; <input id="port" size="8" type="text"></input>&nbsp;&nbsp;&nbsp;<button id="set-port"
-            name="set-port" style="font-size: 10pt;">Set Port</button>
+
+        <br />
+
+        <div>Ignore Incoming IP <img id="ignore-incoming-help" style="height:1.3em; vertical-align:middle;"
+                src="ic_fluent_question_circle_28_regular.svg" />:
+        </div>
+        <form class="ignore-incoming-form">
+            <div style="margin-top: 0.5em;">
+                <button id="ignore-incoming-off-radio" type="radio" name="IgnoreIncoming"
+                    value=false>Off</button>&nbsp;&nbsp;&nbsp;
+                <button id="ignore-incoming-on-radio" type="radio" name="IgnoreIncoming" value=true>On</button>
+            </div>
+        </form>
+
+        <br />
+
+        <div>Reverse Connection <img id="reverse-help" style="height:1.3em; vertical-align:middle;"
+                src="ic_fluent_question_circle_28_regular.svg" />:
+        </div>
+        <form class="reverse-form">
+            <div style="margin-top: 0.5em;">
+                <button id="reverse-off-radio" type="radio" name="Reverse" value=false>Off</button>&nbsp;&nbsp;&nbsp;
+                <button id="reverse-on-radio" type="radio" name="Reverse" value=true>On</button>
+            </div>
+        </form>
+
+        <br />
+        Port:
+        <br style="padding-bottom: 0.5em;" />
+        <input id="port" size="8" type="text"></input>&nbsp;&nbsp;&nbsp;<button id="set-port" name="set-port"
+            style="font-size: 10pt;">Set Port</button>
 
         <br><br>
         <h2>My Shared Files</h2>

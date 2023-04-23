@@ -28,9 +28,6 @@
         }
 
         function createFileList(files, error, divID, owner) {
-            if (error) {
-                return <div>{error}<br /></div>;
-            }
             if (!files) {
                 return "";
             }
@@ -113,14 +110,23 @@
                         }
                     }
 
+                    let errorString = "";
+                    let filesContent = "No files shared with you";
                     if (this.error) {
-                        content = `${this.error}`;
+                        errorString = <div>{this.error}</div>;
+                        filesContent = "";
                     }
-                    else if (this.files.length > 0) {
-                        content = <div>{selectAll}{createFileList(this.files, this.error, 0, this.owner)}</div>;
+
+                    if (this.files.length > 0) {
+                        filesContent = <div>{selectAll}{createFileList(this.files, this.error, 0, this.owner)}</div>;
+                    }
+
+                    if ((this.error) && (this.files.length > 0)) {
+                        content = <div>{errorString}<br />{filesContent}</div>;
                     } else {
-                        content = "No files shared with you";
+                        content = <div>{errorString}{filesContent}</div>;
                     }
+
 
                 }
 

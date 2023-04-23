@@ -56,3 +56,14 @@ if (isYesModal != null) {
 
 return isYes;
 }
+
+function displayHelpModal(parent, text) {
+    var isYesModal = Window.this.modal {
+        url: __DIR__ + "dialog_help.htm",
+            parameters: { text: text },
+    parent: parent,
+        alignment: -5,
+            width: 600 * devicePixelRatio,
+                height: 300 * devicePixelRatio,
+};
+}
