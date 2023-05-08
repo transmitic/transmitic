@@ -264,8 +264,8 @@
         document.$("#sharing-help").on("click", function () {
             let helpText = <span>
                 <strong>Off</strong>&nbsp;= No one can connect to download your files<br /><br />
-                <strong>Internet</strong>&nbsp;= Devices from the internet can connect to download your files<br /><br />
-                <strong>Local Network</strong>&nbsp;= Only devices on your local network can connect to download your files
+                <strong>Internet</strong>&nbsp;= Devices from the internet, and your local machine, can connect to download your files<br /><br />
+                <strong>Local Machine</strong>&nbsp;= Only "Users" on your local machine can connect to download your files. Useful for trying out Transmitic features with another Transmitic instance.
             </span>;
             displayHelpModal(Window.this, helpText);
         });
@@ -415,7 +415,7 @@
                 <button id="off-radio" type="radio" name="Sharing" value="Off">Off</button>&nbsp;&nbsp;&nbsp;
                 <button id="internet-radio" type="radio" name="Sharing"
                     value="Internet">Internet</button>&nbsp;&nbsp;&nbsp;
-                <button type="radio" name="Sharing" value="Local">Local Network</button>&nbsp;&nbsp;
+                <button type="radio" name="Sharing" value="Local">Local Machine</button>&nbsp;&nbsp;
             </div>
         </form>
 
