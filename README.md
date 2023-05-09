@@ -1,6 +1,6 @@
 # <img src="./src/window_icon.svg" alt="Transmitic Logo" height="30"> Transmitic Beta
 
-Transmitic is an encrypted, peer to peer, file transfer program with download pause and resume.  
+Transmitic is an encrypted, peer to peer, file transfer and sharing program, with download pause and resume.  
 Built with Rust.  
 No third party server is involved.  
 No file size limit!  
@@ -12,6 +12,7 @@ If you have ever thought _"I just want to send these files directly from this co
 Discord: [https://discord.gg/tRT3J6T](https://discord.gg/tRT3J6T)  
 Reddit: [https://www.reddit.com/r/transmitic/](https://www.reddit.com/r/transmitic/)  
 Twitter: [https://twitter.com/transmitic](https://twitter.com/transmitic)  
+Mastodon: [https://techhub.social/@transmitic](https://techhub.social/@transmitic)  
 Website: [https://transmitic.net/](https://transmitic.net/)  
 
 ## How it Works
@@ -21,6 +22,8 @@ Website: [https://transmitic.net/](https://transmitic.net/)
 1. Add files or folders you want to share, and which users you want to share with.
 1. Turn sharing on! Users can choose which files they want to download directly from your device.
 1. View all files that are shared with you, and download directly from the other user's device.
+1. Connections are encrypted with AES256-GCM.
+1. Users behind NATs and firewalls can use the "Reverse Connection" feature to still share with users that do not have networking limitations.
 
 See Demo below
 
@@ -69,7 +72,6 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 ## Future Features
 
 - Platform installers and bundles
-- Add users with a "friend request"
 - UPnP
 - Transmitic Discovery
   - Server to discover users without requiring IPs to be known by users (optional feature)
@@ -116,7 +118,7 @@ $ cd transmitic_workspace
 $ git clone git@github.com:transmitic/transmitic.git
 $ git clone git@github.com:transmitic/transmitic-core.git
 
-# You need the sciter dll. Either pull the repo and put the x64 folder in path
+# You need the sciter 4 dll. Either pull the repo and put the x64 folder in path
 #   OR just download sciter.dll, put it in your sys path, or next to transmitic.exe
 $ git clone git@gitlab.com:sciter-engine/sciter-js-sdk.git
 # Add to sys path sciter-js-sdk\bin\windows\x64
