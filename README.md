@@ -102,7 +102,7 @@ See these modules to review the cryptography usage in [transmitic-core](https://
 
 ![Transmitic](./screenshot.png)
 
-https://user-images.githubusercontent.com/4878195/161657290-e15fae8f-3fa3-4a4a-8c52-3700cf024e37.mp4
+https://github.com/transmitic/transmitic/assets/4878195/cdca58fc-7de9-4d5e-9057-3dbd339cece6
 
 ## Pricing
 
