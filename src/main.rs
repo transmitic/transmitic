@@ -13,6 +13,7 @@ use std::str;
 use std::str::FromStr;
 
 use sciter::dispatch_script_call;
+use sciter::RuntimeOptions;
 use sciter::Value;
 use serde::{Deserialize, Serialize};
 use transmitic_core::config::create_config_dir;
@@ -948,6 +949,14 @@ fn main() {
 fn get_sciter_frame() -> sciter::Window {
     if cfg!(debug_assertions) {
         sciter::set_options(sciter::RuntimeOptions::DebugMode(true)).unwrap();
+    }
+    match sciter::set_options(sciter::RuntimeOptions::GfxLayer(
+        sciter::GFX_LAYER::SKIA_CPU,
+    )) {
+        Ok(_) => {}
+        Err(_) => {
+            eprintln!("Transmitic: sciter failed to set SKIA_OPENGL");
+        }
     }
 
     sciter::Window::new()
