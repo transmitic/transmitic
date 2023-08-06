@@ -6,7 +6,8 @@
         @import url(style.css);
     </style>
     <script src="global_transmitic.js"></script>
-    <script>
+    <script type="module">
+        import * as env from "@env";
 
         class DelayedList extends Element {
 
@@ -249,6 +250,66 @@
 
         }
 
+        class DownloadPicker extends Element {
+
+            downloadPath;
+
+            this(props) {
+                this.downloadPath = "";
+                let response = Window.this.xcall('get_path_downloads_dir');
+                if (response[0] == 0) {
+                    this.downloadPath = response[1];
+                }
+                else {
+                    setMsgBoxError("Failed to change download location. " + response[1]);
+                }
+            }
+
+            render(props) {
+                let element = <div>
+                    <div style="padding-bottom: 0.5em;">Download Location:</div>
+                    <input id="download-location" size="40" type="text" value={this.downloadPath}></input>&nbsp; <button id="download-change"
+                        style="font-size: 10pt;">Change</button>&nbsp;&nbsp;<button id="download-save" style="font-size: 10pt;">Save</button>
+                </div>;
+                return element;
+            }
+
+            ["on click at button#download-save"]() {
+                let file_path = document.$("#download-location").value;
+                let response = Window.this.xcall('set_path_downloads_dir', file_path);
+                if (response[0] == 0) {
+                    setMsgBoxSuccess("Now saving downloads to <strong>" + file_path + "</strong>");
+                }
+                else {
+                    setMsgBoxError("Failed to change download location. " + response[1]);
+                }
+            }
+
+            ["on click at button#download-change"]() {
+                let files = Window.this.selectFolder();
+                if (files) {
+                    files = decodeURI(files);
+
+                    if (files.startsWith("file://")) {
+                        files = files.substring(7);
+                    }
+
+                    let dirStr = "Transmitic Downloads";
+                    if (!files.endsWith(dirStr)) {
+                        files = files.concat(`/${dirStr}`);
+                    }
+
+                    if (env.PLATFORM == "Windows") {
+                        files = files.replaceAll("/", "\\");
+                        files = files.replaceAll("\\\\", "\\");
+                    }
+
+                    this.downloadPath = files;
+                    this.componentUpdate();
+                }
+            }
+        }
+
         document.ready = function () {
             eachPageReady();
 
@@ -257,6 +318,8 @@
             if (downloadButton) {
                 downloadButton.state.disabled = true;
             }
+
+            document.$("div#download-picker").content(<DownloadPicker />);
         }
 
     </script>
@@ -271,6 +334,9 @@
             Shared With Me
         </h1>
 
+        <div id="download-picker"></div>
+
+        <br /><br /><br />
         <div id="shared-with-me" style="size:*;"></div><!-- sciter hack size-->
     </div>
 </body>
