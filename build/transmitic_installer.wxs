@@ -7,9 +7,9 @@
         UpgradeCode="D687D25B-F4BE-4B54-8538-6DBE278672DD"
         Compressed="yes"
 		IconSourceFile="res\window_icon.ico">
-		
+
 		<Variable Name="InstallFolder" Type="formatted" Value="[LocalAppDataFolder]Transmitic"/>
-        
+
 		<BootstrapperApplication>
             <bal:WixStandardBootstrapperApplication
                 LicenseFile="license.rtf"
@@ -17,7 +17,7 @@
 				SuppressOptionsUI="no"
 				LogoFile="res\window_icon.ico"/>
         </BootstrapperApplication>
-		
+
         <Chain>
             <PackageGroupRef Id="BundlePackages" />
         </Chain>

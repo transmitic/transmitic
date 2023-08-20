@@ -18,6 +18,7 @@ use serde::{Deserialize, Serialize};
 use transmitic_core::config::create_config_dir;
 use transmitic_core::config::get_path_config_json;
 use transmitic_core::config::get_path_encrypted_config;
+use transmitic_core::config::is_transmitic_installed;
 use transmitic_core::config::Config;
 use transmitic_core::incoming_uploader::IncomingUploaderError;
 use transmitic_core::incoming_uploader::SharingState;
@@ -932,9 +933,16 @@ fn main() {
         config_start_path = base.join("config_start.htm");
     } else {
         println!("Release");
-        let sciter_path = env::current_exe().unwrap();
-        let sciter_path = sciter_path.parent().unwrap();
-        let sciter_path = sciter_path.join("res");
+        let exe_path = env::current_exe().unwrap();
+        let exe_dir_path = exe_path.parent().unwrap();
+
+        let sciter_path: PathBuf =
+            if is_transmitic_installed().unwrap() && cfg!(target_os = "macos") {
+                let s_path = exe_dir_path.parent().unwrap();
+                s_path.join("Resources")
+            } else {
+                exe_dir_path.join("res")
+            };
 
         main_path = sciter_path.join("main.htm");
         config_start_path = sciter_path.join("config_start.htm");
