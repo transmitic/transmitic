@@ -1,0 +1,41 @@
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui" xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+	<Package Scope="perUser" Language="1033" Manufacturer="Transmitic" Name="Transmitic" UpgradeCode="D687D25B-F4BE-4B54-8538-6DBE278672DD" Version="{VERSION}">
+		<MajorUpgrade DowngradeErrorMessage="A newer version of Transmitic is already installed. Setup will now exit."/>
+		<MediaTemplate EmbedCab="yes"/>
+		<ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER"/>
+		<UIRef Id="WixUI_ErrorProgressText"/>
+		<WixVariable Id="WixUILicenseRtf" Value="license.rtf"/>
+		<WixVariable Id="WixUIDialogBmp" Value="WixUIDialogBmp.png"/> <!--493 × 312-->
+		<WixVariable Id="WixUIBannerBmp" Value="WixUIBannerBmp.png"/> <!--493 × 58-->
+		<Feature Id="TransmiticFeature">
+			<ComponentRef Id="TransmiticBinary"/>
+			<ComponentRef Id="Sciterdll"/>
+			<ComponentRef Id="transmitic_installed.json"/>
+{RES_FEATURES}
+		</Feature>
+		<StandardDirectory Id="LocalAppDataFolder">
+			<Directory Id="INSTALLFOLDER" Name="Transmitic">
+				<Component Id="TransmiticBinary">
+					<File Id="transmitic.exe" KeyPath="yes" Source="transmitic.exe">
+						<Shortcut Id="startmenuTransmitic" Directory="ProgramMenuFolder" Name="Transmitic" WorkingDirectory='INSTALLFOLDER' Icon="transmitic.exe" IconIndex="0" Advertise="yes"/>
+					</File>
+				</Component>
+				<Component Id="Sciterdll">
+					<File Id="sciter.dll" KeyPath="yes" Source="sciter.dll">
+					</File>
+				</Component>
+				<Component Id="transmitic_installed.json">
+					<File Id="transmitic_installed.json" KeyPath="yes" Source="transmitic_installed.json">
+					</File>
+				</Component>
+				<Directory Id="res" Name="res">
+{RES_COMPONENTS}
+				</Directory>
+			</Directory>
+		</StandardDirectory>
+		<Icon Id="transmitic.exe" SourceFile="res\window_icon.ico"/>
+		<Property Id="ARPPRODUCTICON" Value="transmitic.exe" />
+
+		 <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="{EXIT_TEXT}" />
+	</Package>
+</Wix>

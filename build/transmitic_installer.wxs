@@ -1,0 +1,41 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+    <Bundle
+        Name="Transmitic"
+		Manufacturer="Transmitic"
+		AboutUrl="{WEBSITE}"
+        Version="{VERSION}"
+        UpgradeCode="D687D25B-F4BE-4B54-8538-6DBE278672DD"
+        Compressed="yes"
+		IconSourceFile="res\window_icon.ico">
+		
+		<Variable Name="InstallFolder" Type="formatted" Value="[LocalAppDataFolder]Transmitic"/>
+        
+		<BootstrapperApplication>
+            <bal:WixStandardBootstrapperApplication
+                LicenseFile="license.rtf"
+                Theme="rtfLicense" 
+				SuppressOptionsUI="no"
+				LogoFile="res\window_icon.ico"/>
+        </BootstrapperApplication>
+		
+        <Chain>
+            <PackageGroupRef Id="BundlePackages" />
+        </Chain>
+    </Bundle>
+
+    <Fragment>
+        <PackageGroup Id="BundlePackages">
+            <PackageGroupRef Id="PrereqPackages" />
+            <MsiPackage Id="TransmiticPackage" Compressed="yes" SourceFile="{MSI_FILE}"> 
+				<MsiProperty Name="INSTALLFOLDER" Value="[InstallFolder]" />
+			</MsiPackage>
+        </PackageGroup>
+    </Fragment>
+
+    <Fragment>
+        <PackageGroup Id="PrereqPackages">
+            <ExePackage SourceFile="{VC_REDIST_FILE}" Compressed="yes" Permanent="yes" Vital="no" InstallArguments="/install /passive /norestart">
+            </ExePackage>
+        </PackageGroup>
+    </Fragment>
+</Wix>
