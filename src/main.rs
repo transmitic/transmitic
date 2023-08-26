@@ -18,6 +18,7 @@ use serde::{Deserialize, Serialize};
 use transmitic_core::config::create_config_dir;
 use transmitic_core::config::get_path_config_json;
 use transmitic_core::config::get_path_encrypted_config;
+use transmitic_core::config::is_transmitic_installed;
 use transmitic_core::config::Config;
 use transmitic_core::incoming_uploader::IncomingUploaderError;
 use transmitic_core::incoming_uploader::SharingState;
@@ -257,6 +258,12 @@ impl TransmiticHandler {
     }
 
     fn open_in_file_explorer(&self, path: String) {
+        let mut path = path;
+        // If Windows trails with \, it will not open in explorer
+        path = path
+            .trim_end_matches(std::path::MAIN_SEPARATOR_STR)
+            .to_string();
+
         let binary: String;
 
         if cfg!(target_os = "windows") {
@@ -267,7 +274,13 @@ impl TransmiticHandler {
             binary = "xdg-open".to_owned();
         }
 
-        Command::new(binary).arg(path).spawn().ok();
+        let result = Command::new(binary).arg(path).spawn();
+        match result {
+            Ok(_) => {}
+            Err(e) => {
+                println!("ERROR: Failed to open Downloads folder '{}'", e);
+            }
+        }
     }
 
     fn downloads_open(&self) {
@@ -321,6 +334,24 @@ impl TransmiticHandler {
 
     fn downloads_resume_all(&mut self) {
         self.transmitic_core.downloads_resume_all();
+    }
+
+    fn get_path_downloads_dir(&self) -> Value {
+        match self.transmitic_core.get_path_downloads_dir() {
+            Ok(path) => get_msg_box_response(0, &path),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
+        }
+    }
+
+    fn set_path_downloads_dir(&mut self, path: Value) -> Value {
+        let mut path = clean_sciter_string(path);
+        path = path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
+
+        let response = match self.transmitic_core.set_path_downloads_dir(path) {
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
+        };
+        response
     }
 
     fn get_all_uploads(&self) -> Value {
@@ -840,6 +871,8 @@ impl sciter::EventHandler for TransmiticHandler {
         fn downloads_cancel_single(Value, Value);
         fn downloads_pause_all();
         fn downloads_resume_all();
+        fn get_path_downloads_dir();
+        fn set_path_downloads_dir(Value);
 
         fn remove_file_from_sharing(Value);
         fn remove_user(Value);
@@ -900,9 +933,16 @@ fn main() {
         config_start_path = base.join("config_start.htm");
     } else {
         println!("Release");
-        let sciter_path = env::current_exe().unwrap();
-        let sciter_path = sciter_path.parent().unwrap();
-        let sciter_path = sciter_path.join("res");
+        let exe_path = env::current_exe().unwrap();
+        let exe_dir_path = exe_path.parent().unwrap();
+
+        let sciter_path: PathBuf =
+            if is_transmitic_installed().unwrap() && cfg!(target_os = "macos") {
+                let s_path = exe_dir_path.parent().unwrap();
+                s_path.join("Resources")
+            } else {
+                exe_dir_path.join("res")
+            };
 
         main_path = sciter_path.join("main.htm");
         config_start_path = sciter_path.join("config_start.htm");

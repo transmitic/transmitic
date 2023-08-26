@@ -17,8 +17,8 @@ Website: [https://transmitic.net/](https://transmitic.net/)
 
 ## How it Works
 
-1. Users exchange PublicIDs that Transmitic automatically generates.
-1. Add users' PublicIDs and IPs that you want to share with.
+1. Users exchange Public IDs that Transmitic automatically generates.
+1. Add users' Public IDs and IPs that you want to share with.
 1. Add files or folders you want to share, and which users you want to share with.
 1. Turn sharing on! Users can choose which files they want to download directly from your device.
 1. View all files that are shared with you, and download directly from the other user's device.
@@ -71,7 +71,6 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 
 ## Future Features
 
-- Platform installers and bundles
 - UPnP
 - Transmitic Discovery
   - Server to discover users without requiring IPs to be known by users (optional feature)
@@ -84,11 +83,11 @@ See [GitHub Issues](https://github.com/transmitic/transmitic/issues) and [Discus
 ## Cryptography Usage
 
 - Public, Private signing keys generated with `ring`
-- Signing `ring` keys ("PublicIDs") are exchanged out of band, manually
+- Signing `ring` keys ("Public IDs") are exchanged out of band, manually
 - Diffie-Hellman key generation with `x25519_dalek`
   - Diffie-Hellman keys are regenerated for every new TCP stream. Never reused.
 - Diffie-Hellman `x25519_dalek` keys are signed with the `ring` keys
-- Remote user verifies `x25519_dalek` key with that user's `ring` public key ("PublicID")
+- Remote user verifies `x25519_dalek` key with that user's `ring` public key ("Public ID")
 - AES key generated
 - All further communication encrypted with `AES-GCM` with `ring`
 
