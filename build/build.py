@@ -1,11 +1,19 @@
 import argparse
+import hashlib
 import os
 import platform
 import shutil
 import subprocess
+import sys
 import zipfile
 from datetime import date
 from getpass import getpass
+
+rust_mac_arm = "1.71.1-aarch64-apple-darwin"
+rust_mac_x86 = "1.71.1-x86_64-apple-darwin"
+rust_win = "1.71.1-x86_64-pc-windows-msvc"
+rust_linux = "1.71.1-x86_64-unknown-linux-gnu"
+rust_default = "XX"
 
 system = platform.system().lower()
 if system == "darwin":
@@ -14,6 +22,11 @@ if system == "darwin":
 is_win = system == "windows"
 is_mac = system == "mac"
 is_linux = system == "linux"
+
+if is_win:
+    rust_default = rust_win
+elif is_linux:
+    rust_default = rust_linux
 
 # -- Args
 parser = argparse.ArgumentParser(description='Build Transmitic')
@@ -122,6 +135,8 @@ def cargo_build():
         print(result)
         assert not os.path.exists(transmitic_exe_path)
 
+    res = subprocess.run(f"rustup default {rust_default}", check=True, shell=True)
+    print(res)
     cargo_build_cmd = "cargo build -p transmitic --release"
     print(f"cargo build command {cargo_build_cmd}")
     result = subprocess.run(cargo_build_cmd, check=True, shell=True)
@@ -147,8 +162,7 @@ if is_mac:
         assert team_id
 
     # build arm
-    res = subprocess.run("rustup default stable-aarch64-apple-darwin", check=True, shell=True)
-    print(res)
+    rust_default = rust_mac_arm
     cargo_build()
     # check arm
     res = subprocess.run(f'lipo -archs "{transmitic_exe_path}"', check=True, shell=True, capture_output=True,
@@ -164,8 +178,7 @@ if is_mac:
     shutil.copy2(transmitic_exe_path, arm_copy_path)
 
     # build x64
-    res = subprocess.run("rustup default stable-x86_64-apple-darwin", check=True, shell=True)
-    print(res)
+    rust_default = rust_mac_x86
     cargo_build()
     # check x64
     res = subprocess.run(f"lipo -archs {transmitic_exe_path}", check=True, shell=True, capture_output=True,
@@ -465,6 +478,23 @@ shutil.copy2(os.path.join(workspace_path, "Cargo.lock"), new_release_dir)
 # -- Final
 print("\n\n###### FINAL ######")
 print(version)
+
+res = subprocess.run(f'cargo --version', check=True, shell=True, capture_output=True, encoding='utf-8')
+print(res.stdout.strip())
+
+res = subprocess.run(f'rustup default', check=True, shell=True, capture_output=True, encoding='utf-8')
+print(res.stdout.strip())
+
+res = subprocess.run(f'rustup --version', check=True, shell=True, capture_output=True, encoding='utf-8')
+print(res.stdout.strip())
+
+# hash cargo lock
+sha256 = hashlib.sha256()
+with open(os.path.join(workspace_path, "Cargo.lock"), 'rb') as f:
+    sha256.update(f.read())
+print(f"Cargo.lock hash: {sha256.hexdigest()}")
+
+print()
 if args.no_clean:
     print("WARNING: NOT CLEAN")
 if args.no_sign:
