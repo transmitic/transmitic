@@ -25,7 +25,27 @@ Website: [https://transmitic.net/](https://transmitic.net/)
 1. Connections are encrypted with AES256-GCM.
 1. Users behind NATs and firewalls can use the "Reverse Connection" feature to still share with users that do not have networking limitations.
 
-See Demo below
+See [Demo below](#demo)
+
+## Features
+
+1. Secure
+    1. AES-GCM 256 Encryption
+    1. Ed25519 Signing Keys
+    1. x25519 Diffie-Hellman Key Exchange
+1. Easy to use GUI
+1. Cross Platform
+    1. Windows
+    1. macOS Universal
+    1. Linux
+1. Private
+    1. P2P
+    1. No third party servers in any way
+1. No file size limits
+1. Pause and Resume
+    1. Downloads can be paused, or interrupted, but will continue where they left off
+1. Reverse Connection
+    1. If you're behind a NAT, or have network limitations, but your Users _do not_, you can still share with each other.
 
 ## Support Transmitic
 
