@@ -762,6 +762,7 @@ section>div {
 .main-body {
     padding-top: 5dip;
     padding-left: 15dip;
+    padding-right: 15dip;
     height: *;
 }
 
@@ -985,7 +986,7 @@ section>div {
 .textarea-t {
     padding: 0.3rem;
     border: 2px solid color(border);
-    width: 95%;
+    width: *;
     height: *;
     white-space: pre;
     overflow: auto;
