@@ -986,10 +986,6 @@ fn main() {
 }
 
 fn get_sciter_frame() -> sciter::Window {
-    if cfg!(debug_assertions) {
-        sciter::set_options(sciter::RuntimeOptions::DebugMode(true)).unwrap();
-    }
-
     sciter::Window::new()
 }
 
