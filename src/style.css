@@ -762,6 +762,7 @@ section>div {
 .main-body {
     padding-top: 5dip;
     padding-left: 15dip;
+    height: *;
 }
 
 .highlight {
@@ -807,8 +808,8 @@ section>div {
 }
 
 .nav-block {
-    width: 4dip;
-    height: 50%;
+    min-width: 4dip;
+    min-height: 50%;
     display: inline-block;
     vertical-align: middle;
 }
@@ -985,7 +986,7 @@ section>div {
     padding: 0.3rem;
     border: 2px solid color(border);
     width: 95%;
-    height: 60%;
+    height: *;
     white-space: pre;
     overflow: auto;
 }
