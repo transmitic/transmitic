@@ -268,7 +268,7 @@
             render(props) {
                 let element = <div>
                     <div style="padding-bottom: 0.5em;">Download Location:</div>
-                    <input id="download-location" size="40" type="text" value={this.downloadPath}></input>&nbsp; <button id="download-change"
+                    <input id="download-location" size="50" type="text" value={this.downloadPath}>{this.downloadPath}</input>&nbsp; <button id="download-change"
                         style="font-size: 10pt;">Change</button>&nbsp;&nbsp;<button id="download-save" style="font-size: 10pt;">Save</button>
                 </div>;
                 return element;
@@ -313,13 +313,15 @@
         document.ready = function () {
             eachPageReady();
 
+            document.$("div#download-picker").content(<DownloadPicker />);
+
             document.$("div#shared-with-me").content(<SharedWithMe />);
             let downloadButton = document.$("button#download-selected");
             if (downloadButton) {
                 downloadButton.state.disabled = true;
             }
 
-            document.$("div#download-picker").content(<DownloadPicker />);
+
         }
 
     </script>
@@ -334,9 +336,9 @@
             Shared With Me
         </h1>
 
-        <div id="download-picker"></div>
+        <div id="download-picker" style="size:*; height: 100dip;"></div>
+        <!-- sciter hack size-->
 
-        <br /><br /><br />
         <div id="shared-with-me" style="size:*;"></div><!-- sciter hack size-->
     </div>
 </body>
