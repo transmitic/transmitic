@@ -23,6 +23,10 @@
             border-color: color(panel-back);
             color: #000;
         }
+
+        .spacer {
+            padding-bottom: 20dip;
+        }
     </style>
     <script src="global_transmitic.js"></script>
     <script type="module">
@@ -108,7 +112,7 @@
 
                 return <div class="my-file" selectable>
                     <span><strong>{props.filePath}</strong></span>
-                    <br /><br />
+                    <br />
                     <div class="my-file-inner">
                         <label style="margin-right: 1em; display: inline-block;" for="add-user">Add User:</label>
 
@@ -120,9 +124,11 @@
                         <br />
                         <button class="remove-sharing danger-button">Remove file from Sharing</button>
                     </div>
-                    <br />
+
+                    <div style="padding: 10dip 0 10dip 0"></div>
                     <hr />
-                    <br />
+                    <div style="padding: 10dip 0 10dip 0"></div>
+
                 </div>
             }
 
@@ -185,7 +191,7 @@
                         <button id="add-folder">Add Folder</button>
                         {drop}
                     </div>
-                    <br /><br />
+                    <br />
                     {my_files.map((d) => <AFile filePath={d.file_path} sharedWith={d.shared_with} addUsers={d.add_users} />)}
                 </div>;
             }
@@ -262,40 +268,41 @@
         });
 
         document.$("#sharing-help").on("click", function () {
-            let helpText = <span>
+            let helpText = <div>
                 <strong>Off</strong>&nbsp;= No one can connect to download your files<br /><br />
                 <strong>Internet</strong>&nbsp;= Devices from the internet, and your local machine, can connect to download your files<br /><br />
                 <strong>Local Machine</strong>&nbsp;= Only "Users" on your local machine can connect to download your files. Useful for trying out Transmitic features with another Transmitic instance.
-            </span>;
+            </div>;
             displayHelpModal(Window.this, helpText);
         });
 
         document.$("#reverse-help").on("click", function () {
-            let helpText = <span>
+            let helpText = <div>
                 When Reverse Connection is <strong>On</strong>, Transmitic will periodically connect to users you share with, to let them download files from you.<br /><br />
 
                 If you can connect and download from users, but users cannot connect <strong>to you</strong> and download, turn Reverse Connection <strong>On</strong>.<br /><br />
 
                 If users have no issues connecting <strong>to you</strong>, there is no need for Reverse Connection to be On.<br /><br />
 
-                If you have Reverse Connection <strong>On</strong>, the users you connect to must have: <br />
+                If you have Reverse Connection <strong>On</strong>, the users you connect to must have:
                 <ol>
-                    <li>Sharing On</li>
+                    <li style="padding-bottom: 3dip;">Sharing On</li>
                     <li>Reverse Connection Off</li>
                 </ol><br />
 
-                <strong>Technical Notes</strong><br /><br /><br />
+                <strong>Technical Notes</strong>
+
                 <ol>
-                    <li>Reverse Connections will be made every several seconds, increasing time, eventually being made every 30 minutes. Turn Sharing Off, and then back On, to restart this time.</li>
+                    <li style="padding-bottom: 8dip;">Reverse Connections will be made every several seconds, increasing time, eventually being made every 30 minutes. Turn Sharing Off, and then back On, to restart this time.</li>
                     <li>When Reverse Connection is On, incoming connections will not be accepted.</li>
                 </ol>
 
-            </span>;
+            </div>;
             displayHelpModal(Window.this, helpText);
         });
 
         document.$("#ignore-incoming-help").on("click", function () {
-            let helpText = <span>
+            let helpText = <div>
                 <strong>On</strong>&nbsp;= Any IP will be allowed to connect, as long as the Public ID is in your "Users" tab.
                 <br /><br />
                 <strong>Off</strong>&nbsp;= Only IPs from the "Users" tab will be allowed to connect. Any IP not from the "Users" tab will be rejected.
@@ -303,7 +310,7 @@
                 <strong>On</strong>&nbsp;is useful if your Users' IPs change and you do not want to keep them updated. It is also useful if you have a unique network setup where the incoming IPs would never match.
                 <br /><br />
                 <strong>Note</strong>: No matter which option you choose, the Public IDs will still be checked.
-            </span >;
+            </div >;
             displayHelpModal(Window.this, helpText);
         });
 
@@ -419,7 +426,7 @@
             </div>
         </form>
 
-        <br />
+        <div class="spacer"></div>
 
         <div>Ignore Incoming IP <img id="ignore-incoming-help" style="height:1.3em; vertical-align:middle;"
                 src="ic_fluent_question_circle_28_regular.svg" />:
@@ -432,7 +439,7 @@
             </div>
         </form>
 
-        <br />
+        <div class="spacer"></div>
 
         <div>Reverse Connection <img id="reverse-help" style="height:1.3em; vertical-align:middle;"
                 src="ic_fluent_question_circle_28_regular.svg" />:
@@ -444,13 +451,14 @@
             </div>
         </form>
 
-        <br />
+        <div class="spacer"></div>
+
         Port:
         <br style="padding-bottom: 0.5em;" />
         <input id="port" size="8" type="text"></input>&nbsp;&nbsp;&nbsp;<button id="set-port" name="set-port"
             style="font-size: 10pt;">Set Port</button>
 
-        <br><br>
+        <br>
         <h2>My Shared Files</h2>
 
         <div id="my-files">

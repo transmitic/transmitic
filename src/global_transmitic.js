@@ -14,9 +14,9 @@ function setMsgBoxError(msg) {
 
 function setMsgBox(msg, color) {
     document.$("div#msg-box").innerHTML = `
-    <div style="display: inline-block; margin-right: auto;">${escapeHTML(msg)}</div>
+    <div style="display: inline-block;vertical-align:middle;">${escapeHTML(msg)}</div>
     <img id="msg-box-close" src="ic_fluent_dismiss_square_24_filled.svg"
-        style="margin-left: auto; display: inline-block; vertical-align:middle; padding-right: 40dip;" />
+        style="margin-left: auto; display: inline-block; vertical-align:middle; padding-right: 30dip;" />
 `
     document.$("div#msg-box").style.display = "block";
     document.$("div#msg-box").style["background-color"] = color;

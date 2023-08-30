@@ -779,8 +779,9 @@ section>div {
     background-color: #fff;
     color: #000;
     margin-bottom: 1em;
-    padding-right: -30dip;
+    padding-right: -15dip;
     display: none;
+    flow: horizontal;
 }
 
 #msg-box.sticky {
