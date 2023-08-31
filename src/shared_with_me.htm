@@ -72,7 +72,7 @@
                     showMore = <button onclick={showMoreOnClick} style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
                 }
             }
-            return <div><button class="file-checkbox" data-isRoot={d.isRoot} data-path={d.path} data-owner={owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br /> <DelayedList divID={divID} files={d.files} owner={owner} /> </div>
+            return <div><button class="file-checkbox" data-isRoot={d.isRoot} data-path={d.path} data-owner={owner} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <DelayedList divID={divID} files={d.files} owner={owner} /> </div>
         }
 
         class SharedData extends Element {
@@ -123,7 +123,7 @@
                     }
 
                     if ((this.error) && (this.files.length > 0)) {
-                        content = <div>{errorString}<br />{filesContent}</div>;
+                        content = <div>{errorString}<div style="padding-bottom: 10dip;"></div>{filesContent}</div>;
                     } else {
                         content = <div>{errorString}{filesContent}</div>;
                     }
