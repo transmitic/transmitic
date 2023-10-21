@@ -121,10 +121,31 @@ struct PathJson {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+struct SharedFileUI {
+    pub path: String,
+    pub is_directory: bool,
+    pub files: Vec<SharedFile>,
+    pub file_size: String, // Sciter UI has issues with BigInts, so we need a string
+    pub size_string: String,
+}
+
+impl From<SharedFile> for SharedFileUI {
+    fn from(shared_file: SharedFile) -> Self {
+        SharedFileUI {
+            path: shared_file.path,
+            is_directory: shared_file.is_directory,
+            files: shared_file.files,
+            file_size: shared_file.file_size.to_string(),
+            size_string: shared_file.size_string,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 struct RefreshDataUI {
     owner: String,
     error: String,
-    files: Vec<SharedFile>,
+    files: Vec<SharedFileUI>,
     in_progress: bool,
 }
 
@@ -146,6 +167,7 @@ struct SingleDownloadUI {
     pub path_local_disk: String,
     pub size: String,
     pub error: String,
+    pub message: String,
 }
 
 impl TransmiticHandler {
@@ -246,7 +268,24 @@ impl TransmiticHandler {
             let mut path = clean_sciter_string(file.get_item("path"));
             path = unescape_path(&path);
             path = path.replace("\\\\", "\\");
-            let new_download = SelectedDownload { path, owner };
+
+            let file_size = clean_sciter_string(file.get_item("file_size"));
+            let file_size = match file_size.parse::<u64>() {
+                Ok(s) => s,
+                Err(e) => {
+                    let err = format!(
+                        "Failed to convert file size '{}' of '{}' No downloads started. {}",
+                        file_size, path, e
+                    );
+                    return get_msg_box_response(1, &err);
+                }
+            };
+
+            let new_download = SelectedDownload {
+                path,
+                owner,
+                file_size,
+            };
             downloads.push(new_download);
         }
 
@@ -402,6 +441,7 @@ impl TransmiticHandler {
                             path_local_disk,
                             size: download_state.active_download_size.clone(),
                             error: "".to_string(),
+                            message: "".to_string(),
                         });
                     }
                     None => {} // Do nothing, there is no in progress download
@@ -415,6 +455,7 @@ impl TransmiticHandler {
                         path_local_disk: "".to_string(),
                         size: "".to_string(),
                         error: "".to_string(),
+                        message: "".to_string(),
                     });
                 }
             } else {
@@ -426,6 +467,7 @@ impl TransmiticHandler {
                         path_local_disk: "".to_string(),
                         size: "".to_string(),
                         error: download_state.error.clone().unwrap_or_default(),
+                        message: "".to_string(),
                     });
                 }
             }
@@ -434,10 +476,11 @@ impl TransmiticHandler {
                 invalid.push(SingleDownloadUI {
                     owner: nickname.clone(),
                     percent: 0,
-                    path: invalid_download.clone(),
+                    path: invalid_download.path.clone(),
                     path_local_disk: "".to_string(),
                     size: "".to_string(),
                     error: "".to_string(),
+                    message: invalid_download.message.clone(),
                 });
             }
 
@@ -455,6 +498,7 @@ impl TransmiticHandler {
                     path_local_disk,
                     size: finished_download.size_string.clone(),
                     error: "".to_string(),
+                    message: "".to_string(),
                 });
             }
         }
@@ -676,7 +720,7 @@ impl TransmiticHandler {
         let mut ui_data = Vec::new();
         for (nickname, data) in refresh_data.iter() {
             let files = match &data.data {
-                Some(shared_file) => vec![shared_file.clone()],
+                Some(shared_file) => vec![SharedFileUI::from(shared_file.clone())],
                 None => vec![],
             };
             let ui = RefreshDataUI {
