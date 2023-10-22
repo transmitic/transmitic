@@ -63,14 +63,12 @@
             let showMore = "";
             let divID = 0;
             let info = "File";
-            if (d.files.length > 0) {
-                info = "Folder (" + d.files.length + " files)";
-                let childrenLength = d.files.length;
-                if (childrenLength > 2) {
-                    divID = Math.random().toString();
-                    divID = divID.substring(2, divID.length);
-                    showMore = <button onclick={showMoreOnClick} style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
-                }
+            let childrenLength = d.files.length;
+            if (childrenLength > 0) {
+                info = "Folder (" + childrenLength + " files)";
+                divID = Math.random().toString();
+                divID = divID.substring(2, divID.length);
+                showMore = <button onclick={showMoreOnClick} style="font-size: 8pt; margin-left: 1em;" class="show-more" div-id={divID} data-state="show" data-children={childrenLength}>Show more ({childrenLength})</button>;
             }
             return <div><button class="file-checkbox" data-isRoot={d.isRoot} data-path={d.path} data-owner={owner} data-file-size={d.file_size} type="checkbox">{d.path} | {info} | {d.size_string} </button> {showMore} <br /> <DelayedList divID={divID} files={d.files} owner={owner} /> </div>
         }
