@@ -121,31 +121,10 @@ struct PathJson {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct SharedFileUI {
-    pub path: String,
-    pub is_directory: bool,
-    pub files: Vec<SharedFile>,
-    pub file_size: String, // Sciter UI has issues with BigInts, so we need a string
-    pub size_string: String,
-}
-
-impl From<SharedFile> for SharedFileUI {
-    fn from(shared_file: SharedFile) -> Self {
-        SharedFileUI {
-            path: shared_file.path,
-            is_directory: shared_file.is_directory,
-            files: shared_file.files,
-            file_size: shared_file.file_size.to_string(),
-            size_string: shared_file.size_string,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 struct RefreshDataUI {
     owner: String,
     error: String,
-    files: Vec<SharedFileUI>,
+    files: Vec<SharedFile>,
     in_progress: bool,
 }
 
@@ -720,7 +699,7 @@ impl TransmiticHandler {
         let mut ui_data = Vec::new();
         for (nickname, data) in refresh_data.iter() {
             let files = match &data.data {
-                Some(shared_file) => vec![SharedFileUI::from(shared_file.clone())],
+                Some(shared_file) => vec![shared_file.clone()],
                 None => vec![],
             };
             let ui = RefreshDataUI {
