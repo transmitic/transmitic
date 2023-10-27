@@ -88,28 +88,29 @@
                 }
 
                 return <div>
-                    <span selectable><h3>{this.props.nickname}</h3></span>
-                    <table selectable>
+                    <span><h3>{this.props.nickname}</h3></span>
+                    <table>
                         <tbody>
                             <tr>
                                 <td>Nickname:</td>
-                                <td>{this.elementNickname}</td>
+                                <td selectable>{this.elementNickname}</td>
                             </tr>
                             <tr>
                                 <td>Public ID:</td>
-                                <td class="code-font">{this.elementPublicID}</td>
+                                <td class="code-font" selectable>{this.elementPublicID}</td>
                             </tr>
                             <tr>
                                 <td style="padding-right: 1em;">IP Address:</td>
-                                <td>{this.elementIP}</td>
+                                <td selectable>{this.elementIP}</td>
                             </tr>
                             <tr>
                                 <td>Port:</td>
-                                <td>{this.elementPort}</td>
+                                <td selectable>{this.elementPort}</td>
                             </tr>
                             <tr>
-                                <td>Sharing:</td>
-                                <td>{this.props.status}</td>
+                                <td>Sharing <img id="sharing-state-help" style="height:1.3em; vertical-align:middle;"
+                                    src="ic_fluent_question_circle_28_regular.svg" />:</td>
+                                <td selectable>{this.props.status}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -119,6 +120,16 @@
 
                     <hr />
                 </div>
+            }
+
+            ["on click at img#sharing-state-help"]() {
+                let helpText = <span>
+                    <strong>Allowed</strong>&nbsp;= User can download your files.
+                    <br /><br />
+                    <strong>Blocked</strong>&nbsp;= User cannot download your files. You can still download their files.
+                    <br /><br />
+                </span >;
+                displayHelpModal(Window.this, helpText);
             }
 
             ["on click at button.remove-user"]() {
