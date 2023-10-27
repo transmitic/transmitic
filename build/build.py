@@ -72,6 +72,9 @@ os.chdir(workspace_path)
 print(f"workspace path: {workspace_path}")
 print(f"cwd: {os.getcwd()}")
 
+transmitic_core_dir = os.path.join(workspace_path, "transmitic-core")
+print(f"transmitic core path: {transmitic_core_dir}")
+
 if is_win:
     sciter_dir = os.path.join(os.path.dirname(workspace_path), "sciter-js-sdk")
     sciter_dll_name = "sciter.dll"
@@ -478,6 +481,7 @@ shutil.copy2(os.path.join(workspace_path, "Cargo.lock"), new_release_dir)
 # -- Final
 print("\n\n###### FINAL ######")
 print(version)
+print(rust_default)
 
 res = subprocess.run(f'cargo --version', check=True, shell=True, capture_output=True, encoding='utf-8')
 print(res.stdout.strip())
@@ -493,6 +497,35 @@ sha256 = hashlib.sha256()
 with open(os.path.join(workspace_path, "Cargo.lock"), 'rb') as f:
     sha256.update(f.read())
 print(f"Cargo.lock hash: {sha256.hexdigest()}")
+
+# git
+res = subprocess.run(f'git log', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=transmitic_dir)
+print(f"transmitic: {res.stdout.strip().splitlines()[0]}")
+
+res = subprocess.run(f'git log', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=transmitic_core_dir)
+print(f"transmitic-core: {res.stdout.strip().splitlines()[0]}")
+
+res = subprocess.run(f'git log', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=sciter_dir)
+print(f"sciter-js-sdk: {res.stdout.strip().splitlines()[0]}")
+
+is_dirty = False
+res = subprocess.run(f'git status', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=transmitic_dir)
+stdout = res.stdout.strip()
+is_dirty = is_dirty or 'modified:' in stdout
+if is_dirty:
+    print("DIRTY GIT")
+    print(stdout)
+else:
+    print("clean git")
+
+res = subprocess.run(f'git status', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=transmitic_core_dir)
+stdout = res.stdout.strip()
+is_dirty = is_dirty or 'modified:' in stdout
+if is_dirty:
+    print("DIRTY GIT")
+    print(stdout)
+else:
+    print("clean git")
 
 print()
 if args.no_clean:
