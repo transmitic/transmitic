@@ -982,7 +982,10 @@ fn main() {
     let config = match initialize_config(&config_start_path) {
         Ok(c) => c,
         Err(e) => {
-            let html_error = format!("Transmitic failed to load config<br>{}", &e.to_string());
+            let html_error = get_error_start_html(
+                &"Transmitic failed to load config".to_string(),
+                &e.to_string(),
+            );
             let mut frame = get_sciter_frame();
             frame.load_html(&html_error.into_bytes(), Some("example://main.htm"));
             frame.run_app();
@@ -993,7 +996,8 @@ fn main() {
     let transmitic_core: TransmiticCore = match TransmiticCore::new(config) {
         Ok(t) => t,
         Err(e) => {
-            let html_error = format!("Transmitic failed to start<br>{}", &e.to_string());
+            let html_error =
+                get_error_start_html(&"Transmitic failed to start".to_string(), &e.to_string());
             let mut frame = get_sciter_frame();
             frame.load_html(&html_error.into_bytes(), Some("example://main.htm"));
             frame.run_app();
@@ -1085,4 +1089,12 @@ fn initialize_config(config_start_path: &str) -> Result<Config, Box<dyn Error>> 
     };
 
     Ok(config)
+}
+
+fn get_error_start_html(header: &String, error: &String) -> String {
+    let html = format!(
+        "<html style='padding: 10dip;' selectable><h1>{}</h1><p>{}</p><p>{}</p></html>",
+        header, error, VERSION,
+    );
+    html
 }
