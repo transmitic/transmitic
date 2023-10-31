@@ -6,6 +6,7 @@
 use std::cell::RefCell;
 use std::env;
 use std::error::Error;
+use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 use std::rc::Rc;
@@ -315,6 +316,17 @@ impl TransmiticHandler {
             if let Some(s) = path_local_disk.strip_suffix('\\') {
                 path_local_disk = s.to_string()
             }
+        }
+
+        let mut path = Path::new(&path_local_disk);
+        if path.is_file() {
+            if let Some(p) = path.parent() {
+                path = p;
+            }
+        }
+
+        if let Some(p) = path.to_str() {
+            path_local_disk = p.to_owned();
         }
 
         self.open_in_file_explorer(path_local_disk);
