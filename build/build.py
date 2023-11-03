@@ -9,10 +9,10 @@ import zipfile
 from datetime import date
 from getpass import getpass
 
-rust_mac_arm = "1.71.1-aarch64-apple-darwin"
-rust_mac_x86 = "1.71.1-x86_64-apple-darwin"
-rust_win = "1.71.1-x86_64-pc-windows-msvc"
-rust_linux = "1.71.1-x86_64-unknown-linux-gnu"
+rust_mac_arm = "1.73.0-aarch64-apple-darwin"
+rust_mac_x86 = "1.73.0-x86_64-apple-darwin"
+rust_win = "1.73.0-x86_64-pc-windows-msvc"
+rust_linux = "1.73.0-x86_64-unknown-linux-gnu"
 rust_default = "XX"
 
 system = platform.system().lower()
@@ -29,15 +29,17 @@ elif is_linux:
     rust_default = rust_linux
 
 # -- Args
-parser = argparse.ArgumentParser(description='Build Transmitic')
-parser.add_argument('--no-clean',
-                    help='do not clean build space. useful for iteration speed.',
-                    action='store_true',
-                    )
-parser.add_argument('--no-sign',
-                    help='do not sign builds. useful for iteration speed.',
-                    action='store_true',
-                    )
+parser = argparse.ArgumentParser(description="Build Transmitic")
+parser.add_argument(
+    "--no-clean",
+    help="do not clean build space. useful for iteration speed.",
+    action="store_true",
+)
+parser.add_argument(
+    "--no-sign",
+    help="do not sign builds. useful for iteration speed.",
+    action="store_true",
+)
 args = parser.parse_args()
 print(args)
 
@@ -115,17 +117,13 @@ print(f"cargo version: {version}")
 new_release_root_dir = os.path.join(
     workspace_path, "releases", f"a_staging_transmitic_v{version}"
 )
-new_release_dir = os.path.join(
-    new_release_root_dir, system
-)
+new_release_dir = os.path.join(new_release_root_dir, system)
 if os.path.exists(new_release_dir):
     shutil.rmtree(new_release_dir)
 os.makedirs(new_release_dir, exist_ok=False)
 print(f"release dir: {new_release_dir}")
 
-transmitic_exe_path = os.path.join(
-    workspace_path, "target", "release", BINARY_NAME
-)
+transmitic_exe_path = os.path.join(workspace_path, "target", "release", BINARY_NAME)
 
 
 # -- Build
@@ -147,11 +145,19 @@ def cargo_build():
 
 
 def code_sign(team_idd, code_pass, code_path):
-    result = subprocess.run(f'codesign -s "{code_pass}" --deep -v -f -o runtime "{code_path}"', check=True,
-                            shell=True)
+    result = subprocess.run(
+        f'codesign -s "{code_pass}" --deep -v -f -o runtime "{code_path}"',
+        check=True,
+        shell=True,
+    )
     print(result)
-    result = subprocess.run(f'codesign -dv "{code_path}"', check=True, shell=True, capture_output=True,
-                            encoding='utf-8')
+    result = subprocess.run(
+        f'codesign -dv "{code_path}"',
+        check=True,
+        shell=True,
+        capture_output=True,
+        encoding="utf-8",
+    )
     print(result)
     assert f"TeamIdentifier={team_idd}" in result.stderr.strip()
 
@@ -168,8 +174,13 @@ if is_mac:
     rust_default = rust_mac_arm
     cargo_build()
     # check arm
-    res = subprocess.run(f'lipo -archs "{transmitic_exe_path}"', check=True, shell=True, capture_output=True,
-                         encoding='utf-8')
+    res = subprocess.run(
+        f'lipo -archs "{transmitic_exe_path}"',
+        check=True,
+        shell=True,
+        capture_output=True,
+        encoding="utf-8",
+    )
     print(res)
     assert res.stdout.strip() == "arm64"
     # sign
@@ -184,8 +195,13 @@ if is_mac:
     rust_default = rust_mac_x86
     cargo_build()
     # check x64
-    res = subprocess.run(f"lipo -archs {transmitic_exe_path}", check=True, shell=True, capture_output=True,
-                         encoding='utf-8')
+    res = subprocess.run(
+        f"lipo -archs {transmitic_exe_path}",
+        check=True,
+        shell=True,
+        capture_output=True,
+        encoding="utf-8",
+    )
     print(res)
     assert res.stdout.strip() == "x86_64"
     # sign
@@ -200,13 +216,22 @@ if is_mac:
     os.chdir(new_release_dir)
     transmitic_exe_path = os.path.join(new_release_dir, BINARY_NAME)
     assert not os.path.exists(transmitic_exe_path)
-    res = subprocess.run(f'lipo "{arm_copy_path}" "{x86_copy_path}" -create -output transmitic', check=True, shell=True)
+    res = subprocess.run(
+        f'lipo "{arm_copy_path}" "{x86_copy_path}" -create -output transmitic',
+        check=True,
+        shell=True,
+    )
     print(res)
     # check universal
-    res = subprocess.run(f'lipo -archs "{transmitic_exe_path}"', check=True, shell=True, capture_output=True,
-                         encoding='utf-8')
+    res = subprocess.run(
+        f'lipo -archs "{transmitic_exe_path}"',
+        check=True,
+        shell=True,
+        capture_output=True,
+        encoding="utf-8",
+    )
     print(res)
-    assert res.stdout.strip() == 'x86_64 arm64'
+    assert res.stdout.strip() == "x86_64 arm64"
     # sign
     if not args.no_sign:
         code_sign(team_id, codesign_pass, transmitic_exe_path)
@@ -226,8 +251,11 @@ shutil.copy2(sciter_dll_path, new_path)
 sciter_dll_path = new_path
 # sign
 if not args.no_sign and is_mac:
-    res = subprocess.run(f'codesign -s "{codesign_pass}" --deep -v -f -o runtime "{sciter_dll_path}"', check=True,
-                         shell=True)
+    res = subprocess.run(
+        f'codesign -s "{codesign_pass}" --deep -v -f -o runtime "{sciter_dll_path}"',
+        check=True,
+        shell=True,
+    )
     print(res)
 
 # create res
@@ -257,7 +285,9 @@ def run_rc_edit(file_path):
     print(result)
 
     print("")
-    cmmd = f'{rc_edit_path} "{file_path}" --set-version-string "CompanyName" "Transmitic"'
+    cmmd = (
+        f'{rc_edit_path} "{file_path}" --set-version-string "CompanyName" "Transmitic"'
+    )
     print(f"{cmmd}")
     result = subprocess.run(cmmd, check=True)
     print(result)
@@ -269,7 +299,9 @@ def run_rc_edit(file_path):
     print(result)
 
     print("")
-    cmmd = f'{rc_edit_path} "{file_path}" --set-version-string "ProductName" "Transmitic"'
+    cmmd = (
+        f'{rc_edit_path} "{file_path}" --set-version-string "ProductName" "Transmitic"'
+    )
     print(f"{cmmd}")
     result = subprocess.run(cmmd, check=True)
     print(result)
@@ -295,11 +327,19 @@ portable_dir = os.path.join(new_release_dir, f"transmitic_v{version}_{system}_po
 zip_path = os.path.join(new_release_dir, f"transmitic_v{version}_{system}_portable.zip")
 sub_portable_dir = os.path.join(portable_dir, f"transmitic_v{version}_{system}")
 os.makedirs(portable_dir, exist_ok=False)
-shutil.copytree(res_path, os.path.join(sub_portable_dir, 'res'), dirs_exist_ok=True)
-shutil.copy2(os.path.join(new_release_dir, sciter_dll_name), os.path.join(sub_portable_dir, sciter_dll_name))
-shutil.copy2(os.path.join(new_release_dir, BINARY_NAME), os.path.join(sub_portable_dir, BINARY_NAME))
+shutil.copytree(res_path, os.path.join(sub_portable_dir, "res"), dirs_exist_ok=True)
+shutil.copy2(
+    os.path.join(new_release_dir, sciter_dll_name),
+    os.path.join(sub_portable_dir, sciter_dll_name),
+)
+shutil.copy2(
+    os.path.join(new_release_dir, BINARY_NAME),
+    os.path.join(sub_portable_dir, BINARY_NAME),
+)
 os.chdir(new_release_dir)
-shutil.make_archive(f"transmitic_v{version}_{system}_portable", 'zip', root_dir=portable_dir)
+shutil.make_archive(
+    f"transmitic_v{version}_{system}_portable", "zip", root_dir=portable_dir
+)
 if is_linux:
     os.chdir(portable_dir)
     tar_file_name = f"transmitic_v{version}_{system}_portable.tar.gz"
@@ -311,13 +351,13 @@ os.chdir(workspace_path)
 
 if is_win:
     # -- Installer MSI
-    shutil.copy2(os.path.join(HERE, 'license.rtf'), new_release_dir)
-    shutil.copy2(os.path.join(HERE, 'WixUIBannerBmp.png'), new_release_dir)
-    shutil.copy2(os.path.join(HERE, 'WixUIDialogBmp.png'), new_release_dir)
-    shutil.copy2(os.path.join(HERE, 'transmitic_installed.json'), new_release_dir)
+    shutil.copy2(os.path.join(HERE, "license.rtf"), new_release_dir)
+    shutil.copy2(os.path.join(HERE, "WixUIBannerBmp.png"), new_release_dir)
+    shutil.copy2(os.path.join(HERE, "WixUIDialogBmp.png"), new_release_dir)
+    shutil.copy2(os.path.join(HERE, "transmitic_installed.json"), new_release_dir)
 
     # Create MSI xml
-    with open(os.path.join(HERE, "transmitic_msi.wxs"), 'r', encoding='utf=8') as f:
+    with open(os.path.join(HERE, "transmitic_msi.wxs"), "r", encoding="utf=8") as f:
         text = f.read()
     res_files = os.listdir(res_path)
     res_features = ""
@@ -336,10 +376,15 @@ if is_win:
                         </Component>
     """
     exit_text = f"{website}"
-    text = text.format(RES_FEATURES=res_features, RES_COMPONENTS=res_components, VERSION=version, EXIT_TEXT=exit_text)
+    text = text.format(
+        RES_FEATURES=res_features,
+        RES_COMPONENTS=res_components,
+        VERSION=version,
+        EXIT_TEXT=exit_text,
+    )
 
-    msi_xml_path = os.path.join(new_release_dir, f'transmitic_v{version}_windows.wxs')
-    with open(msi_xml_path, 'w', encoding='utf-8') as f:
+    msi_xml_path = os.path.join(new_release_dir, f"transmitic_v{version}_windows.wxs")
+    with open(msi_xml_path, "w", encoding="utf-8") as f:
         f.write(text)
 
     # Build msi
@@ -348,27 +393,42 @@ if is_win:
     res = subprocess.run(command, check=True, shell=True)
     print(res)
     os.chdir(workspace_path)
-    output_msi_path = os.path.join(new_release_dir, f'transmitic_v{version}_windows.msi')
+    output_msi_path = os.path.join(
+        new_release_dir, f"transmitic_v{version}_windows.msi"
+    )
 
     # -- Burn Bundle
 
     # Create Burn xml
-    with open(os.path.join(HERE, "transmitic_installer.wxs"), 'r', encoding='utf=8') as f:
+    with open(
+        os.path.join(HERE, "transmitic_installer.wxs"), "r", encoding="utf=8"
+    ) as f:
         text = f.read()
     vc_redist_path = os.path.join(workspace_path, "vc_redist.x64.exe")
-    text = text.format(VERSION=version, WEBSITE=website, MSI_FILE=output_msi_path, VC_REDIST_FILE=vc_redist_path)
+    text = text.format(
+        VERSION=version,
+        WEBSITE=website,
+        MSI_FILE=output_msi_path,
+        VC_REDIST_FILE=vc_redist_path,
+    )
 
-    burn_xml_path = os.path.join(new_release_dir, f'Transmitic v{version} Installer Windows.wxs')
-    with open(burn_xml_path, 'w', encoding='utf-8') as f:
+    burn_xml_path = os.path.join(
+        new_release_dir, f"Transmitic v{version} Installer Windows.wxs"
+    )
+    with open(burn_xml_path, "w", encoding="utf-8") as f:
         f.write(text)
 
     # Build burn
     os.chdir(new_release_dir)
 
-    res = subprocess.run("wix extension add WixToolset.Util.wixext", check=True, shell=True)
+    res = subprocess.run(
+        "wix extension add WixToolset.Util.wixext", check=True, shell=True
+    )
     print(res)
 
-    res = subprocess.run("wix extension add WixToolset.Bal.wixext", check=True, shell=True)
+    res = subprocess.run(
+        "wix extension add WixToolset.Bal.wixext", check=True, shell=True
+    )
     print(res)
 
     command = f'wix build "{burn_xml_path}" -ext WixToolset.Bal.wixext -ext WixToolset.UI.wixext'
@@ -378,7 +438,6 @@ if is_win:
 
 # Notarize and Create app bundle
 if is_mac:
-
     notary_args = ""
     if not args.no_sign:
         notary_args = getpass("Enter notary args: ").strip()
@@ -386,7 +445,7 @@ if is_mac:
     os.chdir(new_release_dir)
     # Notarize single binaries
     if not args.no_sign:
-        with zipfile.ZipFile('notary_upload.zip', 'w') as z:
+        with zipfile.ZipFile("notary_upload.zip", "w") as z:
             for f in [sciter_dll_name, BINARY_NAME]:
                 z.write(f, compress_type=zipfile.ZIP_DEFLATED)
 
@@ -407,7 +466,7 @@ if is_mac:
     # MacOS
     shutil.copy2(sciter_dll_path, macos_path)
     shutil.copy2(transmitic_exe_path, macos_path)
-    shutil.copy2(os.path.join(HERE, 'transmitic_installed.json'), macos_path)
+    shutil.copy2(os.path.join(HERE, "transmitic_installed.json"), macos_path)
 
     # Resources
     shutil.copytree(res_path, macos_resources_path, dirs_exist_ok=True)
@@ -445,8 +504,8 @@ if is_mac:
 
     </dict>
 </plist>"""
-    info_plist_path = os.path.join(contents_path, 'Info.plist')
-    with open(info_plist_path, 'w', encoding='utf-8') as f:
+    info_plist_path = os.path.join(contents_path, "Info.plist")
+    with open(info_plist_path, "w", encoding="utf-8") as f:
         f.write(info_plist)
 
     if not args.no_sign:
@@ -455,22 +514,33 @@ if is_mac:
         app_notary_name = "Transmitic_notary.zip"
         assert not os.path.exists(app_notary_name)
         zip_command = f'ditto -ck --rsrc --sequesterRsrc --keepParent Transmitic.app "{app_notary_name}"'
-        res = subprocess.run(zip_command, check=True, shell=True, capture_output=True, encoding='utf-8')
+        res = subprocess.run(
+            zip_command, check=True, shell=True, capture_output=True, encoding="utf-8"
+        )
         print(res)
 
         command = f"xcrun notarytool submit {notary_args} --wait ./{app_notary_name}"
         res = subprocess.run(command, check=True, shell=True)
         print(res)
 
-        res = subprocess.run(f'xcrun stapler staple Transmitic.app', check=True, shell=True, capture_output=True,
-                             encoding='utf-8')
+        res = subprocess.run(
+            f"xcrun stapler staple Transmitic.app",
+            check=True,
+            shell=True,
+            capture_output=True,
+            encoding="utf-8",
+        )
         print(res)
         assert "The staple and validate action worked!" in res.stdout
 
         zip_name = f"Transmitic v{version} macOS.zip"
         assert not os.path.exists(zip_name)
-        zip_command = f'ditto -ck --rsrc --sequesterRsrc --keepParent Transmitic.app "{zip_name}"'
-        res = subprocess.run(zip_command, check=True, shell=True, capture_output=True, encoding='utf-8')
+        zip_command = (
+            f'ditto -ck --rsrc --sequesterRsrc --keepParent Transmitic.app "{zip_name}"'
+        )
+        res = subprocess.run(
+            zip_command, check=True, shell=True, capture_output=True, encoding="utf-8"
+        )
         print(res)
 
     os.chdir(workspace_path)
@@ -483,44 +553,85 @@ print("\n\n###### FINAL ######")
 print(version)
 print(rust_default)
 
-res = subprocess.run(f'cargo --version', check=True, shell=True, capture_output=True, encoding='utf-8')
+res = subprocess.run(
+    f"cargo --version", check=True, shell=True, capture_output=True, encoding="utf-8"
+)
 print(res.stdout.strip())
 
-res = subprocess.run(f'rustup default', check=True, shell=True, capture_output=True, encoding='utf-8')
+res = subprocess.run(
+    f"rustup default", check=True, shell=True, capture_output=True, encoding="utf-8"
+)
 print(res.stdout.strip())
 
-res = subprocess.run(f'rustup --version', check=True, shell=True, capture_output=True, encoding='utf-8')
+res = subprocess.run(
+    f"rustup --version", check=True, shell=True, capture_output=True, encoding="utf-8"
+)
 print(res.stdout.strip())
 
 # hash cargo lock
 sha256 = hashlib.sha256()
-with open(os.path.join(workspace_path, "Cargo.lock"), 'rb') as f:
+with open(os.path.join(workspace_path, "Cargo.lock"), "rb") as f:
     sha256.update(f.read())
 print(f"Cargo.lock hash: {sha256.hexdigest()}")
 
 # git
-res = subprocess.run(f'git log', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=transmitic_dir)
+res = subprocess.run(
+    f"git log",
+    check=True,
+    shell=True,
+    capture_output=True,
+    encoding="utf-8",
+    cwd=transmitic_dir,
+)
 print(f"transmitic: {res.stdout.strip().splitlines()[0]}")
 
-res = subprocess.run(f'git log', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=transmitic_core_dir)
+res = subprocess.run(
+    f"git log",
+    check=True,
+    shell=True,
+    capture_output=True,
+    encoding="utf-8",
+    cwd=transmitic_core_dir,
+)
 print(f"transmitic-core: {res.stdout.strip().splitlines()[0]}")
 
-res = subprocess.run(f'git log', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=sciter_dir)
+res = subprocess.run(
+    f"git log",
+    check=True,
+    shell=True,
+    capture_output=True,
+    encoding="utf-8",
+    cwd=sciter_dir,
+)
 print(f"sciter-js-sdk: {res.stdout.strip().splitlines()[0]}")
 
 is_dirty = False
-res = subprocess.run(f'git status', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=transmitic_dir)
+res = subprocess.run(
+    f"git status",
+    check=True,
+    shell=True,
+    capture_output=True,
+    encoding="utf-8",
+    cwd=transmitic_dir,
+)
 stdout = res.stdout.strip()
-is_dirty = is_dirty or 'modified:' in stdout
+is_dirty = is_dirty or "modified:" in stdout
 if is_dirty:
     print("DIRTY GIT")
     print(stdout)
 else:
     print("clean git")
 
-res = subprocess.run(f'git status', check=True, shell=True, capture_output=True, encoding='utf-8', cwd=transmitic_core_dir)
+res = subprocess.run(
+    f"git status",
+    check=True,
+    shell=True,
+    capture_output=True,
+    encoding="utf-8",
+    cwd=transmitic_core_dir,
+)
 stdout = res.stdout.strip()
-is_dirty = is_dirty or 'modified:' in stdout
+is_dirty = is_dirty or "modified:" in stdout
 if is_dirty:
     print("DIRTY GIT")
     print(stdout)

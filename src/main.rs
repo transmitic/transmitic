@@ -188,11 +188,10 @@ impl TransmiticHandler {
             clean_strings.push(clean_file);
         }
 
-        let response = match self.transmitic_core.add_files(clean_strings) {
+        match self.transmitic_core.add_files(clean_strings) {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-        response
+        }
     }
 
     fn add_new_user(
@@ -207,15 +206,13 @@ impl TransmiticHandler {
         let new_ip = clean_sciter_string(new_ip);
         let new_port = clean_sciter_string(new_port);
 
-        let response =
-            match self
-                .transmitic_core
-                .add_new_user(new_nickname, new_public_id, new_ip, new_port)
-            {
-                Ok(_) => get_msg_box_response(0, ""),
-                Err(e) => get_msg_box_response(1, &e.to_string()),
-            };
-        response
+        match self
+            .transmitic_core
+            .add_new_user(new_nickname, new_public_id, new_ip, new_port)
+        {
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
+        }
     }
 
     fn add_user_to_shared(&mut self, nickname: Value, file_path: Value) -> Value {
@@ -224,19 +221,17 @@ impl TransmiticHandler {
         file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
 
-        let response = match self.transmitic_core.add_user_to_shared(nickname, file_path) {
+        match self.transmitic_core.add_user_to_shared(nickname, file_path) {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-        response
+        }
     }
 
     fn create_new_id(&mut self) -> Value {
-        let response = match self.transmitic_core.create_new_id() {
+        match self.transmitic_core.create_new_id() {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-        response
+        }
     }
 
     fn download_selected(&mut self, files: Value) -> Value {
@@ -269,11 +264,10 @@ impl TransmiticHandler {
             downloads.push(new_download);
         }
 
-        let response = match self.transmitic_core.download_selected(downloads) {
+        match self.transmitic_core.download_selected(downloads) {
             Ok(_) => get_msg_box_response(0, "Files will be downloaded"),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-        response
+        }
     }
 
     fn open_in_file_explorer(&self, path: String) {
@@ -377,11 +371,10 @@ impl TransmiticHandler {
         let mut path = clean_sciter_string(path);
         path = path.replace("\\\\", "\\"); // TODO stdlib function for normalizing file paths?
 
-        let response = match self.transmitic_core.set_path_downloads_dir(path) {
+        match self.transmitic_core.set_path_downloads_dir(path) {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-        response
+        }
     }
 
     fn get_all_uploads(&self) -> Value {
@@ -748,22 +741,19 @@ impl TransmiticHandler {
         file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\");
 
-        let response = match self.transmitic_core.remove_file_from_sharing(file_path) {
+        match self.transmitic_core.remove_file_from_sharing(file_path) {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-
-        response
+        }
     }
 
     fn remove_user(&mut self, nickname: Value) -> Value {
         let nickname = clean_sciter_string(nickname);
-        let response = match self.transmitic_core.remove_user(nickname) {
+
+        match self.transmitic_core.remove_user(nickname) {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-
-        response
+        }
     }
 
     fn remove_user_from_sharing(&mut self, nickname: Value, file_path: Value) -> Value {
@@ -772,15 +762,13 @@ impl TransmiticHandler {
         file_path = unescape_path(&file_path);
         file_path = file_path.replace("\\\\", "\\");
 
-        let response = match self
+        match self
             .transmitic_core
             .remove_user_from_sharing(nickname, file_path)
         {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-
-        response
+        }
     }
 
     fn set_my_sharing_state(&mut self, state: Value) -> Value {
@@ -803,33 +791,29 @@ impl TransmiticHandler {
 
     fn set_ignore_incoming(&mut self, state: Value) -> Value {
         let state = state.to_bool().unwrap();
-        let response = match self.transmitic_core.set_ignore_incoming(state) {
+
+        match self.transmitic_core.set_ignore_incoming(state) {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-
-        response
+        }
     }
 
     fn set_reverse_connection(&mut self, state: Value) -> Value {
         let state = state.to_bool().unwrap();
-        let response = match self.transmitic_core.set_reverse_connection(state) {
+
+        match self.transmitic_core.set_reverse_connection(state) {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-
-        response
+        }
     }
 
     fn set_port(&mut self, port: Value) -> Value {
         let port = clean_sciter_string(port);
 
-        let response = match self.transmitic_core.set_port(port) {
+        match self.transmitic_core.set_port(port) {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-
-        response
+        }
     }
 
     fn set_user_is_allowed_state(&mut self, nickname: Value, is_allowed: Value) -> Value {
@@ -839,15 +823,13 @@ impl TransmiticHandler {
             None => return get_msg_box_response(1, "is_allowed is not a bool"),
         };
 
-        let response = match self
+        match self
             .transmitic_core
             .set_user_is_allowed_state(nickname, is_allowed)
         {
             Ok(_) => get_msg_box_response(0, ""),
             Err(e) => get_msg_box_response(1, &e.to_string()),
-        };
-
-        response
+        }
     }
 
     fn update_user(
@@ -862,16 +844,13 @@ impl TransmiticHandler {
         let new_ip = clean_sciter_string(new_ip);
         let new_port = clean_sciter_string(new_port);
 
-        let response =
-            match self
-                .transmitic_core
-                .update_user(nickname, new_public_id, new_ip, new_port)
-            {
-                Ok(_) => get_msg_box_response(0, ""),
-                Err(e) => get_msg_box_response(1, &e.to_string()),
-            };
-
-        response
+        match self
+            .transmitic_core
+            .update_user(nickname, new_public_id, new_ip, new_port)
+        {
+            Ok(_) => get_msg_box_response(0, ""),
+            Err(e) => get_msg_box_response(1, &e.to_string()),
+        }
     }
 }
 
