@@ -77,6 +77,7 @@ print(f"cwd: {os.getcwd()}")
 transmitic_core_dir = os.path.join(workspace_path, "transmitic-core")
 print(f"transmitic core path: {transmitic_core_dir}")
 
+sciter_dir = None
 if is_win:
     sciter_dir = os.path.join(os.path.dirname(workspace_path), "sciter-js-sdk")
     sciter_dll_name = "sciter.dll"
@@ -595,15 +596,16 @@ res = subprocess.run(
 )
 print(f"transmitic-core: {res.stdout.strip().splitlines()[0]}")
 
-res = subprocess.run(
-    f"git log",
-    check=True,
-    shell=True,
-    capture_output=True,
-    encoding="utf-8",
-    cwd=sciter_dir,
-)
-print(f"sciter-js-sdk: {res.stdout.strip().splitlines()[0]}")
+if sciter_dir:
+    res = subprocess.run(
+        f"git log",
+        check=True,
+        shell=True,
+        capture_output=True,
+        encoding="utf-8",
+        cwd=sciter_dir,
+    )
+    print(f"sciter-js-sdk: {res.stdout.strip().splitlines()[0]}")
 
 is_dirty = False
 res = subprocess.run(
