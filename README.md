@@ -1,19 +1,20 @@
-# <img src="./src/window_icon.svg" alt="Transmitic Logo" height="30"> Transmitic Beta
+<div align="center">
+<img src="./src/window_icon.svg" alt="Transmitic Logo" height="150"> 
+<h1>Transmitic Beta</h1>
+<strong>Encrypted, peer to peer, file transfer and sharing, with download pause and resume</strong>
+<br/>
+<a href="https://discord.gg/tRT3J6T">Discord</a> ● <a href="https://www.reddit.com/r/transmitic/">Reddit</a> ● <a href="https://twitter.com/transmitic">Twitter</a> ● <a href="https://techhub.social/@transmitic">Mastodon</a> ● <a href="https://transmitic.net/">transmitic.net</a>
+</div>
+<br/>
 
-Transmitic is an encrypted, peer to peer, file transfer and sharing program, with download pause and resume.  
-Built with Rust.  
-No third party server is involved.  
-No file size limit!  
-You add users and choose which files and folders you want to share with them.
+- Encrypted
+- P2P
+- Built with Rust  
+- No third party server involved  
+- No file size limits  
 
 The goal is to make transferring files and folders as easy as possible.  
-If you have ever thought _"I just want to send these files directly from this computer to another"_, Transmitic can help.   
-
-Discord: [https://discord.gg/tRT3J6T](https://discord.gg/tRT3J6T)  
-Reddit: [https://www.reddit.com/r/transmitic/](https://www.reddit.com/r/transmitic/)  
-Twitter: [https://twitter.com/transmitic](https://twitter.com/transmitic)  
-Mastodon: [https://techhub.social/@transmitic](https://techhub.social/@transmitic)  
-Website: [https://transmitic.net/](https://transmitic.net/)  
+If you have ever thought `I just want to send these files directly from this computer to another`, Transmitic can help.   
 
 ## How it Works
 
@@ -35,12 +36,14 @@ See [Demo below](#demo)
     1. x25519 Diffie-Hellman Key Exchange
 1. Easy to use GUI
 1. Cross Platform
-    1. Windows
-    1. macOS Universal
-    1. Linux
+    1. Windows MSI Installer & Portable
+    1. macOS Universal Bundle & Portable
+    1. Linux Portable
 1. Private
     1. P2P
     1. No third party servers in any way
+1. Lan & Internet
+1. Share files and folders
 1. No file size limits
 1. Pause and Resume
     1. Downloads can be paused, or interrupted, but will continue where they left off
@@ -49,13 +52,11 @@ See [Demo below](#demo)
 
 ## Support Transmitic
 
-Your support is greatly needed  
+Please 🌟 the repo!  
 
-<a href="https://www.buymeacoffee.com/andrewshay" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" height="40" width="150" style="height: 40px !important;width: 150px !important;" ></a>
+If you get value from Transmitic, please donate
 
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J626I8G)
-
-<a href="https://www.patreon.com/andrewshay" target="_blank"><img src="https://user-images.githubusercontent.com/4878195/161663353-d78961a3-71e6-4353-9a2e-3028e64c72e1.png" alt="Patreon" height="40" width="40" style="height: 40px !important;width: 40px !important;" > Patreon</a>
+<a href="https://www.buymeacoffee.com/andrewshay" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" height="40" width="150" style="height: 40px !important;width: 150px !important;" ></a>&nbsp;&nbsp;&nbsp;&nbsp;[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J626I8G) &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.patreon.com/andrewshay" target="_blank"><img src="https://user-images.githubusercontent.com/4878195/161663353-d78961a3-71e6-4353-9a2e-3028e64c72e1.png" alt="Patreon" height="40" width="40" style="height: 40px !important;width: 40px !important;" > Patreon</a>
 
 ## Comparison To Other Tools
 
@@ -74,7 +75,7 @@ Transmitic is currently in beta. Please report any bugs that you encounter.
 
 ## More Info
 
-See wiki for more information, help, and limitations [https://github.com/transmitic/transmitic/wiki](https://github.com/transmitic/transmitic/wiki)
+See wiki for more information, networking help, and limitations [https://github.com/transmitic/transmitic/wiki](https://github.com/transmitic/transmitic/wiki)
 
 ## Contributing
 
@@ -100,7 +101,7 @@ If you are interested, please visit the [Discord](https://discord.gg/tRT3J6T).
 
 See [GitHub Issues](https://github.com/transmitic/transmitic/issues) and [Discussions](https://github.com/transmitic/transmitic/discussions) for more
 
-## Cryptography Usage
+## Cryptography
 
 - Public, Private signing keys generated with `ring`
 - Signing `ring` keys ("Public IDs") are exchanged out of band, manually
@@ -111,7 +112,7 @@ See [GitHub Issues](https://github.com/transmitic/transmitic/issues) and [Discus
 - AES key generated
 - All further communication encrypted with `AES-GCM` with `ring`
 
-See these modules to review the cryptography usage in [transmitic-core](https://github.com/transmitic/transmitic-core)
+See these modules to review the cryptography in [transmitic-core](https://github.com/transmitic/transmitic-core)
 
 - [crypto.rs](https://github.com/transmitic/transmitic-core/blob/main/src/crypto.rs)
 - [transmitic_stream.rs](https://github.com/transmitic/transmitic-core/blob/main/src/transmitic_stream.rs)
