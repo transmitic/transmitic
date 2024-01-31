@@ -20,6 +20,22 @@
             document.$("input#new-user-port").value = DEFAULT_PORT;
         }
 
+        document.$("#ip-hostname-help").onclick = function () {
+            let helpText = <span>
+                This should be an IP address (v4 or v6), Hostname, or Domain name.<br /><br />
+                Examples:<br /><br /><br />
+                <ul>
+                    <li>127.0.0.1</li>
+                    <li>203.0.113.0</li>
+                    <li>[2001:0db8:85a3:0000:0000:8a2e:0370:6554]</li>
+                    <li>[::01]</li>
+                    <li>transmitic.net</li>
+                </ul>
+                <br /><br />
+            </span >;
+            displayHelpModal(Window.this, helpText);
+        }
+
         document.$("button#add-user").onclick = function () {
             let new_nickname = document.$("input#new-user-nickname").value;
             let new_public_id = document.$("input#new-user-public-id").value;
@@ -100,7 +116,7 @@
                                 <td class="code-font" selectable>{this.elementPublicID}</td>
                             </tr>
                             <tr>
-                                <td style="padding-right: 1em;">IP Address:</td>
+                                <td style="padding-right: 1em;">IP or Hostname:</td>
                                 <td selectable>{this.elementIP}</td>
                             </tr>
                             <tr>
@@ -226,7 +242,8 @@
                         <td class="code-font"><input id="new-user-public-id" type="text" size="36"></td>
                     </tr>
                     <tr class="add-row">
-                        <td>IP Address: &nbsp;</td>
+                        <td>IP or Hostname <img id="ip-hostname-help" style="height:1.3em; vertical-align:middle;"
+                                src="ic_fluent_question_circle_28_regular.svg" />: &nbsp;</td>
                         <td><input id="new-user-ip" type="text" size="36"></td>
                     </tr>
                     <tr class="add-row">
