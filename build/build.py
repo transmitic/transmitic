@@ -9,10 +9,10 @@ import zipfile
 from datetime import date
 from getpass import getpass
 
-rust_mac_arm = "1.73.0-aarch64-apple-darwin"
-rust_mac_x86 = "1.73.0-x86_64-apple-darwin"
-rust_win = "1.73.0-x86_64-pc-windows-msvc"
-rust_linux = "1.73.0-x86_64-unknown-linux-gnu"
+rust_mac_arm = "1.76.0-aarch64-apple-darwin"
+rust_mac_x86 = "1.76.0-x86_64-apple-darwin"
+rust_win = "1.76.0-x86_64-pc-windows-msvc"
+rust_linux = "1.76.0-x86_64-unknown-linux-gnu"
 rust_default = "XX"
 
 system = platform.system().lower()
