@@ -423,12 +423,12 @@ if is_win:
     os.chdir(new_release_dir)
 
     res = subprocess.run(
-        "wix extension add WixToolset.Util.wixext", check=True, shell=True
+        "wix extension add WixToolset.Util.wixext/4.0.4", check=True, shell=True
     )
     print(res)
 
     res = subprocess.run(
-        "wix extension add WixToolset.Bal.wixext", check=True, shell=True
+        "wix extension add WixToolset.Bal.wixext/4.0.4", check=True, shell=True
     )
     print(res)
 
