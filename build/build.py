@@ -572,8 +572,12 @@ print(res.stdout.strip())
 # hash cargo lock
 sha256 = hashlib.sha256()
 with open(os.path.join(workspace_path, "Cargo.lock"), "rb") as f:
-    sha256.update(f.read())
+    bytes = f.read()
+    sha256.update(bytes)
+    lock_text = bytes.decode("utf-8")
 print(f"Cargo.lock hash: {sha256.hexdigest()}")
+if "base64" in lock_text:
+    print("!!!! WARNING: base64 found in Cargo.lock")
 
 # git
 res = subprocess.run(
