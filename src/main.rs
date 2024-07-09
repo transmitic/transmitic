@@ -1007,7 +1007,22 @@ fn get_sciter_frame() -> sciter::Window {
     if cfg!(debug_assertions) {
         sciter::set_options(sciter::RuntimeOptions::DebugMode(true)).unwrap();
     }
-
+    if let Ok(p) = env::var("TRAN_PATH_SCITER") {
+        println!("Using sciter library at '{}'", p);
+        match sciter::set_library(&p) {
+            Ok(_) => {}
+            Err(e) => {
+                let e = format!(
+                    "Failed to load custom sciter path from TRAN_PATH_SCITER '{}'. {}",
+                    p, e
+                );
+                let mut frame = sciter::Window::new();
+                frame.load_html(&e.clone().into_bytes(), Some("example://main.htm"));
+                frame.run_app();
+                panic!("{:?}", e.to_string());
+            }
+        }
+    }
     sciter::Window::new()
 }
 
