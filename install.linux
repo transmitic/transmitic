@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Define variables
+DOWNLOAD_URL="https://github.com/transmitic/transmitic/releases/download/v0.16.0/transmitic_v0.16.0_linux_portable.tar.gz"
+DOWNLOAD_DIR="$HOME/Downloads"
+INSTALL_DIR="/usr/local/bin"
+ARCHIVE_NAME="transmitic_v0.16.0_linux_portable.tar.gz"
+EXTRACTED_DIR="transmitic_v0.16.0_linux"
+BINARY_NAME="transmitic"
+
+# Start installation
+echo "Starting Transmitic installation..."
+
+# Step 1: Navigate to Downloads directory
+echo "Navigating to the Downloads directory..."
+cd "$DOWNLOAD_DIR" || { echo "Failed to access $DOWNLOAD_DIR. Exiting."; exit 1; }
+
+# Step 2: Download Transmitic
+echo "Downloading Transmitic package..."
+wget -q "$DOWNLOAD_URL" -O "$ARCHIVE_NAME" || { echo "Download failed. Exiting."; exit 1; }
+echo "Download completed successfully."
+
+# Step 3: Extract the downloaded package
+echo "Extracting Transmitic package..."
+tar xzf "$ARCHIVE_NAME" || { echo "Extraction failed. Exiting."; exit 1; }
+echo "Extraction completed successfully."
+
+# Step 4: Create a symbolic link in /usr/local/bin
+echo "Linking Transmitic binary to $INSTALL_DIR..."
+sudo ln -sf "$DOWNLOAD_DIR/$EXTRACTED_DIR/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME" || { echo "Linking failed. Exiting."; exit 1; }
+echo "Transmitic installed successfully."
+
+# Final message
+echo "Transmitic is ready! Run 'transmitic' from the command line to start."
+
